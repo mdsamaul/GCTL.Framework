@@ -314,6 +314,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<GCTL.Service.Finance.BalanceSheet.IBalanceSheetService, GCTL.Service.Finance.BalanceSheet.BalanceSheetService>();
             services.AddScoped<GCTL.Service.Finance.CashFlow.ICashFlowService, GCTL.Service.Finance.CashFlow.CashFlowService>();
             services.AddScoped<IPasswordResetService, PasswordResetService>();
+            services.AddScoped<GCTL.Service.PaymentReceiveReport.IPaymentReceiveReportService, GCTL.Service.PaymentReceiveReport.PaymentReceiveReportService>();
 
             services.AddMemoryCache();
         }

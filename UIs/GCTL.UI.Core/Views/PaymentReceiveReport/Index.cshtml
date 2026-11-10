@@ -1,0 +1,494 @@
+@model GCTL.UI.Core.ViewModels.GridModel
+
+@{
+    ViewData["Title"] = "Payment Receive Report";
+    ViewData["ShowPageTitle"] = true;
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .payment-report-dashboard {
+        color: var(--text-main);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .dashboard-container {
+        padding: 6px 0 25px 0;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Top KPI Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 10px 14px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 3px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+        }
+
+    .stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .stat-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+        .stat-info h3 {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #64748b;
+            margin: 0 0 2px 0;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stat-info p {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+    /* Filter Bar - Matches OFRReport single line layout */
+    .filter-section {
+        background: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 8px;
+        margin-bottom: 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.82rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+        user-select: none;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex: 1 1 0;
+        min-width: 0 !important;
+    }
+
+        .filter-group label {
+            font-size: 0.76rem;
+            font-weight: 600;
+            white-space: nowrap;
+            color: #475569;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .filter-group input.form-control,
+        .filter-group select.form-select,
+        .filter-group input.flatpickr-alt-input {
+            width: 100% !important;
+            min-width: 0 !important;
+            padding: 4px 22px 4px 7px !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 6px !important;
+            font-size: 0.78rem !important;
+            outline: none;
+            background-color: #ffffff;
+            color: var(--text-main);
+            height: 31px !important;
+            min-height: 31px !important;
+            line-height: 1.2 !important;
+            background-position: right 6px center !important;
+            background-size: 13px 13px !important;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .filter-group input.custom-datepicker,
+        .filter-group input.flatpickr-alt-input {
+            background-image: url('/images/icons/calender.svg') !important;
+            background-repeat: no-repeat !important;
+            background-position: right 8px center !important;
+            background-size: 15px 15px !important;
+            padding-right: 28px !important;
+            cursor: pointer;
+        }
+
+        /* Custom Dropdown Box matching OFRReport */
+        .filter-group .custom-dd-wrapper {
+            width: 100% !important;
+            min-width: 0 !important;
+            flex: 1 1 auto;
+            text-align: left !important;
+        }
+
+        .filter-group .custom-dd-box {
+            min-height: 31px !important;
+            height: 31px !important;
+            max-height: 31px !important;
+            padding: 2px 6px !important;
+            border-radius: 6px !important;
+            border: 1px solid var(--border) !important;
+            overflow: hidden !important;
+            flex-wrap: nowrap !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            text-align: left !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box;
+        }
+
+        .filter-group .custom-dd-input {
+            min-height: 29px !important;
+            height: 29px !important;
+            padding: 1px 3px !important;
+            font-size: 0.78rem !important;
+            border-radius: 5px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            text-align: left !important;
+            margin: 0 !important;
+            flex: 1 1 auto !important;
+        }
+
+        .filter-group .custom-dd-input::placeholder {
+            text-align: left !important;
+            font-size: 0.76rem !important;
+            color: #94a3b8 !important;
+        }
+
+        .filter-group.filter-group-date {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+        }
+
+        .filter-group.filter-group-select {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+        }
+
+        .filter-group.filter-group-export {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+        }
+
+    /* Invoice list badge & popover */
+    .inv-more-badge {
+        display: inline-block;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-weight: 600;
+        font-size: 0.70rem;
+        padding: 1px 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 4px;
+        border: 1px solid #bae6fd;
+        transition: all 0.15s ease-in-out;
+    }
+    .inv-more-badge:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+    }
+    .invoice-popover-list {
+        max-height: 180px;
+        overflow-y: auto;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        font-size: 0.75rem;
+    }
+    .invoice-popover-list li {
+        padding: 3px 6px;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+    .invoice-popover-list li:last-child {
+        border-bottom: none;
+    }
+
+    /* Grid Wrapper Card */
+    .job-grid-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+        padding: 6px 8px;
+        overflow-x: auto !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    #paymentReceiveReportTable_wrapper {
+        width: 100% !important;
+    }
+
+    #paymentReceiveReportTable {
+        width: 100% !important;
+        font-size: 0.76rem !important;
+        border-collapse: collapse !important;
+        margin-bottom: 0 !important;
+    }
+
+    #paymentReceiveReportTable thead th {
+        background: #f8fafc !important;
+        color: #1e293b !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        padding: 5px 4px !important;
+        border: 1px solid #e2e8f0 !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+    }
+
+    #paymentReceiveReportTable tbody td {
+        padding: 4px 5px !important;
+        font-size: 0.75rem !important;
+        color: #334155;
+        border: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+    }
+
+    #paymentReceiveReportTable tfoot th {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 0.76rem !important;
+        padding: 6px 5px !important;
+        border: 1px solid #cbd5e1 !important;
+        vertical-align: middle !important;
+    }
+
+    @@media (min-width: 1400px) {
+        #paymentReceiveReportTable {
+            font-size: 0.78rem !important;
+        }
+        #paymentReceiveReportTable thead th,
+        #paymentReceiveReportTable tbody td,
+        #paymentReceiveReportTable tfoot th {
+            font-size: 0.78rem !important;
+        }
+    }
+</style>
+
+<div class="payment-report-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Top KPI Cards -->
+        <div class="stats-grid">
+            <!-- 1. Total Received -->
+            <div class="stat-card" style="border-color: #0056b3;">
+                <div class="stat-icon" style="background: #0056b3;">
+                    <i class="fas fa-file-invoice-dollar fs-5"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Received</h3>
+                    <p id="stat_TotalReceived">0.00</p>
+                </div>
+            </div>
+
+            <!-- 2. Regular Amount -->
+            <div class="stat-card" style="border-color: #2e7d32;">
+                <div class="stat-icon" style="background: #2e7d32;">
+                    <i class="fas fa-check-circle fs-5"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Regular Payment</h3>
+                    <p id="stat_RegularAmount">0.00</p>
+                </div>
+            </div>
+
+            <!-- 3. Advance Amount -->
+            <div class="stat-card" style="border-color: #f57c00;">
+                <div class="stat-icon" style="background: #f57c00;">
+                    <i class="fas fa-hand-holding-usd fs-5"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Advance Payment</h3>
+                    <p id="stat_AdvanceAmount">0.00</p>
+                </div>
+            </div>
+
+            <!-- 4. Total Transactions -->
+            <div class="stat-card" style="border-color: #9c27b0;">
+                <div class="stat-icon" style="background: #9c27b0;">
+                    <i class="fas fa-receipt fs-5"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Transactions</h3>
+                    <p id="stat_TotalTransactions">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+
+            <!-- From Date -->
+            <div class="filter-group filter-group-date">
+                <label for="filterFromDate">From</label>
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" />
+            </div>
+
+            <!-- To Date -->
+            <div class="filter-group filter-group-date">
+                <label for="filterToDate">To</label>
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" />
+            </div>
+
+            <!-- Customer Type -->
+            <div class="filter-group filter-group-select">
+                <select id="filterCustomerTypeId" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Customer Type --">
+                    @if (ViewBag.CustomerTypes != null)
+                    {
+                        foreach (SelectListItem item in (List<SelectListItem>)ViewBag.CustomerTypes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- District -->
+            <div class="filter-group filter-group-select">
+                <select id="filterDistrict" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select District --">
+                    @if (ViewBag.Districts != null)
+                    {
+                        foreach (SelectListItem item in (List<SelectListItem>)ViewBag.Districts)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Employee -->
+            <div class="filter-group filter-group-select">
+                <select id="filterEmployeeId" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Employee --">
+                    @if (ViewBag.Employees != null)
+                    {
+                        foreach (SelectListItem item in (List<SelectListItem>)ViewBag.Employees)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Payment Type -->
+            <div class="filter-group filter-group-select">
+                <select id="filterPaymentTypeId" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Payment Type --">
+                    @if (ViewBag.PaymentTypes != null)
+                    {
+                        foreach (SelectListItem item in (List<SelectListItem>)ViewBag.PaymentTypes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Payment Mode -->
+            <div class="filter-group filter-group-select">
+                <select id="filterPaymentModeId" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Payment Mode --">
+                    @if (ViewBag.PaymentModes != null)
+                    {
+                        foreach (SelectListItem item in (List<SelectListItem>)ViewBag.PaymentModes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="filter-group filter-group-select">
+                <select id="filterPaymentStatus" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Status --">
+                    @if (ViewBag.PaymentStatuses != null)
+                    {
+                        foreach (SelectListItem item in (List<SelectListItem>)ViewBag.PaymentStatuses)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Export Format & Actions Dropdown -->
+            <div class="filter-group filter-group-export">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" data-placeholder="Select Exp. Format">
+                    <option value="">Select Exp. Format</option>
+                    <option value="Preview">Preview</option>
+                    <option value="PDF">PDF</option>
+                    <option value="Excel">Excel</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CustomGrid Table Container -->
+        <div class="job-grid-card">
+            @await Html.PartialAsync("_CustomGrid", Model)
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/paymentReceiveReport.js" asp-append-version="true"></script>
+}
