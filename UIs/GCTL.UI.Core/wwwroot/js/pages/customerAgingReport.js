@@ -10,11 +10,14 @@
 
     window.gctlRenderers.formatCurrency = function (data, type) {
         if (data === null || data === undefined || data === '' || isNaN(data)) {
-            return (type === 'sort' || type === 'type') ? 0 : '0.00';
+            return (type === 'sort' || type === 'type') ? 0 : '0';
         }
         var num = parseFloat(data);
         if (type === 'sort' || type === 'type') {
             return num;
+        }
+        if (Math.abs(num) < 0.00001) {
+            return '0';
         }
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
@@ -179,8 +182,19 @@
         var isBillWise = reportType.indexOf('Bill') !== -1;
         if ($.fn.dataTable.isDataTable('#customerAgingReportTable')) {
             var table = $('#customerAgingReportTable').DataTable();
-            if (table && table.column(2).visible() !== isBillWise) {
-                table.column(2).visible(isBillWise, false);
+            // Column 2 is "Customer ID", Column 3 is "Bill No"
+            var changed = false;
+            // Customer ID visible when Customer Aging (summary), hidden when Bill Wise
+            if (table.column(2).visible() !== !isBillWise) {
+                table.column(2).visible(!isBillWise, false);
+                changed = true;
+            }
+            // Bill No visible when Bill Wise, hidden when Customer Aging
+            if (table.column(3).visible() !== isBillWise) {
+                table.column(3).visible(isBillWise, false);
+                changed = true;
+            }
+            if (changed) {
                 table.columns.adjust();
             }
         }

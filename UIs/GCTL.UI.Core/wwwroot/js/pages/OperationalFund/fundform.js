@@ -100,6 +100,8 @@ function loadJobEntryList() {
         ajaxData: function (d) {
             d.customerid = $('#Customer').val();
             d.shipmentmodeid = $('#Job-ShipmentMode').val();
+            d.dateFrom = $('#dateFrom').val();
+            d.dateTo = $('#dateTo').val();
         }
     });
 }
@@ -191,6 +193,10 @@ function clearJobHeaderFields() {
 //#region Search, Filter and PageSize
 
 $('#Customer, #Job-ShipmentMode').on('change', function () {
+    if (jobTable) jobTable.ajax.reload();
+});
+
+$('#dateFrom, #dateTo').on('change keyup', function () {
     if (jobTable) jobTable.ajax.reload();
 });
 //#endregion

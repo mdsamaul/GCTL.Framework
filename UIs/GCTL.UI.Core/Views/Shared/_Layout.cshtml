@@ -76,7 +76,7 @@
 
                     <span class="topnav-nav-divider">|</span>
 
-                    <a href="javascript:void(0);" id="btnChangePassword" class="topnav-nav-link" title="Change Password">
+                    <a asp-controller="EditUser" asp-action="Index" class="topnav-nav-link" title="Change Password">
                         <i class="bi bi-key-fill"></i>
                         <span>Change Password</span>
                     </a>
@@ -204,7 +204,7 @@
     {
         <script>
             (function () {
-                var IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 15 minutes of inactivity
+                var IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes of inactivity
                 var lastActivityTime = Date.now();
                 var hadRecentActivity = true;
 
