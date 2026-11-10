@@ -270,8 +270,9 @@
                 { 
                     data: 'requisitionNo', 
                     className: 'text-center align-middle',
-                    render: function (data) {
-                        return data ? '<span class="text-secondary fw-semibold">' + escapeHtml(data) + '</span>' : '-';
+                    render: function (data, type, row) {
+                        if (!data) return '-';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-req-preview-btn" data-job-no="' + escapeHtml(row.jobNo || '') + '" data-ofr-no="' + escapeHtml(data) + '" title="View Operational Fund Approval Report (OFR)">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -288,7 +289,7 @@
                         var isApproved = text.toLowerCase() === 'approved';
                         var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
                         var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
-                        return '<a href="javascript:void(0);" class="report-preview-link ofr-approval-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-approval-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -300,7 +301,7 @@
                         var isApproved = text.toLowerCase() === 'approved';
                         var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
                         var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
-                        return '<a href="javascript:void(0);" class="report-preview-link ofr-adjust-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Adjust Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-adjust-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Adjust Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -319,8 +320,8 @@
                         }
                         var cls = isApproved ? 'text-success' : 'text-warning';
                         var icon = isApproved ? 'fa-check-circle' : 'fa-clock';
-                        var vTitle = vNo ? 'View Voucher Details (' + escapeHtml(vNo) + ')' : 'View Voucher Details';
-                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                        var vTitle = vNo ? 'View Voucher (' + escapeHtml(vNo) + ')' : 'View Voucher';
+                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -328,7 +329,7 @@
                     className: 'text-center align-middle',
                     render: function (data) {
                         if (!data) return '-';
-                        return '<a href="javascript:void(0);" class="report-preview-link bill-preview-btn" data-bill-no="' + escapeHtml(data) + '" title="View Job Bill Report"><i class="fas fa-file-invoice-dollar me-1"></i>' + escapeHtml(data) + '</a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link bill-preview-btn" data-bill-no="' + escapeHtml(data) + '" title="View Job Bill Report">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -405,8 +406,9 @@
                 { 
                     data: 'requisitionNo', 
                     className: 'text-center align-middle',
-                    render: function (data) {
-                        return data ? '<span class="text-secondary fw-semibold">' + escapeHtml(data) + '</span>' : '-';
+                    render: function (data, type, row) {
+                        if (!data) return '-';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-req-preview-btn" data-job-no="' + escapeHtml(row.jobNo || '') + '" data-ofr-no="' + escapeHtml(data) + '" title="View Operational Fund Approval Report (OFR)">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -423,7 +425,7 @@
                         var isApproved = text.toLowerCase() === 'approved';
                         var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
                         var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
-                        return '<a href="javascript:void(0);" class="report-preview-link ofr-approval-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-approval-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -435,7 +437,7 @@
                         var isApproved = text.toLowerCase() === 'approved';
                         var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
                         var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
-                        return '<a href="javascript:void(0);" class="report-preview-link ofr-adjust-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Adjust Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-adjust-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Adjust Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -454,8 +456,8 @@
                         }
                         var cls = isApproved ? 'text-success' : 'text-warning';
                         var icon = isApproved ? 'fa-check-circle' : 'fa-clock';
-                        var vTitle = vNo ? 'View Voucher Details (' + escapeHtml(vNo) + ')' : 'View Voucher Details';
-                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                        var vTitle = vNo ? 'View Voucher (' + escapeHtml(vNo) + ')' : 'View Voucher';
+                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -463,7 +465,7 @@
                     className: 'text-center align-middle',
                     render: function (data) {
                         if (!data) return '-';
-                        return '<a href="javascript:void(0);" class="report-preview-link bill-preview-btn" data-bill-no="' + escapeHtml(data) + '" title="View Job Bill Report"><i class="fas fa-file-invoice-dollar me-1"></i>' + escapeHtml(data) + '</a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link bill-preview-btn" data-bill-no="' + escapeHtml(data) + '" title="View Job Bill Report">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -568,25 +570,37 @@
             applyStatusFilterInstant(statusFilter);
         });
 
-        // 8. OFR Approval Report Click
+        // 8. OFR Requisition No (Req. No) Click
+        $(document).on('click', '.ofr-req-preview-btn', function (e) {
+            e.preventDefault();
+            var ofrNo = $(this).data('ofr-no');
+            var jobNo = $(this).data('job-no');
+            if (!ofrNo && !jobNo) return;
+            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo || '') + '&selectedOfrNos=' + encodeURIComponent(ofrNo || '') + '&ofrReportType=' + encodeURIComponent('OFR Approval Report');
+            openReportPreviewModal('Operational Fund Approval Report (OFR) - ' + (ofrNo || jobNo), url);
+        });
+
+        // 9. OFR Approval Report Click
         $(document).on('click', '.ofr-approval-btn', function (e) {
             e.preventDefault();
             var jobNo = $(this).data('job-no');
-            if (!jobNo) return;
-            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo) + '&ofrReportType=' + encodeURIComponent('OFR Approval Report');
-            openReportPreviewModal('Operational Fund Approval Report - ' + jobNo, url);
+            var ofrNo = $(this).data('ofr-no');
+            if (!jobNo && !ofrNo) return;
+            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo || '') + '&selectedOfrNos=' + encodeURIComponent(ofrNo || '') + '&ofrReportType=' + encodeURIComponent('OFR Approval Report');
+            openReportPreviewModal('Operational Fund Approval Report - ' + (ofrNo || jobNo), url);
         });
 
-        // 9. OFR Adjust Approval Report Click
+        // 10. OFR Adjust Approval Report Click
         $(document).on('click', '.ofr-adjust-btn', function (e) {
             e.preventDefault();
             var jobNo = $(this).data('job-no');
-            if (!jobNo) return;
-            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo) + '&ofrReportType=' + encodeURIComponent('OFR Final Report');
-            openReportPreviewModal('OFR Adjust Approval Report - ' + jobNo, url);
+            var ofrNo = $(this).data('ofr-no');
+            if (!jobNo && !ofrNo) return;
+            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo || '') + '&selectedOfrNos=' + encodeURIComponent(ofrNo || '') + '&ofrReportType=' + encodeURIComponent('OFR Final Report');
+            openReportPreviewModal('OFR Adjust Approval Report - ' + (ofrNo || jobNo), url);
         });
 
-        // 10. Voucher Approval Click
+        // 11. Voucher Approval Click
         $(document).on('click', '.voucher-preview-btn', function (e) {
             e.preventDefault();
             var voucherNo = $(this).data('voucher-no');
@@ -595,7 +609,7 @@
             openReportPreviewModal('Voucher Entry - ' + voucherNo, url);
         });
 
-        // 11. Bill No Click
+        // 12. Bill No Click
         $(document).on('click', '.bill-preview-btn', function (e) {
             e.preventDefault();
             var billNo = $(this).data('bill-no');
@@ -604,7 +618,7 @@
             openReportPreviewModal('Job Bill Entry Report - ' + billNo, url);
         });
 
-        // 12. Modal reset on close
+        // 13. Modal reset on close
         $('#reportPreviewModal').on('hidden.bs.modal', function () {
             $('#reportPreviewIframe').attr('src', 'about:blank');
             $('#modalHeaderSpinner').hide();
