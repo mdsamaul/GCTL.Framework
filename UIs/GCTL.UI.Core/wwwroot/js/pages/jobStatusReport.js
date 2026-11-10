@@ -272,7 +272,7 @@
                     className: 'text-center align-middle',
                     render: function (data, type, row) {
                         if (!data) return '-';
-                        return '<a href="javascript:void(0);" class="report-preview-link ofr-req-preview-btn" data-job-no="' + escapeHtml(row.jobNo || '') + '" data-ofr-no="' + escapeHtml(data) + '" title="View Operational Fund Approval Report (OFR)">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-req-preview-btn" data-job-no="' + escapeHtml(row.jobNo || '') + '" data-ofr-no="' + escapeHtml(data) + '" title="View Operational Fund Requisition Report">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -408,7 +408,7 @@
                     className: 'text-center align-middle',
                     render: function (data, type, row) {
                         if (!data) return '-';
-                        return '<a href="javascript:void(0);" class="report-preview-link ofr-req-preview-btn" data-job-no="' + escapeHtml(row.jobNo || '') + '" data-ofr-no="' + escapeHtml(data) + '" title="View Operational Fund Approval Report (OFR)">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-req-preview-btn" data-job-no="' + escapeHtml(row.jobNo || '') + '" data-ofr-no="' + escapeHtml(data) + '" title="View Operational Fund Requisition Report">' + escapeHtml(data) + ' <i class="fas fa-eye ms-1"></i></a>';
                     }
                 },
                 { 
@@ -570,14 +570,14 @@
             applyStatusFilterInstant(statusFilter);
         });
 
-        // 8. OFR Requisition No (Req. No) Click
+        // 8. OFR Requisition No (Req. No) Click - Opens "OFR Report" (Operational Fund Requisition)
         $(document).on('click', '.ofr-req-preview-btn', function (e) {
             e.preventDefault();
             var ofrNo = $(this).data('ofr-no');
             var jobNo = $(this).data('job-no');
             if (!ofrNo && !jobNo) return;
-            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo || '') + '&selectedOfrNos=' + encodeURIComponent(ofrNo || '') + '&ofrReportType=' + encodeURIComponent('OFR Approval Report');
-            openReportPreviewModal('Operational Fund Approval Report (OFR) - ' + (ofrNo || jobNo), url);
+            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo || '') + '&selectedOfrNos=' + encodeURIComponent(ofrNo || '') + '&ofrReportType=' + encodeURIComponent('OFR Report');
+            openReportPreviewModal('Operational Fund Requisition Report - ' + (ofrNo || jobNo), url);
         });
 
         // 9. OFR Approval Report Click
