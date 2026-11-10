@@ -48,6 +48,7 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
         public decimal TotalDueOutstanding { get; set; }
         public decimal LastServiceValue { get; set; }
         public string? LastServiceDate { get; set; }
+        public string? LastBillNo { get; set; }
     }
 
     public class JobBillEntryReportFilterOptionsDTO

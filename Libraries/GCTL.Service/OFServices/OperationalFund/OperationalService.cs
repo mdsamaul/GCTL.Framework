@@ -52,52 +52,57 @@ namespace GCTL.Service.OperationalFund
 
         #region Get All Job Entry List
         public async Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(
-    PaginationRequest request, string customerid = "", string shipmentmodeid = "")
+            PaginationRequest request, string customerid = "", string shipmentmodeid = "", string? dateFrom = null, string? dateTo = null)
         {
             var query = (from d in _genericRepository.All().AsNoTracking()          // Sep_Documentation
-                        join r in _repository.All().AsNoTracking()                  // CF_OperationalFundRequisitionEntry
-                            on d.JobNo equals r.JobNo into rr
-                        from r in rr.DefaultIfEmpty()
+                         where !_repository.All().Any(r => r.JobNo == d.JobNo)      // NOT EXISTS / Anti-semi-join
 
-                            //Customer LEFT JOIN
-                        join c in _customer.All().AsNoTracking()
-                            on d.CustomerId equals c.CustomerId into cc
-                        from c in cc.DefaultIfEmpty()
+                             //Customer LEFT JOIN
+                         join c in _customer.All().AsNoTracking()
+                             on d.CustomerId equals c.CustomerId into cc
+                         from c in cc.DefaultIfEmpty()
 
-                            //Expense Type LEFT JOIN
-                        join e in _shipmentmode.All().AsNoTracking()
-                            on d.ExpenseTypeId equals e.ExpenseTypeId into ee
-                        from e in ee.DefaultIfEmpty()
+                             //Expense Type LEFT JOIN
+                         join e in _shipmentmode.All().AsNoTracking()
+                             on d.ExpenseTypeId equals e.ExpenseTypeId into ee
+                         from e in ee.DefaultIfEmpty()
 
-                        join cash in _currencies.All().AsNoTracking()
-                            on d.InvoiceCurrencyId equals cash.CurrencyId into cashG
-                        from cash in cashG.DefaultIfEmpty()
+                         join cash in _currencies.All().AsNoTracking()
+                             on d.InvoiceCurrencyId equals cash.CurrencyId into cashG
+                         from cash in cashG.DefaultIfEmpty()
 
-                            //MAIN CONDITION
-                        where r == null
+                         select new JobEntryListVM
+                         {
+                             JobNo = d.JobNo,
+                             JobDate = d.Date,
+                             DocReceivedDate = d.DocReceivedDate,
 
-                        select new JobEntryListVM
-                        {
-                            JobNo = d.JobNo,
-                            JobDate = d.Date,
-                            DocReceivedDate = d.DocReceivedDate,
+                             CustomerID = d.CustomerId,
+                             Customer = c != null ? c.CustomerName : "",
+                             CustomerAddress = c != null ? c.CustomerAddress : "",
 
-                            CustomerID = d.CustomerId,
-                            Customer = c != null ? c.CustomerName : "",
-                            CustomerAddress = c != null ? c.CustomerAddress : "",
+                             Invoice = d.InvoiceNo,
+                             Beno = d.Beno,
 
-                            Invoice = d.InvoiceNo,
-                            Beno = d.Beno,
-
-                            ShipmentModeID = e != null ? e.ExpenseTypeId : "",
-                            ShipmentMode = e != null ? e.ExpenseType : ""
-                        }).AsNoTracking();
+                             ShipmentModeID = e != null ? e.ExpenseTypeId : "",
+                             ShipmentMode = e != null ? e.ExpenseType : ""
+                         }).AsNoTracking();
 
             if (!string.IsNullOrEmpty(customerid))
                 query = query.Where(x => x.CustomerID == customerid);
 
             if (!string.IsNullOrEmpty(shipmentmodeid))
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
+
+            var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "d-M-yyyy", "dd-MM-yyyy" };
+            if (!string.IsNullOrWhiteSpace(dateFrom) && DateTime.TryParseExact(dateFrom.Trim(), formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fromDate))
+                query = query.Where(x => x.JobDate >= fromDate);
+
+            if (!string.IsNullOrWhiteSpace(dateTo) && DateTime.TryParseExact(dateTo.Trim(), formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var toDate))
+            {
+                var toDateEnd = toDate.Date.AddDays(1);
+                query = query.Where(x => x.JobDate < toDateEnd);
+            }
 
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(JobEntryListVM.JobDate);
@@ -109,23 +114,18 @@ namespace GCTL.Service.OperationalFund
 
         public async Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
         {
-            var query = from d in _genericRepository.All()          // Sep_Documentation
-                        join r in _repository.All()                  // CF_OperationalFundRequisitionEntry
-                            on d.JobNo equals r.JobNo into rr
-                        from r in rr.DefaultIfEmpty()
+            var query = from d in _genericRepository.All().AsNoTracking()          // Sep_Documentation
+                        where !_repository.All().Any(r => r.JobNo == d.JobNo)
 
                             //Customer LEFT JOIN
-                        join c in _customer.All()
+                        join c in _customer.All().AsNoTracking()
                             on d.CustomerId equals c.CustomerId into cc
                         from c in cc.DefaultIfEmpty()
 
                             //Expense Type LEFT JOIN
-                        join e in _shipmentmode.All()
+                        join e in _shipmentmode.All().AsNoTracking()
                             on d.ExpenseTypeId equals e.ExpenseTypeId into ee
                         from e in ee.DefaultIfEmpty()
-
-                            //MAIN CONDITION
-                        where r == null
 
                         select new JobEntryListVM
                         {

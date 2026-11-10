@@ -34,7 +34,9 @@ namespace GCTL.UI.Core.Controllers
             string sortColumn = "JobDate",
             string sortOrder = "desc",
             string customerid = "",
-            string shipmentmodeid = "")
+            string shipmentmodeid = "",
+            string? dateFrom = null,
+            string? dateTo = null)
         {
             try
             {
@@ -47,7 +49,7 @@ namespace GCTL.UI.Core.Controllers
                     SortOrder = sortOrder
                 };
 
-                var result = await _service.GetAllRequisition(request, customerid, shipmentmodeid);
+                var result = await _service.GetAllRequisition(request, customerid, shipmentmodeid, dateFrom, dateTo);
                 var hasData = result.Data?.Any() == true;
 
                 return Ok(new

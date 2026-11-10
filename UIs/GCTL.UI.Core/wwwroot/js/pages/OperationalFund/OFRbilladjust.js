@@ -1,10 +1,14 @@
 //#region Ready Part
 $(document).ready(function () {
     //Load Dropdown
-    InitDropdown('/OperationFund/GetEmpDD', '#Bill-Customer', 'Select Employee');
+    InitDropdown('/OperationFund/GetEmpDD', '#Bill-Customer', 'Select Customer');
     InitDropdown('/OperationFund/GetShipemtDD', '#Bill-ShipmentMode', 'Select Shipment Mode');
 
     $('#Bill-Customer, #Bill-ShipmentMode').on('change', function () {
+        if (jobTable) jobTable.ajax.reload();
+    });
+
+    $('#dateFrom, #dateTo').on('change keyup', function () {
         if (jobTable) jobTable.ajax.reload();
     });
 
@@ -35,6 +39,8 @@ function loadRequisitionList() {
         ajaxData: function (d) {
             d.customerid = $('#Bill-Customer').val();
             d.shipmentmodeid = $('#Bill-ShipmentMode').val();
+            d.dateFrom = $('#dateFrom').val();
+            d.dateTo = $('#dateTo').val();
         }
     });
 }
@@ -48,266 +54,6 @@ function BottomGrid() {
         gridId: 'bottomGrid'
     });
 }
-//#endregion
-
-//#region Top Grid Pagination Section
-//#region Job Pagination
-function buildJobPagination(totalCount) {
-
-    let pageSize = parseInt($('#Bill-PageSize').val());
-    let pagination = '';
-
-    if (pageSize === -1 || totalCount === 0) {
-        $('#Bill-Pagination').html('');
-        return;
-    }
-
-    let totalPages = Math.ceil(totalCount / pageSize);
-    let current = BillPageNumber;
-
-    // Previous
-    pagination += `
-        <li class="page-item ${current === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changeJobPage(${current - 1})">Previous</a>
-        </li>`;
-
-    // Always show first 2 pages
-    for (let i = 1; i <= Math.min(2, totalPages); i++) {
-        pagination += pageItem(i, current);
-    }
-
-    // Dots before middle
-    if (current > 4) {
-        pagination += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-    }
-
-    // Middle pages (current ±1)
-    let start = Math.max(3, current - 1);
-    let end = Math.min(totalPages - 2, current + 1);
-
-    for (let i = start; i <= end; i++) {
-        pagination += pageItem(i, current);
-    }
-
-    // Dots after middle
-    if (current < totalPages - 3) {
-        pagination += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-    }
-
-    // Always show last 2 pages
-    for (let i = Math.max(totalPages - 1, 3); i <= totalPages; i++) {
-        pagination += pageItem(i, current);
-    }
-
-    // Next
-    pagination += `
-        <li class="page-item ${current === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changeJobPage(${current + 1})">Next</a>
-        </li>`;
-
-    $('#Bill-Pagination').html(pagination);
-}
-
-// helper
-function pageItem(page, current) {
-    return `
-        <li class="page-item ${page === current ? 'active' : ''}">
-            <a class="page-link" href="#" onclick="changeJobPage(${page})">${page}</a>
-        </li>`;
-}
-
-
-function changeJobPage(page) {
-    BillPageNumber = page;
-    RequisitionListForBilUI();
-}
-//#endregion
-
-//#region Update Text
-function updateJobEntryInfo(totalCount) {
-
-    let pageSize = $('#Bill-PageSize').val();
-
-    if (pageSize == -1) {
-        $('.Bill-Pagination-message').text(`Showing 1 to ${totalCount} of ${totalCount} entries`);
-        return;
-    }
-
-    let start = ((BillPageNumber - 1) * pageSize) + 1;
-    let end = Math.min(BillPageNumber * pageSize, totalCount);
-
-    $('.Bill-Pagination-message').text(`Showing ${start} to ${end} of ${totalCount} entries`);
-}
-//#endregion
-
-//#region Search, Filter and PageSize
-
-$('#Bill-SearchInput').on('input', function () {
-    BillPageNumber = 1;
-    if ($(this).val() === '') {
-        RequisitionListForBilUI();
-    } else {
-        RequisitionListForBilUI();
-    }
-});
-
-
-$('#Bill-PageSize').on('change', function () {
-    BillPageNumber = 1;
-    RequisitionListForBilUI();
-});
-
-$('#Bill-Customer, #Bill-ShipmentMode').on('change', function () {
-    BillPageNumber = 1;
-    RequisitionListForBilUI();
-});
-//#endregion
-
-//#region Sorting
-$('.table thead th[data-column]').on('click', function () {
-
-    let column = $(this).data('column');
-
-    if (BillSortColumn === column) {
-        BillSortOrder = BillSortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-        BillSortColumn = column;
-        BillSortOrder = 'asc';
-    }
-
-    BillPageNumber = 1;
-    RequisitionListForBilUI();
-});
-//#endregion
-//#endregion
-
-//#region Bottom Grid Pagination
-//#region Job Pagination
-function BottomPagination(totalCount) {
-
-    let pageSize = parseInt($('#bottom-PageSize').val());
-    let pagination = '';
-
-    if (pageSize === -1 || totalCount === 0) {
-        $('#bottom-Pagination').html('');
-        return;
-    }
-
-    let totalPages = Math.ceil(totalCount / pageSize);
-    let current = BottomPageNumber;
-
-    // Previous
-    pagination += `
-        <li class="page-item ${current === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changeBottomPage(${current - 1})">Previous</a>
-        </li>`;
-
-    // Always show first 2 pages
-    for (let i = 1; i <= Math.min(2, totalPages); i++) {
-        pagination += BottompageItem(i, current);
-    }
-
-    // Dots before middle
-    if (current > 4) {
-        pagination += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-    }
-
-    // Middle pages (current ±1)
-    let start = Math.max(3, current - 1);
-    let end = Math.min(totalPages - 2, current + 1);
-
-    for (let i = start; i <= end; i++) {
-        pagination += BottompageItem(i, current);
-    }
-
-    // Dots after middle
-    if (current < totalPages - 3) {
-        pagination += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-    }
-
-    // Always show last 2 pages
-    for (let i = Math.max(totalPages - 1, 3); i <= totalPages; i++) {
-        pagination += BottompageItem(i, current);
-    }
-
-    // Next
-    pagination += `
-        <li class="page-item ${current === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changeBottomPage(${current + 1})">Next</a>
-        </li>`;
-
-    $('#bottom-Pagination').html(pagination);
-}
-
-// helper
-function BottompageItem(page, current) {
-    return `
-        <li class="page-item ${page === current ? 'active' : ''}">
-            <a class="page-link" href="#" onclick="changeBottomPage(${page})">${page}</a>
-        </li>`;
-}
-
-
-function changeBottomPage(page) {
-    BottomPageNumber = page;
-    BottomGrid();
-}
-//#endregion
-
-//#region Update Text
-function updateBottomEntryInfo(totalCount) {
-
-    let pageSize = $('#bottom-PageSize').val();
-
-    if (pageSize == -1) {
-        $('.bottom-message').text(`Showing 1 to ${totalCount} of ${totalCount} entries`);
-        return;
-    }
-
-    let start = ((BottomPageNumber - 1) * pageSize) + 1;
-    let end = Math.min(BottomPageNumber * pageSize, totalCount);
-
-    $('.bottom-message').text(`Showing ${start} to ${end} of ${totalCount} entries`);
-}
-//#endregion
-
-//#region Search, Filter and PageSize
-
-$('#bottom-Search').on('input', function () {
-    BottomPageNumber = 1;
-    if ($(this).val() === '') {
-        BottomGrid();
-    } else {
-        BottomGrid();
-    }
-});
-
-
-$('#bottom-PageSize').on('change', function () {
-    BottomPageNumber = 1;
-    BottomGrid();
-});
-
-
-//#endregion
-
-//#region Sorting
-$('#bottomGrid thead th[data-column]').on('click', function () {
-
-    let column = $(this).data('column');
-
-    if (BottomSortColumn === column) {
-        BottomSortOrder = BottomSortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-        BottomSortColumn = column;
-        BottomSortOrder = 'asc';
-    }
-
-    BottomPageNumber = 1;
-    BottomGrid();
-});
-//#endregion
-//#endregion
 //#endregion
 
 //#region Tmp Grid Section
@@ -339,7 +85,7 @@ function TmpDetailsLoad(jobNo) {
                 const approvalAmount = parseFloat(item.approvalAmount) || 0;
                 //const diffentAmount = parseFloat(item.diffentAmount) || 0;
 
-                //const approvalAmount = reqAmount; 
+                //const approvalAmount = reqAmount;
                 const adjustAmount =
                     item.adjustAmount && parseFloat(item.adjustAmount) > 0
                         ? parseFloat(item.adjustAmount)
@@ -490,7 +236,7 @@ $(document).on('input', '.adjust-amount', function () {
 //#endregion
 
 //#region Dropdown Init Section
-function InitDropdown(url, selector, placeholder) {
+function InitDropdown(url, selector, placeholder, callback) {
     $.ajax({
         url: url,
         type: 'GET',
@@ -499,9 +245,18 @@ function InitDropdown(url, selector, placeholder) {
             let select = $(selector);
             select.empty().append(`<option value="">${placeholder}</option>`);
 
-            response.forEach(function (item) {
-                select.append(`<option value="${item.value}">${item.text}</option>`);
-            });
+            if (response && Array.isArray(response)) {
+                response.forEach(function (item) {
+                    select.append(`<option value="${item.value}">${item.text}</option>`);
+                });
+            }
+
+            let id = select.attr('id');
+            if (id && window.reinitCustomDropdownById) {
+                window.reinitCustomDropdownById(id);
+            }
+
+            if (callback) callback();
         }
     });
 }

@@ -32,7 +32,7 @@ namespace GCTL.Service.OFRBillAdjust
         #endregion
 
         #region Get All Job Requisition Entry in Top Grid
-        Task<PaginationResponse<OFRApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "");
+        Task<PaginationResponse<OFRApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "", string? dateFrom = null, string? dateTo = null);
         #endregion
     }
 }

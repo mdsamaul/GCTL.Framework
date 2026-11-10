@@ -361,6 +361,8 @@
                     animateCounter('#statLastServiceValue', res.lastServiceValue || 0, true);
                     var serviceDateText = res.lastServiceDate || '-';
                     $('#statLastServiceDate').text(serviceDateText).attr('title', serviceDateText);
+                    var billNoText = res.lastBillNo || '-';
+                    $('#statLastBillNo').text(billNoText).attr('title', billNoText);
                 }
             },
             error: function () {
