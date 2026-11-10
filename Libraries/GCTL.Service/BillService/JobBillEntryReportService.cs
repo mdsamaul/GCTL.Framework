@@ -471,6 +471,11 @@ namespace GCTL.Service.BillService
         public async Task<byte[]> GeneratePdfAsync(JobBillEntryReportFilterVM filter)
         {
             var selectedBills = ParseMultiSelect(filter?.SelectedBillNos);
+            if (!selectedBills.Any() && !string.IsNullOrWhiteSpace(filter?.BillNos))
+            {
+                selectedBills = ParseMultiSelect(filter.BillNos);
+            }
+
             IQueryable<CfBillEntry> query;
             if (selectedBills.Any())
             {

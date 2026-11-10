@@ -61,8 +61,37 @@ namespace GCTL.Service.JobStatusReport
             return _logoBytes;
         }
 
+        public async Task<List<GCTL.Core.ViewModels.Common.CommonSelectModel>> GetBranchesAsync()
+        {
+            var branches = new List<GCTL.Core.ViewModels.Common.CommonSelectModel>();
+            if (string.IsNullOrWhiteSpace(_connectionString)) return branches;
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                const string sql = @"
+                    SELECT BranchCode, BranchName 
+                    FROM Core_Branch WITH (NOLOCK)
+                    WHERE ISNULL(BranchCode, '') <> '' AND ISNULL(BranchName, '') <> ''
+                    ORDER BY BranchCode ASC;
+                ";
+                using var cmd = new SqlCommand(sql, conn);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    branches.Add(new GCTL.Core.ViewModels.Common.CommonSelectModel
+                    {
+                        Code = reader["BranchCode"]?.ToString() ?? "",
+                        Name = reader["BranchName"]?.ToString() ?? ""
+                    });
+                }
+            }
+            catch { }
+            return branches;
+        }
+
         #region 1. Summary Counts (Using prc_JobPortal_JobStatusExceptAll)
-        public async Task<JobStatusSummaryDTO> GetSummaryAsync(string? customerId, string? shipmentModeId = null)
+        public async Task<JobStatusSummaryDTO> GetSummaryAsync(string? customerId, string? shipmentModeId = null, string? branchCode = null)
         {
             var summary = new JobStatusSummaryDTO();
             if (string.IsNullOrWhiteSpace(_connectionString)) return summary;
@@ -83,6 +112,7 @@ namespace GCTL.Service.JobStatusReport
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@CustomerId", string.IsNullOrWhiteSpace(customerId) ? "" : customerId.Trim()));
                 cmd.Parameters.Add(new SqlParameter("@ShipmentModeId", sModeId));
+                cmd.Parameters.Add(new SqlParameter("@BranchCode", string.IsNullOrWhiteSpace(branchCode) ? "" : branchCode.Trim()));
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -128,6 +158,7 @@ namespace GCTL.Service.JobStatusReport
             string customerId = (filter.CustomerId ?? "").Trim();
             string portTypeId = (filter.PortType ?? "").Trim();
             string shipmentTypeId = (filter.ShipmentMode ?? "").Trim();
+            string branchCode = (filter.BranchCode ?? "").Trim();
             if (string.Equals(shipmentTypeId, "Air", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(shipmentTypeId, "Sea", StringComparison.OrdinalIgnoreCase))
             {
@@ -170,10 +201,25 @@ namespace GCTL.Service.JobStatusReport
     LEFT JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
     LEFT JOIN CA_Def_Currency curr WITH (NOLOCK) ON d.CurrencyId = curr.CurrencyId
+    LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
+        ON d.EmployeeId = emp.EmployeeID 
+        OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
       AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
       AND (@PortTypeId = '' OR p.PortId = @PortTypeId OR (@PortTypeId LIKE '%,%' AND p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))))
       AND (@ShipmentTypeId = '' OR d.ExpenseTypeID = @ShipmentTypeId OR (@ShipmentTypeId LIKE '%,%' AND d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ','))))
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      )
       AND (e.ExpenseType IS NULL OR (e.ExpenseType NOT LIKE '%Air%' AND ISNULL(d.HAWB, '') = '' AND ISNULL(d.MAWB, '') = ''))
 ),
 Updates AS (
@@ -214,6 +260,29 @@ SELECT
     fj.BENo,
     u.BeDateFromUpdate,
     fj.BEDate AS RawBeDate,
+
+    -- 7 Operational & Financial Columns after B/E Dt
+    ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+    ofr.OFRDate AS RawRequisitionDate,
+    CASE 
+        WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+        WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS OFRApprovalReport,
+    CASE 
+        WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+        WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS OFRAdjustApprovalReport,
+    CASE 
+        WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+        WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS VoucherApproval,
+    ISNULL(v.VoucherNo, '') AS VoucherNo,
+    COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
+    b.BillDate AS RawBillDate,
+
     u.EstimatedDeliveryDate,
     u.ActualDeliveryDate,
     fj.Remarks,
@@ -228,6 +297,29 @@ SELECT
     fj.CustomerAddress
 FROM FilteredJobs fj
 LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+OUTER APPLY (
+    SELECT TOP 1 
+        ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+    FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+    WHERE ofr.JobNo = fj.JobNo
+    ORDER BY ofr.TC DESC
+) ofr
+OUTER APPLY (
+    SELECT TOP 1 
+        b.BillNo, b.BillDate
+    FROM CF_BillEntry b WITH (NOLOCK)
+    WHERE b.JobNo = fj.JobNo
+    ORDER BY b.TC DESC
+) b
+OUTER APPLY (
+    SELECT TOP 1 
+        v.VoucherNo, v.IsApproved
+    FROM Acc_VoucherEntry v WITH (NOLOCK)
+    WHERE v.InvoiceNo = fj.JobNo 
+       OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+       OR (fj.BillNo IS NOT NULL AND fj.BillNo <> '' AND v.InvoiceNo = fj.BillNo)
+    ORDER BY v.autoId DESC
+) v
 ORDER BY fj.JobNo ASC;
 ";
 
@@ -243,6 +335,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", customerId));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", portTypeId));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", branchCode));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -269,6 +362,14 @@ ORDER BY fj.JobNo ASC;
             int ordBENo = GetColOrdinal(reader, "BENo");
             int ordBeDateFromUpdate = GetColOrdinal(reader, "BeDateFromUpdate");
             int ordRawBeDate = GetColOrdinal(reader, "RawBeDate");
+            int ordRequisitionNo = GetColOrdinal(reader, "RequisitionNo");
+            int ordRequisitionDate = GetColOrdinal(reader, "RawRequisitionDate");
+            int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
+            int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
+            int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
+            int ordJobBillNo = GetColOrdinal(reader, "JobBillNo");
+            int ordBillDate = GetColOrdinal(reader, "RawBillDate");
             int ordEstDeliveryDate = GetColOrdinal(reader, "EstimatedDeliveryDate");
             int ordActualDeliveryDate = GetColOrdinal(reader, "ActualDeliveryDate");
             int ordRemarks = GetColOrdinal(reader, "Remarks");
@@ -333,6 +434,14 @@ ORDER BY fj.JobNo ASC;
                     DocsBankSignDate = ReadDt(reader, ordDocsBankSignDate, "dd/MM/yyyy hh:mm tt"),
                     BENo = ReadCol(reader, ordBENo),
                     BEDate = beDate,
+                    RequisitionNo = ReadCol(reader, ordRequisitionNo),
+                    RequisitionDate = ReadDateOnly(reader, ordRequisitionDate),
+                    OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
+                    OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
+                    BillNo = ReadCol(reader, ordJobBillNo),
+                    BillDate = ReadDateOnly(reader, ordBillDate),
                     EstDeliveryDate = ReadDt(reader, ordEstDeliveryDate, "dd/MM/yyyy hh:mm tt"),
                     ActualDeliveryDate = ReadDt(reader, ordActualDeliveryDate, "dd/MM/yyyy hh:mm tt"),
                     ShipmentStatus = statusText,
@@ -427,6 +536,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", string.IsNullOrWhiteSpace(filter.CustomerId) ? "" : filter.CustomerId.Trim()));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", string.IsNullOrWhiteSpace(filter.PortType) ? "" : filter.PortType.Trim()));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", string.IsNullOrWhiteSpace(filter.BranchCode) ? "" : filter.BranchCode.Trim()));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -450,6 +560,15 @@ ORDER BY fj.JobNo ASC;
             int ordDocsBankSignDate = GetColOrdinal(reader, "DocsBankSignDate");
             int ordBeNo = GetColOrdinal(reader, "BeNo");
             int ordBeDate = GetColOrdinal(reader, "BeDate");
+            int ordRequisitionNo = GetColOrdinal(reader, "RequisitionNo");
+            int ordRequisitionDate = GetColOrdinal(reader, "RequisitionDate");
+            int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
+            int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
+            int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
+            int ordJobBillNo = GetColOrdinal(reader, "JobBillNo");
+            if (ordJobBillNo < 0) ordJobBillNo = GetColOrdinal(reader, "BillNo");
+            int ordBillDate = GetColOrdinal(reader, "BillDate");
             int ordEstDeliveryDate = GetColOrdinal(reader, "EstimatedDeliveryDate");
             int ordActualDeliveryDate = GetColOrdinal(reader, "ActualDeliveryDate");
             int ordRemarks = GetColOrdinal(reader, "Remarks");
@@ -499,6 +618,14 @@ ORDER BY fj.JobNo ASC;
                     DocsBankSignDate = ReadCol(reader, ordDocsBankSignDate),
                     BENo = ReadCol(reader, ordBeNo),
                     BEDate = ReadCol(reader, ordBeDate),
+                    RequisitionNo = ReadCol(reader, ordRequisitionNo),
+                    RequisitionDate = ReadCol(reader, ordRequisitionDate),
+                    OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
+                    OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
+                    BillNo = ReadCol(reader, ordJobBillNo),
+                    BillDate = ReadCol(reader, ordBillDate),
                     EstDeliveryDate = ReadCol(reader, ordEstDeliveryDate),
                     ActualDeliveryDate = ReadCol(reader, ordActualDeliveryDate),
                     Remarks = ReadCol(reader, ordRemarks),
@@ -544,6 +671,7 @@ ORDER BY fj.JobNo ASC;
             string customerId = (filter.CustomerId ?? "").Trim();
             string portTypeId = (filter.PortType ?? "").Trim();
             string shipmentTypeId = (filter.ShipmentMode ?? "").Trim();
+            string branchCode = (filter.BranchCode ?? "").Trim();
             if (string.Equals(shipmentTypeId, "Air", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(shipmentTypeId, "Sea", StringComparison.OrdinalIgnoreCase))
             {
@@ -582,10 +710,25 @@ ORDER BY fj.JobNo ASC;
     LEFT JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
     LEFT JOIN CA_Def_Currency curr WITH (NOLOCK) ON d.CurrencyId = curr.CurrencyId
+    LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
+        ON d.EmployeeId = emp.EmployeeID 
+        OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
       AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
       AND (@PortTypeId = '' OR p.PortId = @PortTypeId OR (@PortTypeId LIKE '%,%' AND p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))))
       AND (@ShipmentTypeId = '' OR d.ExpenseTypeID = @ShipmentTypeId OR (@ShipmentTypeId LIKE '%,%' AND d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ','))))
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      )
       AND (e.ExpenseType LIKE '%Air%' OR ISNULL(d.HAWB, '') <> '' OR ISNULL(d.MAWB, '') <> '' OR d.ExpenseTypeID IN ('0001','0002','0003'))
 ),
 Updates AS (
@@ -625,6 +768,29 @@ SELECT
     fj.BENo,
     u.BeDateFromUpdate,
     fj.BEDate AS RawBeDate,
+
+    -- 7 Operational & Financial Columns after B/E Dt
+    ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+    ofr.OFRDate AS RawRequisitionDate,
+    CASE 
+        WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+        WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS OFRApprovalReport,
+    CASE 
+        WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+        WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS OFRAdjustApprovalReport,
+    CASE 
+        WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+        WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS VoucherApproval,
+    ISNULL(v.VoucherNo, '') AS VoucherNo,
+    ISNULL(b.BillNo, '') AS JobBillNo,
+    b.BillDate AS RawBillDate,
+
     u.ActualDeliveryDate,
     fj.Remarks,
     fj.CustomerID,
@@ -632,6 +798,28 @@ SELECT
     fj.CustomerAddress
 FROM FilteredJobs fj
 LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+OUTER APPLY (
+    SELECT TOP 1 
+        ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+    FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+    WHERE ofr.JobNo = fj.JobNo
+    ORDER BY ofr.TC DESC
+) ofr
+OUTER APPLY (
+    SELECT TOP 1 
+        b.BillNo, b.BillDate
+    FROM CF_BillEntry b WITH (NOLOCK)
+    WHERE b.JobNo = fj.JobNo
+    ORDER BY b.TC DESC
+) b
+OUTER APPLY (
+    SELECT TOP 1 
+        v.VoucherNo, v.IsApproved
+    FROM Acc_VoucherEntry v WITH (NOLOCK)
+    WHERE v.InvoiceNo = fj.JobNo 
+       OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+    ORDER BY v.autoId DESC
+) v
 ORDER BY fj.JobNo ASC;
 ";
 
@@ -647,6 +835,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", customerId));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", portTypeId));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", branchCode));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -674,6 +863,14 @@ ORDER BY fj.JobNo ASC;
             int ordBENo = GetColOrdinal(reader, "BENo");
             int ordBeDateFromUpdate = GetColOrdinal(reader, "BeDateFromUpdate");
             int ordRawBeDate = GetColOrdinal(reader, "RawBeDate");
+            int ordRequisitionNo = GetColOrdinal(reader, "RequisitionNo");
+            int ordRequisitionDate = GetColOrdinal(reader, "RawRequisitionDate");
+            int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
+            int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
+            int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
+            int ordJobBillNo = GetColOrdinal(reader, "JobBillNo");
+            int ordBillDate = GetColOrdinal(reader, "RawBillDate");
             int ordActualDeliveryDate = GetColOrdinal(reader, "ActualDeliveryDate");
             int ordRemarks = GetColOrdinal(reader, "Remarks");
             int ordCustomerID = GetColOrdinal(reader, "CustomerID");
@@ -723,6 +920,14 @@ ORDER BY fj.JobNo ASC;
                     ArrivalNoticeRcvdExpressDate = ReadDt(reader, ordArrivalNoticeRcvdExpressDate, "dd/MM/yyyy hh:mm tt"),
                     BENo = ReadCol(reader, ordBENo),
                     BEDate = beDate,
+                    RequisitionNo = ReadCol(reader, ordRequisitionNo),
+                    RequisitionDate = ReadDateOnly(reader, ordRequisitionDate),
+                    OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
+                    OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
+                    BillNo = ReadCol(reader, ordJobBillNo),
+                    BillDate = ReadDateOnly(reader, ordBillDate),
                     ActualDeliveryDate = ReadDt(reader, ordActualDeliveryDate, "dd/MM/yyyy hh:mm tt"),
                     ShipmentStatus = statusText,
                     Remarks = ReadCol(reader, ordRemarks),
@@ -812,6 +1017,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", string.IsNullOrWhiteSpace(filter.CustomerId) ? "" : filter.CustomerId.Trim()));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", string.IsNullOrWhiteSpace(filter.PortType) ? "" : filter.PortType.Trim()));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", string.IsNullOrWhiteSpace(filter.BranchCode) ? "" : filter.BranchCode.Trim()));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -834,6 +1040,15 @@ ORDER BY fj.JobNo ASC;
             int ordArrivalNoticeRcvdExpressDate = GetColOrdinal(reader, "ArrivalNoticeRcvdExpressDate");
             int ordBeNo = GetColOrdinal(reader, "BeNo");
             int ordBeDate = GetColOrdinal(reader, "BeDate");
+            int ordRequisitionNo = GetColOrdinal(reader, "RequisitionNo");
+            int ordRequisitionDate = GetColOrdinal(reader, "RequisitionDate");
+            int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
+            int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
+            int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
+            int ordBillNo = GetColOrdinal(reader, "BillNo");
+            if (ordBillNo < 0) ordBillNo = GetColOrdinal(reader, "JobBillNo");
+            int ordBillDate = GetColOrdinal(reader, "BillDate");
             int ordActualDeliveryDate = GetColOrdinal(reader, "ActualDeliveryDate");
             int ordRemarks = GetColOrdinal(reader, "Remarks");
             int ordCustomerId = GetColOrdinal(reader, "CustomerID");
@@ -879,6 +1094,14 @@ ORDER BY fj.JobNo ASC;
                     ArrivalNoticeRcvdExpressDate = ReadCol(reader, ordArrivalNoticeRcvdExpressDate),
                     BENo = ReadCol(reader, ordBeNo),
                     BEDate = ReadCol(reader, ordBeDate),
+                    RequisitionNo = ReadCol(reader, ordRequisitionNo),
+                    RequisitionDate = ReadCol(reader, ordRequisitionDate),
+                    OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
+                    OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
+                    BillNo = ReadCol(reader, ordBillNo),
+                    BillDate = ReadCol(reader, ordBillDate),
                     ActualDeliveryDate = ReadCol(reader, ordActualDeliveryDate),
                     Remarks = ReadCol(reader, ordRemarks),
                     CustomerId = string.IsNullOrWhiteSpace(filter.CustomerId) ? custId : filter.CustomerId.Trim(),
@@ -947,7 +1170,7 @@ ORDER BY fj.JobNo ASC;
         private static void BuildSeaExcelWorksheet(XLWorkbook workbook, List<SeaJobReportItemDTO> seaJobs, JobStatusReportFilterVM filter)
         {
             var ws = workbook.Worksheets.Add("Sea Port Jobs");
-            const int totalCols = 26;
+            const int totalCols = 33;
 
             ws.Range(1, 1, 1, totalCols).Merge();
             var titleCell = ws.Cell(1, 1);
@@ -980,7 +1203,9 @@ ORDER BY fj.JobNo ASC;
                 "Sl. No.", "Job No.", "Job Date", "Shipment Mode", "Port", "Doc's Rec. Dt.",
                 "Invoice No", "Invoice Value", "Container /Pkgs", "Shipper", "B/L No.", "ETD",
                 "Final IGM Rec. Dt.", "Ship Arrived", "Unstaff/Discharge", "Docs. Bank Sign",
-                "B/E No.", "B/E Date", "Est. Delivery Dt.", "Actual Delivery Dt.", "Shipment Status",
+                "B/E No.", "B/E Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
+                "Est. Delivery Dt.", "Actual Delivery Dt.", "Shipment Status",
                 "Remarks", "Term", "Vessel Name & R-No", "Container No.", "Forwarder Name & Phone No."
             };
 
@@ -1051,14 +1276,21 @@ ORDER BY fj.JobNo ASC;
                     ws.Cell(currRow, 16).Value = item.DocsBankSignDate;
                     ws.Cell(currRow, 17).Value = item.BENo;
                     ws.Cell(currRow, 18).Value = item.BEDate;
-                    ws.Cell(currRow, 19).Value = item.EstDeliveryDate;
-                    ws.Cell(currRow, 20).Value = item.ActualDeliveryDate;
-                    ws.Cell(currRow, 21).Value = item.ShipmentStatus;
-                    ws.Cell(currRow, 22).Value = item.Remarks;
-                    ws.Cell(currRow, 23).Value = item.Term;
-                    ws.Cell(currRow, 24).Value = item.VesselName;
-                    ws.Cell(currRow, 25).Value = item.ContainerNo;
-                    ws.Cell(currRow, 26).Value = item.FreightForwarder;
+                    ws.Cell(currRow, 19).Value = item.RequisitionNo;
+                    ws.Cell(currRow, 20).Value = item.RequisitionDate;
+                    ws.Cell(currRow, 21).Value = item.OFRApprovalReport;
+                    ws.Cell(currRow, 22).Value = item.OFRAdjustApprovalReport;
+                    ws.Cell(currRow, 23).Value = item.VoucherApproval;
+                    ws.Cell(currRow, 24).Value = item.BillNo;
+                    ws.Cell(currRow, 25).Value = item.BillDate;
+                    ws.Cell(currRow, 26).Value = item.EstDeliveryDate;
+                    ws.Cell(currRow, 27).Value = item.ActualDeliveryDate;
+                    ws.Cell(currRow, 28).Value = item.ShipmentStatus;
+                    ws.Cell(currRow, 29).Value = item.Remarks;
+                    ws.Cell(currRow, 30).Value = item.Term;
+                    ws.Cell(currRow, 31).Value = item.VesselName;
+                    ws.Cell(currRow, 32).Value = item.ContainerNo;
+                    ws.Cell(currRow, 33).Value = item.FreightForwarder;
 
                     for (int c = 1; c <= totalCols; c++)
                     {
@@ -1095,7 +1327,7 @@ ORDER BY fj.JobNo ASC;
         private static void BuildAirExcelWorksheet(XLWorkbook workbook, List<AirJobReportItemDTO> airJobs, JobStatusReportFilterVM filter)
         {
             var ws = workbook.Worksheets.Add("Air Port Jobs");
-            const int totalCols = 21;
+            const int totalCols = 28;
 
             ws.Range(1, 1, 1, totalCols).Merge();
             var titleCell = ws.Cell(1, 1);
@@ -1129,6 +1361,7 @@ ORDER BY fj.JobNo ASC;
                 "Invoice No.", "Invoice Value", "Material Name & Pkgs Qty", "Express Name, Country",
                 "L/C No.", "Express/HAWB No.", "MAWB No.", "ETD", "Flight Actual Arrival Dt.",
                 "Arrival Notice Rcvd From Express Dt.", "Bill of Entry No", "Bill of Entry Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
                 "Actual Delivery Date", "Shipment Status", "Remarks"
             };
 
@@ -1199,9 +1432,16 @@ ORDER BY fj.JobNo ASC;
                     ws.Cell(currRow, 16).Value = item.ArrivalNoticeRcvdExpressDate;
                     ws.Cell(currRow, 17).Value = item.BENo;
                     ws.Cell(currRow, 18).Value = item.BEDate;
-                    ws.Cell(currRow, 19).Value = item.ActualDeliveryDate;
-                    ws.Cell(currRow, 20).Value = item.ShipmentStatus;
-                    ws.Cell(currRow, 21).Value = item.Remarks;
+                    ws.Cell(currRow, 19).Value = item.RequisitionNo;
+                    ws.Cell(currRow, 20).Value = item.RequisitionDate;
+                    ws.Cell(currRow, 21).Value = item.OFRApprovalReport;
+                    ws.Cell(currRow, 22).Value = item.OFRAdjustApprovalReport;
+                    ws.Cell(currRow, 23).Value = item.VoucherApproval;
+                    ws.Cell(currRow, 24).Value = item.BillNo;
+                    ws.Cell(currRow, 25).Value = item.BillDate;
+                    ws.Cell(currRow, 26).Value = item.ActualDeliveryDate;
+                    ws.Cell(currRow, 27).Value = item.ShipmentStatus;
+                    ws.Cell(currRow, 28).Value = item.Remarks;
 
                     for (int c = 1; c <= totalCols; c++)
                     {
@@ -1420,6 +1660,13 @@ ORDER BY fj.JobNo ASC;
                         cols.RelativeColumn(2.6f); // Bank Sign
                         cols.RelativeColumn(2.4f); // BE No
                         cols.RelativeColumn(2.4f); // BE Date
+                        cols.RelativeColumn(2.6f); // Req No
+                        cols.RelativeColumn(2.4f); // Req Dt
+                        cols.RelativeColumn(2.4f); // OFR Appr
+                        cols.RelativeColumn(2.4f); // OFR Adj
+                        cols.RelativeColumn(2.4f); // Voucher
+                        cols.RelativeColumn(2.6f); // Bill No
+                        cols.RelativeColumn(2.4f); // Bill Dt
                         cols.RelativeColumn(2.6f); // Est Deliv
                         cols.RelativeColumn(2.6f); // Act Deliv
                         cols.RelativeColumn(2.4f); // Status
@@ -1433,7 +1680,7 @@ ORDER BY fj.JobNo ASC;
                     table.Header(h =>
                     {
                         // Customer Header inside table.Header: repeats automatically on every new page where this customer's rows appear!
-                        h.Cell().ColumnSpan(26).PaddingTop(2).PaddingBottom(2).Row(r =>
+                        h.Cell().ColumnSpan(33).PaddingTop(2).PaddingBottom(2).Row(r =>
                         {
                             r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(7.5f).Bold().FontColor(Colors.Black);
                             r.RelativeItem().AlignRight().Text("Sea Freight").FontSize(7f).Bold().FontColor(Colors.Black);
@@ -1469,6 +1716,13 @@ ORDER BY fj.JobNo ASC;
                         Head("Bank Sign");
                         Head("B/E No.");
                         Head("B/E Date");
+                        Head("Req No");
+                        Head("Req Dt");
+                        Head("OFR Appr");
+                        Head("OFR Adj");
+                        Head("Voucher Status");
+                        Head("Bill No");
+                        Head("Bill Dt");
                         Head("Est Del.");
                         Head("Act Del.");
                         Head("Status");
@@ -1512,6 +1766,13 @@ ORDER BY fj.JobNo ASC;
                         Cell(item.DocsBankSignDate, center: true);
                         Cell(item.BENo, center: true);
                         Cell(item.BEDate, center: true);
+                        Cell(item.RequisitionNo, center: true);
+                        Cell(item.RequisitionDate, center: true);
+                        Cell(item.OFRApprovalReport, center: true);
+                        Cell(item.OFRAdjustApprovalReport, center: true);
+                        Cell(item.VoucherApproval, center: true);
+                        Cell(item.BillNo, center: true);
+                        Cell(item.BillDate, center: true);
                         Cell(item.EstDeliveryDate, center: true);
                         Cell(item.ActualDeliveryDate, center: true);
                         Cell(item.ShipmentStatus, center: true);
@@ -1560,6 +1821,13 @@ ORDER BY fj.JobNo ASC;
                         cols.RelativeColumn(2.8f); // Notice Rec
                         cols.RelativeColumn(2.6f); // BE No
                         cols.RelativeColumn(2.6f); // BE Date
+                        cols.RelativeColumn(2.6f); // Req No
+                        cols.RelativeColumn(2.4f); // Req Dt
+                        cols.RelativeColumn(2.4f); // OFR Appr
+                        cols.RelativeColumn(2.4f); // OFR Adj
+                        cols.RelativeColumn(2.4f); // Voucher
+                        cols.RelativeColumn(2.6f); // Bill No
+                        cols.RelativeColumn(2.4f); // Bill Dt
                         cols.RelativeColumn(2.6f); // Act Del
                         cols.RelativeColumn(2.6f); // Status
                         cols.RelativeColumn(3.0f); // Remarks
@@ -1568,7 +1836,7 @@ ORDER BY fj.JobNo ASC;
                     table.Header(h =>
                     {
                         // Customer Header inside table.Header: repeats automatically on every new page where this customer's rows appear!
-                        h.Cell().ColumnSpan(21).PaddingTop(2).PaddingBottom(2).Row(r =>
+                        h.Cell().ColumnSpan(28).PaddingTop(2).PaddingBottom(2).Row(r =>
                         {
                             r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(7.5f).Bold().FontColor(Colors.Black);
                             r.RelativeItem().AlignRight().Text("Air Freight").FontSize(7f).Bold().FontColor(Colors.Black);
@@ -1604,6 +1872,13 @@ ORDER BY fj.JobNo ASC;
                         Head("Arrival Notice");
                         Head("B/E No.");
                         Head("B/E Date");
+                        Head("Req No");
+                        Head("Req Dt");
+                        Head("OFR Appr");
+                        Head("OFR Adj");
+                        Head("Voucher Status");
+                        Head("Bill No");
+                        Head("Bill Dt");
                         Head("Act Del.");
                         Head("Status");
                         Head("Remarks");
@@ -1642,6 +1917,13 @@ ORDER BY fj.JobNo ASC;
                         Cell(item.ArrivalNoticeRcvdExpressDate, center: true);
                         Cell(item.BENo, center: true);
                         Cell(item.BEDate, center: true);
+                        Cell(item.RequisitionNo, center: true);
+                        Cell(item.RequisitionDate, center: true);
+                        Cell(item.OFRApprovalReport, center: true);
+                        Cell(item.OFRAdjustApprovalReport, center: true);
+                        Cell(item.VoucherApproval, center: true);
+                        Cell(item.BillNo, center: true);
+                        Cell(item.BillDate, center: true);
                         Cell(item.ActualDeliveryDate, center: true);
                         Cell(item.ShipmentStatus, center: true);
                         Cell(item.Remarks, center: true);
@@ -1947,6 +2229,7 @@ ORDER BY fj.JobNo ASC;
                 "Invoice No.", "Invoice Value", "Material Name & Pkgs Qty", "Express Name, Country",
                 "L/C No.", "Express/HAWB No.", "MAWB No.", "ETD", "Flight Actual Arrival Dt.",
                 "Arrival Notice Rcvd From Express Dt.", "Bill of Entry No", "Bill of Entry Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
                 "Actual Delivery Date", "Shipment Status", "Remarks"
             };
 
@@ -1988,6 +2271,13 @@ ORDER BY fj.JobNo ASC;
                         item.ArrivalNoticeRcvdExpressDate ?? "",
                         item.BENo ?? "",
                         item.BEDate ?? "",
+                        item.RequisitionNo ?? "",
+                        item.RequisitionDate ?? "",
+                        item.OFRApprovalReport ?? "",
+                        item.OFRAdjustApprovalReport ?? "",
+                        item.VoucherApproval ?? "",
+                        item.BillNo ?? "",
+                        item.BillDate ?? "",
                         item.ActualDeliveryDate ?? "",
                         item.ShipmentStatus ?? "",
                         item.Remarks ?? ""
@@ -2030,6 +2320,13 @@ ORDER BY fj.JobNo ASC;
                 38, // Arrival Notice Rcvd From Express Dt.
                 20, // Bill of Entry No
                 20, // Bill of Entry Date
+                18, // Requisition No.
+                16, // Requisition Date
+                20, // OFR Approval Report
+                24, // OFR Adjust Approval Report
+                18, // Voucher Approval
+                18, // Bill No.
+                16, // Bill Date
                 22, // Actual Delivery Date
                 18, // Shipment Status
                 22  // Remarks
@@ -2084,7 +2381,9 @@ ORDER BY fj.JobNo ASC;
                 "Sl. No.", "Job No.", "Job Date", "Shipment Mode", "Port", "Doc's Rec. Dt.",
                 "Invoice No", "Invoice Value", "Container /Pkgs", "Shipper", "B/L No.", "ETD",
                 "Final IGM Rec. Dt.", "Ship Arrived", "Unstaff/Discharge", "Docs. Bank Sign",
-                "B/E No.", "B/E Date", "Est. Delivery Dt.", "Actual Delivery Dt.", "Shipment Status",
+                "B/E No.", "B/E Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
+                "Est. Delivery Dt.", "Actual Delivery Dt.", "Shipment Status",
                 "Remarks", "Term", "Vessel Name & R-No", "Container No.", "Forwarder Name & Phone No."
             };
 
@@ -2126,6 +2425,13 @@ ORDER BY fj.JobNo ASC;
                         item.DocsBankSignDate ?? "",
                         item.BENo ?? "",
                         item.BEDate ?? "",
+                        item.RequisitionNo ?? "",
+                        item.RequisitionDate ?? "",
+                        item.OFRApprovalReport ?? "",
+                        item.OFRAdjustApprovalReport ?? "",
+                        item.VoucherApproval ?? "",
+                        item.BillNo ?? "",
+                        item.BillDate ?? "",
                         item.EstDeliveryDate ?? "",
                         item.ActualDeliveryDate ?? "",
                         item.ShipmentStatus ?? "",
@@ -2173,6 +2479,13 @@ ORDER BY fj.JobNo ASC;
                 18, // Docs. Bank Sign
                 18, // B/E No.
                 14, // B/E Date
+                18, // Requisition No.
+                16, // Requisition Date
+                20, // OFR Approval Report
+                24, // OFR Adjust Approval Report
+                18, // Voucher Approval
+                18, // Bill No.
+                16, // Bill Date
                 18, // Est. Delivery Dt.
                 22, // Actual Delivery Dt.
                 18, // Shipment Status
@@ -2242,6 +2555,43 @@ ORDER BY fj.JobNo ASC;
                 s.Equals("In Transit", StringComparison.OrdinalIgnoreCase) || s.Equals("transit", StringComparison.OrdinalIgnoreCase))
                 return ("In Transit", "transit");
             return ("Pending", "pending");
+        }
+
+        private static (string status, string voucherNo) ResolveVoucherStatus(string? rawApproval, string? rawVoucherNo)
+        {
+            string status = (rawApproval ?? "").Trim();
+            string vNo = (rawVoucherNo ?? "").Trim();
+
+            if (string.IsNullOrEmpty(vNo) && (status.StartsWith("JV_", StringComparison.OrdinalIgnoreCase) ||
+                                             status.StartsWith("CV_", StringComparison.OrdinalIgnoreCase) ||
+                                             status.StartsWith("BV_", StringComparison.OrdinalIgnoreCase)))
+            {
+                vNo = status;
+                status = "Approved";
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status.Equals("Y", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("1", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("Approved", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("Posted", StringComparison.OrdinalIgnoreCase))
+                {
+                    status = "Approved";
+                }
+                else if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase) ||
+                         status.Equals("Not Approved", StringComparison.OrdinalIgnoreCase) ||
+                         status.Equals("N", StringComparison.OrdinalIgnoreCase))
+                {
+                    status = "Pending";
+                }
+            }
+            else if (!string.IsNullOrEmpty(vNo))
+            {
+                status = "Pending";
+            }
+
+            return (status, vNo);
         }
 
         private static (string statusText, string statusClass) ResolveSeaStatus(string? rawStatus)

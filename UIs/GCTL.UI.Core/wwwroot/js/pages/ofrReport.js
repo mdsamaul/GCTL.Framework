@@ -3,6 +3,11 @@
 
     // Global Renderers for Currency
     window.gctlRenderers = window.gctlRenderers || {};
+    window.gctlRenderers.renderSelectCheckbox = function (data, type, row) {
+        var ofrNo = data || (row && (row.ofrNo || row.Ofrno)) || '';
+        return '<input type="checkbox" class="form-check-input row-select-chk m-0 shadow-none" value="' + ofrNo + '" />';
+    };
+
     window.gctlRenderers.formatCurrency = function (data, type) {
         if (data === null || data === undefined || data === '' || isNaN(data)) {
             return (type === 'sort' || type === 'type') ? 0 : '0.00';
@@ -247,6 +252,7 @@
         return {
             fromDate: getDateValue('filterFromDate'),
             toDate: getDateValue('filterToDate'),
+            branchCode: getDropdownValue('filterBranchCode'),
             shipmentModeId: getDropdownValue('filterShipmentMode'),
             customerId: getDropdownValue('filterCustomerId'),
             jobNo: getDropdownValue('filterJobNo'),
@@ -262,6 +268,7 @@
 
         if (filters.fromDate) params.append('fromDate', filters.fromDate);
         if (filters.toDate) params.append('toDate', filters.toDate);
+        if (filters.branchCode) params.append('branchCode', filters.branchCode);
         if (filters.shipmentModeId) params.append('shipmentModeId', filters.shipmentModeId);
         if (filters.customerId) params.append('customerId', filters.customerId);
         if (filters.jobNo) params.append('jobNo', filters.jobNo);
@@ -303,6 +310,7 @@
                     var filters = getFilterParams();
                     d.fromDate = filters.fromDate;
                     d.toDate = filters.toDate;
+                    d.branchCode = filters.branchCode;
                     d.shipmentModeId = filters.shipmentModeId;
                     d.customerId = filters.customerId;
                     d.jobNo = filters.jobNo;
@@ -311,6 +319,7 @@
                 },
                 onLoaded: function (json) {
                     isInitialized = true;
+                    $('#chkSelectAll').prop('checked', false);
                     if (json && json.summary) {
                         updateKpiCards(json.summary);
                     }
@@ -414,14 +423,24 @@
         var filters = getFilterParams();
         var exportFormat = (format || filters.exportFormat || 'PDF').trim().toUpperCase();
 
+        var selectedOfrs = [];
+        $('#ofrReportTable tbody .row-select-chk:checked').each(function () {
+            var val = $(this).val();
+            if (val && val.trim() !== '') {
+                selectedOfrs.push(val.trim());
+            }
+        });
+
         var queryParams = $.param({
             fromDate: filters.fromDate,
             toDate: filters.toDate,
+            branchCode: filters.branchCode,
             shipmentModeId: filters.shipmentModeId,
             customerId: filters.customerId,
             jobNo: filters.jobNo,
             ofrReportType: filters.ofrReportType,
             serviceProvidedById: filters.serviceProvidedById,
+            selectedOfrNos: selectedOfrs.join(','),
             exportFormat: exportFormat
         });
 
@@ -458,7 +477,7 @@
 
     function bindEvents() {
         // Flatpickr & standard input change
-        $(document).on('change', '#filterFromDate, #filterToDate', function () {
+        $(document).on('change', '#filterFromDate, #filterToDate, #filterBranchCode', function () {
             onFilterChanged();
             reloadJobNos();
         });
@@ -467,6 +486,19 @@
             .on('change', function () {
                 onFilterChanged();
             });
+
+        // Header Select All Checkbox Handler
+        $(document).on('change', '#chkSelectAll', function () {
+            var isChecked = $(this).is(':checked');
+            $('#ofrReportTable tbody .row-select-chk').prop('checked', isChecked);
+        });
+
+        // Individual Row Checkbox Handler
+        $(document).on('change', '#ofrReportTable tbody .row-select-chk', function () {
+            var total = $('#ofrReportTable tbody .row-select-chk').length;
+            var checked = $('#ofrReportTable tbody .row-select-chk:checked').length;
+            $('#chkSelectAll').prop('checked', total > 0 && total === checked);
+        });
 
         // Delegate clicks on custom dropdown options, checkboxes, tag removals, and clear buttons (from custom-select-2 widget)
         $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-tag-remove, .custom-dd-select-all', function () {

@@ -269,6 +269,8 @@ namespace GCTL.Service.SupplierInformation
                     // Supplier main info
                     Tc = sup.Tc,
                     SupplierId = sup.SupplierId,
+                    SupplierTitle = sup.SupplierTitle,
+                    SupplierPrefixId = sup.SupplierTitle,
                     SupplierCode = sup.SupplierCode,
                     SupplierName = sup.SupplierName,
                     Address = sup.Address,
@@ -324,61 +326,28 @@ namespace GCTL.Service.SupplierInformation
                 }
             ).FirstOrDefaultAsync();
                       
+            // Clear any lingering temp bank accounts
             var tempBankAccounts = await salesSupplierBankAccountTempRepo.All().ToListAsync();
-
-             if (tempBankAccounts.Any())
-             {
-                // Get last Sbaid in main table
-                var lastSbaidMainStr = await salesSupplierBankAccountRepo.All().OrderByDescending(x => x.Sbaid).Select(c => c.Sbaid).FirstOrDefaultAsync();
-
-                int lastSbaMainId = 0;
-                if (!string.IsNullOrEmpty(lastSbaidMainStr)) int.TryParse(lastSbaidMainStr, out lastSbaMainId);
-
-                var mainAccounts = tempBankAccounts.Select(bank =>
-                {
-                    lastSbaMainId++;
-                    return new SalesSupplierBankAccount
-                    {
-                        SupplierId = bank.SupplierId,
-                        BankId = bank.BankId,
-                        BankBranchId = bank.BankBranchId,
-                        AccountName = bank.AccountName,
-                        Luser = bank.Luser,
-                        Sbaid = lastSbaMainId.ToString("D3")
-                    };
-                }).ToList();
-
-                await salesSupplierBankAccountRepo.AddRangeAsync(mainAccounts);
+            if (tempBankAccounts.Any())
+            {
                 await salesSupplierBankAccountTempRepo.DeleteRangeAsync(tempBankAccounts);
-             }
+            }
 
-            // 2️⃣ Move Main -> Temp (if needed)
+            // Move this supplier's main bank accounts to temp for editing
             var mainBankAccounts = await salesSupplierBankAccountRepo.All().Where(x => x.SupplierId == code).ToListAsync();
-
             if (mainBankAccounts.Any())
             {
-                // Get last Sbaid in temp table
-                var lastSbaidTempStr = await salesSupplierBankAccountTempRepo.All().OrderByDescending(x => x.Sbaid).Select(c => c.Sbaid).FirstOrDefaultAsync();
-
-                int lastSbaidTemp = 0;
-                if (!string.IsNullOrEmpty(lastSbaidTempStr))int.TryParse(lastSbaidTempStr, out lastSbaidTemp);
-
-                var tempAccounts = mainBankAccounts.Select(bank =>
+                var tempAccounts = mainBankAccounts.Select(bank => new SalesSupplierBankAccountTemp
                 {
-                    lastSbaidTemp++;
-                    return new SalesSupplierBankAccountTemp
-                    {
-                        SupplierId = bank.SupplierId,
-                        BankId = bank.BankId,
-                        BankBranchId = bank.BankBranchId,
-                        AccountName = bank.AccountName,
-                        Luser = bank.Luser,
-                        Sbaid = lastSbaidTemp.ToString("D3")
-                    };
+                    SupplierId = bank.SupplierId,
+                    BankId = bank.BankId,
+                    BankBranchId = bank.BankBranchId,
+                    AccountName = bank.AccountName,
+                    Luser = bank.Luser,
+                    Sbaid = bank.Sbaid
                 }).ToList();
 
                 await salesSupplierBankAccountTempRepo.AddRangeAsync(tempAccounts);
-                await salesSupplierBankAccountRepo.DeleteRangeAsync(mainBankAccounts);
             }
             return data;
         }
@@ -389,6 +358,11 @@ namespace GCTL.Service.SupplierInformation
 
         public async Task<bool> SaveAsync(SupplierInformationSetupViewModel entityVM)
         {
+            if (string.IsNullOrWhiteSpace(entityVM.SupplierId))
+            {
+                entityVM.SupplierId = await Autoid();
+            }
+
             await supplierInformationRepository.BeginTransactionAsync();
 
             try
@@ -440,7 +414,7 @@ namespace GCTL.Service.SupplierInformation
                 {
                     Tc = (decimal)entityVM.Tc,
                     SupplierId = entityVM.SupplierId,
-                    SupplierTitle = entityVM.SupplierTitle,
+                    SupplierTitle = entityVM.SupplierPrefixId ?? entityVM.SupplierTitle,
                     SupplierName = entityVM.SupplierName,
                     SupplierCode = entityVM.SupplierCode ?? string.Empty,
                     SupplierCategoryId = entityVM.SupplierCategoryId ?? string.Empty,
@@ -521,7 +495,8 @@ namespace GCTL.Service.SupplierInformation
                     return false;
                 }
 
-                var entity = await supplierInformationRepository.GetByIdAsync(entityVM.SupplierId);
+                var entity = await supplierInformationRepository.All()
+                    .FirstOrDefaultAsync(x => x.SupplierId == entityVM.SupplierId || (entityVM.Tc > 0 && x.Tc == entityVM.Tc));
 
                 if (entity == null)
                 {
@@ -529,15 +504,26 @@ namespace GCTL.Service.SupplierInformation
                     return false;
                 }
 
-                bool isExist = supplierInformationRepository.GetAll().Any(x => x.SupplierName == entityVM.SupplierName && x.Phone == entityVM.Phone && x.Email == entityVM.Email && x.Tc != entityVM.Tc);
+                bool isExist = supplierInformationRepository.GetAll()
+                    .Any(x => x.SupplierName == entityVM.SupplierName && x.Phone == entityVM.Phone && x.Email == entityVM.Email && x.Tc != entity.Tc);
                 if (isExist)
                 {
+                    await supplierInformationRepository.RollbackTransactionAsync();
                     return false;
                 }
                 
                 var bankInfoListTemp = await salesSupplierBankAccountTempRepo.All()
                     .Where(x => x.SupplierId == entityVM.SupplierId)
                     .ToListAsync();
+
+                // Delete any existing main bank accounts for this supplier before adding updated ones
+                var existingMainBankAccounts = await salesSupplierBankAccountRepo.All()
+                    .Where(x => x.SupplierId == entityVM.SupplierId)
+                    .ToListAsync();
+                if (existingMainBankAccounts.Any())
+                {
+                    await salesSupplierBankAccountRepo.DeleteRangeAsync(existingMainBankAccounts);
+                }
 
                 var lastSbaidStr = await salesSupplierBankAccountRepo.All()
                     .OrderByDescending(x => x.Sbaid)
@@ -572,10 +558,11 @@ namespace GCTL.Service.SupplierInformation
                 }
 
                 entity.SupplierId = entityVM.SupplierId ?? string.Empty;
+                entity.SupplierTitle = entityVM.SupplierPrefixId ?? entityVM.SupplierTitle ?? string.Empty;
                 entity.SupplierName = entityVM.SupplierName ?? string.Empty;
                 entity.SupplierCode = entityVM.SupplierCode ?? string.Empty;
                 entity.SupplierCategoryId = entityVM.SupplierCategoryId ?? string.Empty;
-                entity.SupplierCategoryId = entityVM.SupplierCategoryId ?? string.Empty;
+                entity.SupplierTypeId = entityVM.SupplierTypeId ?? string.Empty;
                 entity.SupplierOriginId = entityVM.SupplierOriginId ?? string.Empty;
                 entity.CompanyId = entityVM.CompanyId ?? string.Empty;
                 entity.Address = entityVM.Address ?? string.Empty;
@@ -596,7 +583,7 @@ namespace GCTL.Service.SupplierInformation
                 entity.DesignationId = entityVM.DesignationId ?? string.Empty;
                 entity.DesignationId2 = entityVM.DesignationId2 ?? string.Empty;
                 entity.DesignationId3 = entityVM.DesignationId3 ?? string.Empty;
-                entity.SupplierBankBranchId = entityVM.SupplierBankBranchName ?? string.Empty;
+                entity.SupplierBankBranchId = entityVM.SupplierBankBranchId ?? string.Empty;
                 entity.ContatPerson1 = entityVM.ContatPerson1 ?? string.Empty;
                 entity.ContatPerson2 = entityVM.ContatPerson2 ?? string.Empty;
                 entity.ContatPerson3 = entityVM.ContatPerson3 ?? string.Empty;
@@ -734,16 +721,22 @@ namespace GCTL.Service.SupplierInformation
 
         public Task<string> Autoid()
         {
-            var appList = supplierInformationRepository.All().OrderByDescending(x => x.Tc).FirstOrDefault();
+            var appList = supplierInformationRepository.All()
+                .Where(x => x.SupplierId != null && x.SupplierId.StartsWith("SUP"))
+                .OrderByDescending(x => x.SupplierId)
+                .FirstOrDefault();
 
             int newId = 1;
-            if (appList != null)
+            if (appList != null && !string.IsNullOrWhiteSpace(appList.SupplierId))
             {
-                string lastId = appList.SupplierId;
-                string numericPart = lastId.Substring(3);
-                if (int.TryParse(numericPart, out int parsedId))
+                string lastId = appList.SupplierId.Trim();
+                if (lastId.Length > 3)
                 {
-                    newId = parsedId + 1;
+                    string numericPart = lastId.Substring(3);
+                    if (int.TryParse(numericPart, out int parsedId))
+                    {
+                        newId = parsedId + 1;
+                    }
                 }
             }
 
@@ -1017,6 +1010,7 @@ namespace GCTL.Service.SupplierInformation
                               ShortName = @ShortName,
                               OpeningBalance = @OpeningBalance,
                               TrType = @TrType,
+                              IsActive = '1',
                               ModifyDate = GETDATE()
                           WHERE GeneralLedgerCodeNo = @Code",
                         new

@@ -226,6 +226,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICustomerReportService, CustomerReportService>();
             services.AddScoped<IGPAnalysisReportService, GPAnalysisReportService>();
             services.AddScoped<IOFRReportService, OFRReportService>();
+            services.AddScoped<GCTL.Service.CustomerAgingReport.ICustomerAgingReportService, GCTL.Service.CustomerAgingReport.CustomerAgingReportService>();
             services.AddScoped<ITrialBalanceService, TrialBalanceService>();
             services.AddScoped<ICustomerTopSheetReportService, CustomerTopSheetReportService>();
 

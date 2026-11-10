@@ -144,6 +144,11 @@
         min-width: 110px;
     }
 
+    .filter-group.filter-group-branch {
+        flex: 1.1 1 125px;
+        min-width: 105px;
+    }
+
     .filter-group.filter-group-mode {
         flex: 1 1 105px;
         min-width: 95px;
@@ -446,6 +451,41 @@
         font-weight: 600;
     }
 
+    /* Report Preview Links */
+    .report-preview-link {
+        color: #0284c7;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.15s ease, text-decoration 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .report-preview-link:hover {
+        color: #003366 !important;
+        text-decoration: underline !important;
+    }
+
+    .report-preview-link.text-success {
+        color: #16a34a !important;
+    }
+
+    .report-preview-link.text-success:hover {
+        color: #0f5132 !important;
+        text-decoration: underline !important;
+    }
+
+    .report-preview-link.text-warning {
+        color: #d97706 !important;
+    }
+
+    .report-preview-link.text-warning:hover {
+        color: #92400e !important;
+        text-decoration: underline !important;
+    }
+
 
     @@media (max-width: 1200px) {
         .stats-grid {
@@ -526,6 +566,20 @@
                 <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
+            <!-- Branch (Single Select - Default All) -->
+            <div class="filter-group filter-group-branch">
+                <select id="filterBranchCode" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="select branch">
+                    <option value="" selected>select branch</option>
+                    @if (ViewBag.Branches != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Branches)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
             <!-- Customer (Single Select - Default None) -->
             <div class="filter-group filter-group-customer">
                 <select id="filterCustomerId" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="select customer">
@@ -579,7 +633,7 @@
                 </select>
             </div>
 
-            <!-- Export Format (Single Select with Placeholder) -->
+            <!-- Export Format (Single Select with Placeholder - Auto Triggers Export) -->
             <div class="filter-group filter-group-export">
                 <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" data-placeholder="Select Exp. Format">
                     <option value="">Select Exp. Format</option>
@@ -587,13 +641,6 @@
                     <option value="Excel">Excel</option>
                     <option value="CSV">CSV</option>
                 </select>
-            </div>
-
-            <!-- Actions (Export button only, search is automatic) -->
-            <div class="filter-actions">
-                <button type="button" class="btn-export-rep" id="btnExport" title="Export report (Defaults to PDF if format not selected)">
-                    <i class="fas fa-file-export"></i> EXPORT
-                </button>
             </div>
         </div>
 
@@ -630,6 +677,13 @@
                                     <th class="text-center align-middle" title="Arrival Notice Received From Express Date" data-bs-toggle="tooltip">Arr. Notice</th>
                                     <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
                                     <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                    <th class="text-center align-middle" title="Requisition Number" data-bs-toggle="tooltip">Req. No</th>
+                                    <th class="text-center align-middle" title="Requisition Date" data-bs-toggle="tooltip">Req. Dt</th>
+                                    <th class="text-center align-middle" title="Operational Fund Approval Report" data-bs-toggle="tooltip">OFR Approval</th>
+                                    <th class="text-center align-middle" title="OFR Adjust Approval Report" data-bs-toggle="tooltip">OFR Adjust</th>
+                                    <th class="text-center align-middle" title="Voucher Status" data-bs-toggle="tooltip">Voucher Status</th>
+                                    <th class="text-center align-middle" title="Job Bill Number" data-bs-toggle="tooltip">Bill No</th>
+                                    <th class="text-center align-middle" title="Bill Date" data-bs-toggle="tooltip">Bill Dt</th>
                                     <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Delivery Dt</th>
                                     <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
                                     <th class="text-center align-middle" title="Remarks" data-bs-toggle="tooltip">Remarks</th>
@@ -664,6 +718,13 @@
                                     <th class="text-center align-middle" title="Docs Bank Sign Date" data-bs-toggle="tooltip">Bank Sign</th>
                                     <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
                                     <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                    <th class="text-center align-middle" title="Requisition Number" data-bs-toggle="tooltip">Req. No</th>
+                                    <th class="text-center align-middle" title="Requisition Date" data-bs-toggle="tooltip">Req. Dt</th>
+                                    <th class="text-center align-middle" title="Operational Fund Approval Report" data-bs-toggle="tooltip">OFR Approval</th>
+                                    <th class="text-center align-middle" title="OFR Adjust Approval Report" data-bs-toggle="tooltip">OFR Adjust</th>
+                                    <th class="text-center align-middle" title="Voucher Status" data-bs-toggle="tooltip">Voucher Status</th>
+                                    <th class="text-center align-middle" title="Job Bill Number" data-bs-toggle="tooltip">Bill No</th>
+                                    <th class="text-center align-middle" title="Bill Date" data-bs-toggle="tooltip">Bill Dt</th>
                                     <th class="text-center align-middle" title="Estimated Delivery Date" data-bs-toggle="tooltip">Est. Del.</th>
                                     <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Act. Del.</th>
                                     <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
@@ -681,6 +742,31 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- Report Preview Modal -->
+<div class="modal fade" id="reportPreviewModal" tabindex="-1" aria-labelledby="reportPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90vw; height: 90vh;">
+        <div class="modal-content" style="height: 100%;">
+            <div class="modal-header py-2 px-3 bg-light border-bottom">
+                <div class="d-flex align-items-center">
+                    <span id="modalHeaderSpinner" class="spinner-border spinner-border-sm text-primary me-2" role="status" style="display: none;"></span>
+                    <h6 class="modal-title fw-bold text-primary mb-0" id="reportPreviewModalLabel">
+                        <i class="fas fa-file-pdf text-danger me-2"></i>Report Preview
+                    </h6>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a id="btnModalOpenNewTab" href="#" target="_blank" class="btn btn-sm btn-outline-primary py-1 px-2" title="Open in new tab">
+                        <i class="fas fa-external-link-alt me-1"></i>New Tab
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0 position-relative" style="height: calc(100% - 50px); overflow: hidden;">
+                <iframe id="reportPreviewIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
     </div>
 </div>
 

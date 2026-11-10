@@ -680,7 +680,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <h3>Total Costing</h3>
+                    <h3>Total Costing (Direct Exp.)</h3>
                     <p id="statTotalDue">0.00</p>
                 </div>
             </div>
@@ -695,7 +695,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <h3>Profit</h3>
+                    <h3>Gross Profit</h3>
                     <p id="statprofit">0.00</p>
                 </div>
             </div>
@@ -711,7 +711,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <h3>GP(%)</h3>
+                    <h3>GP Margin(%)</h3>
                     <p id="statLastServiceDate" style="font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="-">-</p>
                 </div>
             </div>
@@ -724,13 +724,26 @@
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/08/yyyy")" data-default-date="@DateTime.Now.ToString("01/08/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group">
                 <label for="filterToDate">To</label>
                 <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" data-min-date="@DateTime.Now.ToString("yyyy-MM-01")" />
+            </div>
+
+            <!-- Branch (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterBranchCode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Branch --">
+                    @if (ViewBag.Branches != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Branches)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
             </div>
 
             <!-- Shipment Mode (Multi-Select with checkboxes) -->

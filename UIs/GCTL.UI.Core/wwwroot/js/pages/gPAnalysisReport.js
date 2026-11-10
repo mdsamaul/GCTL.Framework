@@ -3,6 +3,11 @@
 
     // Global Renderers for Currency & Percentages
     window.gctlRenderers = window.gctlRenderers || {};
+    window.gctlRenderers.renderSelectCheckbox = function (data, type, row) {
+        var billNo = data || (row && (row.billNo || row.BillNo)) || '';
+        return '<input type="checkbox" class="form-check-input row-select-chk m-0 shadow-none" value="' + billNo + '" />';
+    };
+
     window.gctlRenderers.formatCurrency = function (data, type) {
         if (data === null || data === undefined || data === '' || isNaN(data)) {
             return (type === 'sort' || type === 'type') ? 0 : '0';
@@ -257,12 +262,14 @@
     function getFilterParams() {
         var fromDate = getDateValue('filterFromDate');
         var toDate = getDateValue('filterToDate');
+        var branchCode = getDropdownValue('filterBranchCode') || $('#filterBranchCode').val() || '';
         var shipmentMode = getDropdownValue('filterShipmentMode');
         var customerId = getDropdownValue('filterCustomerId');
 
         return {
             fromDate: fromDate,
             toDate: toDate,
+            branchCode: branchCode,
             shipmentMode: shipmentMode,
             customerId: customerId,
             dateUse: (fromDate && toDate) ? 'Y' : 'N'
@@ -270,15 +277,24 @@
     }
 
     function checkAndLoadFilterOptions() {
+        var $branchSelect = $('#filterBranchCode');
         var $modeSelect = $('#filterShipmentMode');
         var $custSelect = $('#filterCustomerId');
 
-        if ($modeSelect.children('option').length === 0 || $custSelect.children('option').length === 0) {
+        if ($branchSelect.children('option').length <= 1 || $modeSelect.children('option').length === 0 || $custSelect.children('option').length === 0) {
             $.ajax({
                 url: '/GPAnalysisReport/GetFilterOptions',
                 type: 'GET',
                 success: function (res) {
                     if (res && res.success) {
+                        if ($branchSelect.children('option').length <= 1 && res.branches) {
+                            res.branches.forEach(function (b) {
+                                $branchSelect.append($('<option>', { value: b.value, text: b.text }));
+                            });
+                            if (typeof window.reinitCustomDropdownById === 'function') {
+                                window.reinitCustomDropdownById('filterBranchCode');
+                            }
+                        }
                         if ($modeSelect.children('option').length === 0 && res.shipmentModes) {
                             res.shipmentModes.forEach(function (m) {
                                 $modeSelect.append($('<option>', { value: m.value, text: m.text }));
@@ -325,12 +341,14 @@
                     var filters = getFilterParams();
                     d.fromDate = filters.fromDate;
                     d.toDate = filters.toDate;
+                    d.branchCode = filters.branchCode;
                     d.shipmentMode = filters.shipmentMode;
                     d.customerId = filters.customerId;
                     d.dateUse = filters.dateUse;
                 },
                 onLoaded: function (json) {
                     isInitialized = true;
+                    $('#chkSelectAll').prop('checked', false);
                     if (json && json.summary) {
                         updateKpiCards(json.summary);
                     }
@@ -378,6 +396,17 @@
         }, 300);
     }
 
+    function getSelectedBillNos() {
+        var selected = [];
+        $('#gPAnalysisReportTable tbody .row-select-chk:checked').each(function () {
+            var val = $(this).val();
+            if (val && val.trim() !== '') {
+                selected.push(val.trim());
+            }
+        });
+        return selected.join(',');
+    }
+
      //* Export report handler (PDF or Excel, defaults to PDF if nothing is selected)
     
     function exportReport() {
@@ -385,11 +414,15 @@
         var exportFormat = (getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
         if (!exportFormat) exportFormat = 'PDF';
 
+        var selectedBills = getSelectedBillNos();
+
         var queryParams = $.param({
             fromDate: filters.fromDate,
             toDate: filters.toDate,
+            branchCode: filters.branchCode,
             shipmentMode: filters.shipmentMode,
             customerId: filters.customerId,
+            selectedBillNos: selectedBills,
             dateUse: filters.dateUse,
             exportFormat: exportFormat
         });
@@ -398,12 +431,25 @@
     }
 
     function bindEvents() {
-        $(document).on('change', '#filterFromDate, #filterToDate', function () {
+        $(document).on('change', '#filterFromDate, #filterToDate, #filterBranchCode', function () {
             onFilterChanged();
         });
 
         $('#filterShipmentMode, #filterCustomerId').on('change', function () {
             onFilterChanged();
+        });
+
+        // Header Select All Checkbox Handler
+        $(document).on('change', '#chkSelectAll', function () {
+            var isChecked = $(this).is(':checked');
+            $('#gPAnalysisReportTable tbody .row-select-chk').prop('checked', isChecked);
+        });
+
+        // Individual Row Checkbox Handler
+        $(document).on('change', '#gPAnalysisReportTable tbody .row-select-chk', function () {
+            var total = $('#gPAnalysisReportTable tbody .row-select-chk').length;
+            var checked = $('#gPAnalysisReportTable tbody .row-select-chk:checked').length;
+            $('#chkSelectAll').prop('checked', total > 0 && total === checked);
         });
 
         // Delegate clicks on custom dropdown options, checkboxes, tag removals, and clear buttons

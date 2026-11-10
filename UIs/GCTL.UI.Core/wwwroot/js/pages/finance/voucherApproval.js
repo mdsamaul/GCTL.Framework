@@ -171,8 +171,91 @@ $(document).ready(function () {
         $('#chkSelectAll').prop('checked', total > 0 && total === checked);
     });
 
+    /* Date Range Constraint (FromDate cannot exceed ToDate, ToDate cannot be earlier than FromDate) */
+    function parseDateObj(val) {
+        if (!val) return null;
+        if (val instanceof Date) return val;
+        var s = String(val).trim();
+        if (s.includes('T')) s = s.split('T')[0];
+        var dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (dmy) {
+            return new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+        }
+        var p = new Date(s);
+        return !isNaN(p.getTime()) ? p : null;
+    }
+
+    function syncDateLimits() {
+        var fromEl = document.getElementById('filterFromDate');
+        var toEl = document.getElementById('filterToDate');
+
+        var fromFp = (fromEl && fromEl._flatpickr) || $('#filterFromDate').data('customFpInstance');
+        var toFp = (toEl && toEl._flatpickr) || $('#filterToDate').data('customFpInstance');
+
+        if (!fromFp || !toFp) return;
+
+        var fromVal = getDateValue('#filterFromDate');
+        var toVal = getDateValue('#filterToDate');
+
+        var fromDate = parseDateObj(fromVal);
+        var toDate = parseDateObj(toVal);
+
+        if (toDate && typeof fromFp.set === 'function') {
+            fromFp.set('maxDate', toDate);
+        }
+        if (fromDate && typeof toFp.set === 'function') {
+            toFp.set('minDate', fromDate);
+        }
+    }
+
+    function initDateRangeConstraints() {
+        var fromEl = document.getElementById('filterFromDate');
+        var toEl = document.getElementById('filterToDate');
+
+        var fromFp = (fromEl && fromEl._flatpickr) || $('#filterFromDate').data('customFpInstance');
+        var toFp = (toEl && toEl._flatpickr) || $('#filterToDate').data('customFpInstance');
+
+        if (!fromFp || !toFp) {
+            setTimeout(initDateRangeConstraints, 150);
+            return;
+        }
+
+        // Set initial limits based on default values
+        syncDateLimits();
+
+        // Bind change events to dynamically adjust min/max limits
+        if (fromFp.config && Array.isArray(fromFp.config.onChange)) {
+            fromFp.config.onChange.push(function (selectedDates) {
+                var selected = selectedDates && selectedDates[0];
+                if (selected && toFp && typeof toFp.set === 'function') {
+                    toFp.set('minDate', selected);
+                    var curTo = toFp.selectedDates && toFp.selectedDates[0];
+                    if (curTo && curTo < selected) {
+                        toFp.setDate(selected, true);
+                    }
+                }
+            });
+        }
+
+        if (toFp.config && Array.isArray(toFp.config.onChange)) {
+            toFp.config.onChange.push(function (selectedDates) {
+                var selected = selectedDates && selectedDates[0];
+                if (selected && fromFp && typeof fromFp.set === 'function') {
+                    fromFp.set('maxDate', selected);
+                    var curFrom = fromFp.selectedDates && fromFp.selectedDates[0];
+                    if (curFrom && curFrom > selected) {
+                        fromFp.setDate(selected, true);
+                    }
+                }
+            });
+        }
+    }
+
+    initDateRangeConstraints();
+
     // Auto Refresh on Date Change
     $(document).on('change input blur', '#filterFromDate, #filterToDate', function () {
+        syncDateLimits();
         reloadGridAndSummary();
     });
 

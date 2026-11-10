@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.Finance.VoucherEntryVM.VoucherEntryVM
+@model GCTL.Core.ViewModels.Finance.VoucherEntryVM.VoucherEntryVM
 @{
     Layout = null;
     string vKind = !string.IsNullOrWhiteSpace(Model.VoucherTypeName) ? Model.VoucherTypeName.ToUpper() : "VOUCHER";
@@ -553,16 +553,31 @@
         window.addEventListener('DOMContentLoaded', function() {
             try { window.focus(); } catch (e) {}
         });
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                try {
-                    window.focus();
-                    window.print();
-                } catch (e) {
-                    console.log('Browser print error suppressed:', e);
-                }
-            }, 600);
-        });
+        (function() {
+            var isIframe = false;
+            try {
+                isIframe = (window.self !== window.top);
+            } catch (e) {
+                isIframe = true;
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var autoPrint = urlParams.get('autoprint');
+            var shouldPrint = !isIframe && autoPrint !== '0' && autoPrint !== 'false';
+
+            if (shouldPrint) {
+                window.addEventListener('load', function() {
+                    setTimeout(function() {
+                        try {
+                            window.focus();
+                            window.print();
+                        } catch (e) {
+                            console.log('Browser print error suppressed:', e);
+                        }
+                    }, 600);
+                });
+            }
+        })();
     </script>
 </body>
 </html>
