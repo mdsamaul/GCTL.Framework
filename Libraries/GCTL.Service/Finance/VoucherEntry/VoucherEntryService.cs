@@ -773,7 +773,7 @@ namespace GCTL.Service.Finance.VoucherEntry
         #region Dropdowns
         public async Task<VoucherDropdownsVM> GetDropdownsAsync()
         {
-            var cacheKey = "VoucherEntry_DropdownsVM";
+            var cacheKey = "VoucherEntry_DropdownsVM_v2";
             if (_memoryCache.TryGetValue(cacheKey, out VoucherDropdownsVM? cached) && cached != null)
             {
                 return cached;
@@ -871,13 +871,15 @@ namespace GCTL.Service.Finance.VoucherEntry
                         GroupName = $"{grpName} - {ctlName}",
                         HierarchyPath = $"{grpName} › {ctlName} › {sctlName} › {ssName}",
                         DefaultTrType = (gl.GroupLedgerCodeNo == "1" || gl.GroupLedgerCodeNo == "4") ? "Dr" : "Cr",
+                        SubsidiaryLedgerCodeNo = gl.SubsidiaryLedgerCodeNo ?? string.Empty,
                         IsCash = cashCodes.Contains(gl.GeneralLedgerCodeNo) ||
-                                 (resolvedName.Contains("Cash")) ||
-                                 (gl.SubsidiaryLedgerCodeNo == "10200200001"),
+                                 (gl.SubsidiaryLedgerCodeNo == "10200400001" || gl.SubsidiaryLedgerCodeNo == "10200400002" || gl.SubsidiaryLedgerCodeNo == "10200200001") ||
+                                 (resolvedName.Contains("Cash")),
                         IsBank = bankCodes.Contains(gl.GeneralLedgerCodeNo) ||
+                                 (gl.SubsidiaryLedgerCodeNo == "10200400003" || gl.SubsidiaryLedgerCodeNo == "10200400004" || gl.SubsidiaryLedgerCodeNo == "10200200002") ||
                                  (resolvedName.Contains("Bank")) ||
                                  (resolvedName.Contains("DBBL")) ||
-                                 (gl.SubsidiaryLedgerCodeNo == "10200200002")
+                                 (resolvedName.Contains("FDR"))
                     };
                 }).ToList();
 
@@ -1184,7 +1186,9 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
                 entry.SlidingExpiration = TimeSpan.FromMinutes(30);
                 var codes = await _context.AccGeneralLedgers
                     .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
-                                (x.SubsidiaryLedgerCodeNo == "10200200001" ||
+                                (x.SubsidiaryLedgerCodeNo == "10200400001" ||
+                                 x.SubsidiaryLedgerCodeNo == "10200400002" ||
+                                 x.SubsidiaryLedgerCodeNo == "10200200001" ||
                                  x.GeneralLedgerName.Contains("Cash in Hand") ||
                                  x.GeneralLedgerName.Contains("Cash")))
                     .Select(x => x.GeneralLedgerCodeNo)
@@ -1201,10 +1205,13 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
                 entry.SlidingExpiration = TimeSpan.FromMinutes(30);
                 var codes = await _context.AccGeneralLedgers
                     .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
-                                (x.SubsidiaryLedgerCodeNo == "10200200002" ||
+                                (x.SubsidiaryLedgerCodeNo == "10200400003" ||
+                                 x.SubsidiaryLedgerCodeNo == "10200400004" ||
+                                 x.SubsidiaryLedgerCodeNo == "10200200002" ||
                                  x.GeneralLedgerName.Contains("Bank Account") ||
                                  x.GeneralLedgerName.Contains("Bank") ||
-                                 x.GeneralLedgerName.Contains("DBBL")))
+                                 x.GeneralLedgerName.Contains("DBBL") ||
+                                 x.GeneralLedgerName.Contains("FDR")))
                     .Select(x => x.GeneralLedgerCodeNo)
                     .ToListAsync();
 

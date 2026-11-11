@@ -40,6 +40,7 @@ namespace GCTL.Core.ViewModels.Finance.VoucherEntryVM
         public string GroupName { get; set; } = string.Empty;
         public string HierarchyPath { get; set; } = string.Empty;
         public string DefaultTrType { get; set; } = "Dr";
+        public string SubsidiaryLedgerCodeNo { get; set; } = string.Empty;
         public bool IsCash { get; set; }
         public bool IsBank { get; set; }
     }
