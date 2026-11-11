@@ -132,9 +132,9 @@ window.DashboardOverview = {
         // 8. Grids Initialization & Data Population
         if (!GRIDS.o_g1 && document.getElementById('o_g1')) {
             new Grid('o_g1', {
-                size: 6,
-                sizes: [6, 10, 20],
-                search: false,
+                size: 5,
+                sizes: [5, 10, 15, 20],
+                search: true,
                 card: 'g760',
                 columns: [
                     { k: 'billNo', l: 'Bill No', cls: 'mono nw' },
@@ -147,9 +147,9 @@ window.DashboardOverview = {
         }
         if (!GRIDS.o_g2 && document.getElementById('o_g2')) {
             new Grid('o_g2', {
-                size: 6,
-                sizes: [6, 10, 20],
-                search: false,
+                size: 5,
+                sizes: [5, 10, 15, 20],
+                search: true,
                 card: 'g760',
                 columns: [
                     { k: 'jobNo', l: 'Job No', cls: 'mono nw' },

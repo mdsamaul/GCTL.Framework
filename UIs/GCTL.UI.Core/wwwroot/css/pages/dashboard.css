@@ -125,13 +125,32 @@
 
 /* ---- grids ---- */
 .gridcard { padding: 12px 14px; }
-.gh { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-.gh h3 { font-size: 14px; font-weight: 700; color: var(--brand); }
-.gtools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.gtools label { font-size: 11.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
-.gtools select, .gtools input { height: 28px; border: 1px solid #cfd8e6; border-radius: 6px; padding: 0 8px; font-size: 12px; background: #fff; outline: none; }
-.gtools select { cursor: pointer; color: var(--ink); }
-.gtools input { width: 180px; }
+.gridcard header, .gridcard .gh { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.gridcard header h3, .gridcard .gh h3 { font-size: 14px; font-weight: 700; color: var(--brand); margin: 0; }
+.gtools { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; width: 100%; }
+.gtools label { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; margin: 0; }
+.gtools select { height: 30px; border: 1px solid #cfd8e6; border-radius: 6px; padding: 0 8px; font-size: 12.5px; background: #fff; outline: none; cursor: pointer; color: var(--ink); }
+.gtools select:focus { border-color: var(--brand-2, #0b57d0); box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.14); }
+.gtools input[type="search"], .gtools input {
+    height: 30px;
+    width: 260px;
+    border: 1px solid #cfd8e6;
+    border-radius: 6px;
+    padding: 0 10px 0 30px;
+    font-size: 12.5px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 9px center;
+    outline: none;
+    margin-left: auto;
+    transition: border-color .15s, box-shadow .15s;
+}
+.gtools input[type="search"]:focus, .gtools input:focus {
+    border-color: var(--brand-2, #0b57d0);
+    box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.14);
+}
+@media (max-width: 600px) {
+    .gtools { flex-direction: column; align-items: stretch; gap: 8px; }
+    .gtools input[type="search"], .gtools input { width: 100%; margin-left: 0; }
+}
 .gbody { overflow-x: auto; width: 100%; }
 table.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
 .grid th { background: #f6f8fc; color: #32435f; font-weight: 700; text-align: left; padding: 7px 6px; border: 1px solid var(--line); font-size: 11.5px; position: relative; }

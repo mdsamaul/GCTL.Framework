@@ -54,8 +54,8 @@ class Grid {
     constructor(id, options = {}) {
         this.id = id;
         this.o = Object.assign({
-            sizes: [10, 15, 25],
-            size: 10,
+            sizes: [5, 10, 15, 20, 25],
+            size: 5,
             search: true,
             sortable: true,
             card: 'g760'
