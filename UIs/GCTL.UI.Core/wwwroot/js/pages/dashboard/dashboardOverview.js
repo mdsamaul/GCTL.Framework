@@ -135,7 +135,7 @@ window.DashboardOverview = {
         if (!GRIDS.o_g1 && document.getElementById('o_g1')) {
             new Grid('o_g1', {
                 size: 5,
-                sizes: [5, 10, 15, 20],
+                sizes: [5, 10, 20, 50, 100, 'All'],
                 search: true,
                 card: 'g760',
                 columns: [
@@ -150,7 +150,7 @@ window.DashboardOverview = {
         if (!GRIDS.o_g2 && document.getElementById('o_g2')) {
             new Grid('o_g2', {
                 size: 5,
-                sizes: [5, 10, 15, 20],
+                sizes: [5, 10, 20, 50, 100, 'All'],
                 search: true,
                 card: 'g760',
                 columns: [
