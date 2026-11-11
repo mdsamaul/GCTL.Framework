@@ -389,29 +389,9 @@ const DashboardApp = {
         this.setupTabNavigation();
         this.setupFilterEvents();
         this.setupExportMenu();
-        this.initSelect2Dropdowns();
 
         // Initial Load of Active Tab
         this.switchTab(this.currentTab);
-    },
-
-    initSelect2Dropdowns() {
-        if (window.jQuery && $.fn.select2) {
-            $('.custom-select-single').each(function () {
-                const $sel = $(this);
-                if (!$sel.hasClass('select2-hidden-accessible')) {
-                    $sel.select2({
-                        placeholder: $sel.data('placeholder') || 'Select',
-                        allowClear: true,
-                        width: '100%'
-                    });
-                }
-            });
-            $('.custom-select-single').on('change.dash', () => {
-                DashboardApp.updatePeriodDisplay();
-                DashboardApp.loadActiveTab();
-            });
-        }
     },
 
     showLoader(panelId) {
@@ -467,18 +447,36 @@ const DashboardApp = {
             this.loadActiveTab();
         };
 
-        d$('#fFrom')?.addEventListener('change', () => { if (d$('#fRange')) $(d$('#fRange')).val('custom').trigger('change.select2'); refresh(); });
-        d$('#fTo')?.addEventListener('change', () => { if (d$('#fRange')) $(d$('#fRange')).val('custom').trigger('change.select2'); refresh(); });
-        d$('#fBranch')?.addEventListener('change', refresh);
-        d$('#fMode')?.addEventListener('change', refresh);
-        d$('#fPort')?.addEventListener('change', refresh);
-        d$('#fCust')?.addEventListener('change', refresh);
-        d$('#fStatus')?.addEventListener('change', refresh);
-
-        d$('#fRange')?.addEventListener('change', e => {
-            this.applyQuickRange(e.target.value);
+        const onDateChanged = () => {
+            if (window.setSelect) {
+                window.setSelect('#fRange', 'custom');
+            } else if (d$('#fRange')) {
+                d$('#fRange').value = 'custom';
+            }
             refresh();
-        });
+        };
+
+        d$('#fFrom')?.addEventListener('change', onDateChanged);
+        d$('#fTo')?.addEventListener('change', onDateChanged);
+
+        if (window.jQuery) {
+            $('#fBranch, #fMode, #fPort, #fCust, #fStatus').on('change', refresh);
+            $('#fRange').on('change', function () {
+                DashboardApp.applyQuickRange(this.value);
+                refresh();
+            });
+        } else {
+            d$('#fBranch')?.addEventListener('change', refresh);
+            d$('#fMode')?.addEventListener('change', refresh);
+            d$('#fPort')?.addEventListener('change', refresh);
+            d$('#fCust')?.addEventListener('change', refresh);
+            d$('#fStatus')?.addEventListener('change', refresh);
+
+            d$('#fRange')?.addEventListener('change', e => {
+                this.applyQuickRange(e.target.value);
+                refresh();
+            });
+        }
 
         d$('#btnReset')?.addEventListener('click', () => {
             this.resetFilters();
@@ -526,13 +524,13 @@ const DashboardApp = {
 
     resetFilters() {
         this.applyQuickRange('3m');
-        if (window.jQuery) {
-            $('#fRange').val('3m').trigger('change.select2');
-            $('#fBranch').val('').trigger('change.select2');
-            $('#fMode').val('').trigger('change.select2');
-            $('#fPort').val('').trigger('change.select2');
-            $('#fCust').val('').trigger('change.select2');
-            $('#fStatus').val('').trigger('change.select2');
+        if (window.setSelect) {
+            window.setSelect('#fRange', '3m');
+            window.setSelect('#fBranch', '');
+            window.setSelect('#fMode', '');
+            window.setSelect('#fPort', '');
+            window.setSelect('#fCust', '');
+            window.setSelect('#fStatus', '');
         } else {
             if (d$('#fRange')) d$('#fRange').value = '3m';
             if (d$('#fBranch')) d$('#fBranch').value = '';
