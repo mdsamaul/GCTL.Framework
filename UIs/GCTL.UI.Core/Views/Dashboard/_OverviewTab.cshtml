@@ -7,7 +7,7 @@
         <span data-period></span>
     </div>
 
-    <!-- KPIs -->
+    <!-- Main KPIs -->
     <div class="kpis six">
         <div class="kpi blue" id="o_jobs">
             <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
@@ -35,76 +35,106 @@
         </div>
     </div>
 
+    <!-- Mini KPI Cards -->
+    <div class="minis">
+        <div class="mini green" id="m_np">
+            <div class="klabel">Net Profit (Accounts)</div>
+            <div class="kval">–</div>
+            <div class="ksub">Margin 0%</div>
+        </div>
+        <div class="mini blue" id="m_col">
+            <div class="klabel">Collection Rate</div>
+            <div class="kval">–</div>
+            <div class="ksub">collected of billed</div>
+        </div>
+        <div class="mini purple" id="m_avg">
+            <div class="klabel">Avg Clearance Time</div>
+            <div class="kval">–</div>
+            <div class="ksub">job date → delivery</div>
+        </div>
+        <div class="mini sky" id="m_ot">
+            <div class="klabel">On-time Delivery</div>
+            <div class="kval">–</div>
+            <div class="ksub">delivered ≤ 10 days</div>
+        </div>
+        <div class="mini orange" id="m_doc">
+            <div class="klabel">Docs Pending</div>
+            <div class="kval">–</div>
+            <div class="ksub">jobs with incomplete documents</div>
+        </div>
+        <div class="mini red" id="m_req">
+            <div class="klabel">Pending Fund Requisitions</div>
+            <div class="kval">–</div>
+            <div class="ksub">0 of 0 requests</div>
+        </div>
+    </div>
+
     <!-- Charts Row 1 -->
     <div class="row c21">
         <section class="card">
-            <div class="chdr">
-                <h3>Monthly Revenue &amp; Profit Trend</h3>
-                <span>Net Service Value vs Profit</span>
-            </div>
+            <header>
+                <h3>Revenue vs Direct Cost vs Gross Profit</h3>
+                <span class="hint">monthly</span>
+            </header>
             <div class="cwrap"><canvas id="o_ch1"></canvas></div>
         </section>
         <section class="card">
-            <div class="chdr">
-                <h3>Job Status Share</h3>
-                <span>active workload</span>
-            </div>
+            <header>
+                <h3>Job Status</h3>
+                <span class="hint">active workload</span>
+            </header>
             <div class="cwrap"><canvas id="o_ch2"></canvas></div>
         </section>
     </div>
 
     <!-- Charts Row 2 -->
-    <div class="row c12">
+    <div class="row c3">
         <section class="card">
-            <div class="chdr">
-                <h3>Top Customers by Billed Value</h3>
-                <span>highest billing volume</span>
-            </div>
+            <header>
+                <h3>Top Customers by Service Value</h3>
+                <span class="hint">highest billing volume</span>
+            </header>
             <div class="cwrap"><canvas id="o_ch3"></canvas></div>
         </section>
         <section class="card">
-            <div class="chdr">
-                <h3>Outstanding Ageing</h3>
-                <span>receivables aging breakdown</span>
-            </div>
+            <header>
+                <h3>Receivable Ageing (Due Outstanding)</h3>
+                <span class="hint">by bill age</span>
+            </header>
             <div class="cwrap"><canvas id="o_ch4"></canvas></div>
+        </section>
+        <section class="card">
+            <header>
+                <h3>Operational Fund Requisitions</h3>
+                <span class="hint">by status · amount</span>
+            </header>
+            <div class="cwrap"><canvas id="o_ch5"></canvas></div>
         </section>
     </div>
 
     <!-- Tables Row 3 -->
     <div class="row c2">
         <section class="card gridcard">
-            <div class="gh">
-                <h3>Overdue Bills (Action Required)</h3>
-                <span class="badge s-due" id="o_overdue_badge">0 overdue</span>
+            <header>
+                <h3>Needs Attention – Overdue Bills <span class="hint">(due 30+ days)</span></h3>
+            </header>
+            <div class="gtools">
+                <label>Show <select id="o_g1_sz"></select> entries</label>
+                <input id="o_g1_q" type="search" placeholder="Search records…" aria-label="Search Overdue Bills" />
             </div>
-            <div class="gbody">
-                <table class="grid" id="o_t1">
-                    <thead>
-                        <tr><th>Bill No</th><th>Customer</th><th>Bill Date</th><th class="num">Due Amount</th><th class="ctr">Days Overdue</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr class="empty-row"><td colspan="5">No overdue bills.</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="gbody"><div id="o_g1"></div></div>
+            <div class="gfoot" id="o_g1_f"></div>
         </section>
         <section class="card gridcard">
-            <div class="gh">
-                <h3>Upcoming Arrivals (Next 7 Days)</h3>
-                <span class="badge s-in-transit" id="o_arrivals_badge">0 upcoming</span>
+            <header>
+                <h3>Upcoming Arrivals <span class="hint">(in transit · next 7 days)</span></h3>
+            </header>
+            <div class="gtools">
+                <label>Show <select id="o_g2_sz"></select> entries</label>
+                <input id="o_g2_q" type="search" placeholder="Search records…" aria-label="Search Upcoming Arrivals" />
             </div>
-            <div class="gbody">
-                <table class="grid" id="o_t2">
-                    <thead>
-                        <tr><th>Job No</th><th>Customer</th><th>Mode</th><th>Port</th><th>ETA</th><th>Vessel</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr class="empty-row"><td colspan="6">No upcoming arrivals in this period.</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="gbody"><div id="o_g2"></div></div>
+            <div class="gfoot" id="o_g2_f"></div>
         </section>
     </div>
 </section>
-

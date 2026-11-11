@@ -30,51 +30,7 @@ BEGIN
     END
 
     ---------------------------------------------------------------------
-    -- 1. Base Filtered Jobs
-    ---------------------------------------------------------------------
-    SELECT 
-        d.JobNo,
-        CAST(d.Date AS DATE) AS JobDate,
-        d.ExpenseTypeID,
-        ISNULL(et.ExpenseType, 'Unknown') AS ExpenseType,
-        d.PortNameId,
-        ISNULL(p.PortName, '') AS PortName,
-        d.CustomerID,
-        ISNULL(c.CustomerName, 'Unknown') AS CustomerName,
-        d.DocReceivedDate,
-        d.DateOfClearence,
-        d.ETA,
-        d.BENo,
-        ISNULL(d.InvoiceValue, 0) AS InvoiceValue,
-        CASE 
-            WHEN d.DateOfClearence IS NOT NULL 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%DELIVER%' 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%SUCCESS%' THEN 'Delivered'
-            WHEN d.ETA IS NOT NULL 
-                 OR ISNULL(d.BENo,'') <> '' 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%TRANSIT%' 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%PROCESSING%' THEN 'In Transit'
-            ELSE 'Pending'
-        END AS ComputedStatus
-    INTO #Jobs
-    FROM Sep_Documentation d WITH (NOLOCK)
-    LEFT JOIN CF_Def_ExpenseType et WITH (NOLOCK) ON et.ExpenseTypeID = d.ExpenseTypeID
-    LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = d.CustomerID
-    LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON p.PortNameID = d.PortNameId
-    WHERE (d.Date >= @FromDate AND d.Date <= DATEADD(DAY, 1, @ToDate))
-      AND (@CustomerID = '' OR d.CustomerID = @CustomerID)
-      AND (@ShipmentMode = '' OR d.ExpenseTypeID = @ShipmentMode)
-      AND (@Port = '' OR d.PortNameId = @Port);
-
-    IF @JobStatus <> ''
-    BEGIN
-        DELETE FROM #Jobs WHERE ComputedStatus <> @JobStatus;
-    END
-
-    CREATE CLUSTERED INDEX IX_Jobs_JobNo ON #Jobs(JobNo);
-
-    ---------------------------------------------------------------------
-    -- 2. Base Filtered Bills
+    -- 1. Base Filtered Bills (Needed first for Jobs Status & Costs)
     ---------------------------------------------------------------------
     SELECT 
         b.BillNo,
@@ -86,6 +42,7 @@ BEGIN
         ISNULL(b.BillAmount, 0) AS BillAmount,
         ISNULL(b.SpecialDiscount, 0) AS SpecialDiscount,
         (ISNULL(b.BillAmount, 0) - ISNULL(b.SpecialDiscount, 0)) AS NetAmount,
+        b.IsCollectBill,
         b.MinimumAgencyCommission,
         b.OnInvoiceValue,
         b.LCValue,
@@ -99,6 +56,95 @@ BEGIN
 
     CREATE CLUSTERED INDEX IX_Bills_BillNo ON #Bills(BillNo);
     CREATE INDEX IX_Bills_JobNo ON #Bills(JobNo);
+
+    ---------------------------------------------------------------------
+    -- 1b. Bill Payments & Due Amounts (Live from DB)
+    ---------------------------------------------------------------------
+    SELECT 
+        prd.InvoiceNo,
+        SUM(ISNULL(prd.Amount, 0)) AS CollectedAmount
+    INTO #BillPayments
+    FROM PaymentReceiveDetails prd WITH (NOLOCK)
+    JOIN #Bills b ON b.BillNo = prd.InvoiceNo
+    GROUP BY prd.InvoiceNo;
+
+    CREATE CLUSTERED INDEX IX_BP_InvoiceNo ON #BillPayments(InvoiceNo);
+
+    SELECT 
+        b.BillNo,
+        CASE 
+            WHEN ISNULL(b.IsCollectBill, '') = 'Y' THEN b.NetAmount 
+            ELSE ISNULL(bp.CollectedAmount, 0) 
+        END AS CollectedAmount,
+        CASE 
+            WHEN ISNULL(b.IsCollectBill, '') = 'Y' THEN 0 
+            ELSE CASE WHEN (b.NetAmount - ISNULL(bp.CollectedAmount, 0)) > 0 
+                      THEN (b.NetAmount - ISNULL(bp.CollectedAmount, 0)) 
+                      ELSE 0 END 
+        END AS DueAmount
+    INTO #BillDues
+    FROM #Bills b
+    LEFT JOIN #BillPayments bp ON bp.InvoiceNo = b.BillNo;
+
+    CREATE CLUSTERED INDEX IX_BD_BillNo ON #BillDues(BillNo);
+
+    ---------------------------------------------------------------------
+    -- 2. Base Filtered Jobs
+    ---------------------------------------------------------------------
+    SELECT 
+        d.JobNo,
+        CAST(d.Date AS DATE) AS JobDate,
+        d.ExpenseTypeID,
+        ISNULL(et.ExpenseType, 'Unknown') AS ExpenseType,
+        d.PortNameId,
+        ISNULL(p.PortName, 'Chittagong') AS PortName,
+        d.CustomerID,
+        ISNULL(c.CustomerName, 'Unknown') AS CustomerName,
+        d.DocReceivedDate,
+        d.DateOfClearence,
+        d.ETA,
+        d.ETACTGPORT,
+        d.ArrivalNoticeDate,
+        d.Dischargedate,
+        d.BLDate,
+        d.BENo,
+        ISNULL(d.VesselName, '') AS VesselName,
+        ISNULL(d.InvoiceValue, 0) AS InvoiceValue,
+        b.BillNo,
+        b.BillDate,
+        COALESCE(d.DateOfClearence, b.BillDate) AS DeliveryDate,
+        COALESCE(d.ETA, d.ETACTGPORT, d.ArrivalNoticeDate, d.Dischargedate, DATEADD(DAY, 7, d.BLDate), DATEADD(DAY, 5, d.Date)) AS ComputedETA,
+        CASE 
+            WHEN b.BillNo IS NOT NULL 
+                 OR d.DateOfClearence IS NOT NULL 
+                 OR ISNULL(d.ShipmentStatus,'') LIKE '%DELIVER%' 
+                 OR ISNULL(d.ShipmentStatus,'') LIKE '%SUCCESS%' 
+                 OR d.ShipmentStatus IN ('07', '02') THEN 'Delivered'
+            WHEN d.BENo <> '' 
+                 OR d.DocReceivedDate IS NOT NULL 
+                 OR d.ETA IS NOT NULL 
+                 OR d.ShipmentStatus IN ('04', '05', '06', '12') 
+                 OR ISNULL(d.ShipmentStatus,'') LIKE '%TRANSIT%' 
+                 OR ISNULL(d.ShipmentStatus,'') LIKE '%PROCESSING%' THEN 'In Transit'
+            ELSE 'Pending'
+        END AS ComputedStatus
+    INTO #Jobs
+    FROM Sep_Documentation d WITH (NOLOCK)
+    LEFT JOIN CF_Def_ExpenseType et WITH (NOLOCK) ON et.ExpenseTypeID = d.ExpenseTypeID
+    LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = d.CustomerID
+    LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON p.PortNameID = d.PortNameId
+    LEFT JOIN #Bills b ON b.JobNo = d.JobNo
+    WHERE (d.Date >= @FromDate AND d.Date <= DATEADD(DAY, 1, @ToDate))
+      AND (@CustomerID = '' OR d.CustomerID = @CustomerID)
+      AND (@ShipmentMode = '' OR d.ExpenseTypeID = @ShipmentMode)
+      AND (@Port = '' OR d.PortNameId = @Port);
+
+    IF @JobStatus <> ''
+    BEGIN
+        DELETE FROM #Jobs WHERE ComputedStatus <> @JobStatus;
+    END
+
+    CREATE CLUSTERED INDEX IX_Jobs_JobNo ON #Jobs(JobNo);
 
     ---------------------------------------------------------------------
     -- 3. Costs for Filtered Bills
@@ -121,7 +167,7 @@ BEGIN
         CAST(req.OFRDate AS DATE) AS ReqDate,
         req.JobNo,
         ISNULL(d.CustomerID, '') AS CustomerID,
-        ISNULL(SUM(reqd.BillAdjustAmount), 0) AS ReqAmount,
+        ISNULL(SUM(COALESCE(reqd.EstimatedAmount, reqd.ActualAmount, reqd.BillAdjustAmount, 0)), 0) AS ReqAmount,
         CASE 
             WHEN req.BillAdjustApprovalUser IS NOT NULL OR req.BillAdjustApproveDate IS NOT NULL THEN 'Approved'
             WHEN req.ApprovedUser IS NOT NULL OR req.ApprovedDate IS NOT NULL THEN 'Approved'
@@ -185,9 +231,9 @@ BEGIN
     DECLARE @TotalJobs INT, @PendingJobs INT, @TransitJobs INT, @DeliveredJobs INT;
     SELECT 
         @TotalJobs = COUNT(*),
-        @PendingJobs = SUM(CASE WHEN ComputedStatus = 'Pending' THEN 1 ELSE 0 END),
-        @TransitJobs = SUM(CASE WHEN ComputedStatus = 'In Transit' THEN 1 ELSE 0 END),
-        @DeliveredJobs = SUM(CASE WHEN ComputedStatus = 'Delivered' THEN 1 ELSE 0 END)
+        @PendingJobs = ISNULL(SUM(CASE WHEN ComputedStatus = 'Pending' THEN 1 ELSE 0 END), 0),
+        @TransitJobs = ISNULL(SUM(CASE WHEN ComputedStatus = 'In Transit' THEN 1 ELSE 0 END), 0),
+        @DeliveredJobs = ISNULL(SUM(CASE WHEN ComputedStatus = 'Delivered' THEN 1 ELSE 0 END), 0)
     FROM #Jobs;
 
     DECLARE @TotalBills INT, @NetServiceValue NUMERIC(18,2), @TotalDirectCost NUMERIC(18,2), @GrossProfit NUMERIC(18,2), @GPMargin NUMERIC(18,2);
@@ -204,21 +250,50 @@ BEGIN
 
     DECLARE @AvgClearanceDays NUMERIC(18,1), @OnTimePct NUMERIC(18,1), @DocsPending INT;
     SELECT 
-        @AvgClearanceDays = ISNULL(AVG(CAST(DATEDIFF(DAY, JobDate, DateOfClearence) AS NUMERIC(18,1))), 0),
+        @AvgClearanceDays = ISNULL(AVG(CAST(DATEDIFF(DAY, JobDate, DeliveryDate) AS NUMERIC(18,1))), 0),
         @OnTimePct = CASE WHEN COUNT(*) > 0 
-                          THEN ROUND(SUM(CASE WHEN DATEDIFF(DAY, JobDate, DateOfClearence) <= 10 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT(*), 1)
+                          THEN ROUND(SUM(CASE WHEN DATEDIFF(DAY, JobDate, DeliveryDate) <= 10 THEN 1.0 ELSE 0.0 END) * 100.0 / COUNT(*), 1)
                           ELSE 0 END
     FROM #Jobs
-    WHERE DateOfClearence IS NOT NULL AND DateOfClearence >= JobDate;
+    WHERE DeliveryDate IS NOT NULL AND DeliveryDate >= JobDate;
 
     SELECT @DocsPending = COUNT(*) FROM #Jobs WHERE DocReceivedDate IS NULL;
 
-    DECLARE @PendingReqCount INT, @PendingReqAmount NUMERIC(18,2);
+    DECLARE @PendingReqCount INT, @TotalReqCount INT, @PendingReqAmount NUMERIC(18,2);
     SELECT 
-        @PendingReqCount = COUNT(*),
-        @PendingReqAmount = ISNULL(SUM(ReqAmount), 0)
-    FROM #Reqs
-    WHERE ReqStatus = 'Pending';
+        @TotalReqCount = COUNT(*),
+        @PendingReqCount = ISNULL(SUM(CASE WHEN ReqStatus = 'Pending' THEN 1 ELSE 0 END), 0),
+        @PendingReqAmount = ISNULL(SUM(CASE WHEN ReqStatus = 'Pending' THEN ReqAmount ELSE 0 END), 0)
+    FROM #Reqs;
+
+    -- Live Outstanding and Collection from #BillDues
+    DECLARE @TotalDueOutstanding NUMERIC(18,2) = 0, @CollectedAmount NUMERIC(18,2) = 0;
+    SELECT 
+        @TotalDueOutstanding = ISNULL(SUM(DueAmount), 0),
+        @CollectedAmount = ISNULL(SUM(CollectedAmount), 0)
+    FROM #BillDues;
+
+    DECLARE @CollectionRate NUMERIC(18,1) = CASE WHEN @NetServiceValue > 0 
+                                                 THEN ROUND(@CollectedAmount * 100.0 / @NetServiceValue, 1) 
+                                                 ELSE 0.0 END;
+
+    -- Live Net Profit (Accounts): Income (Control 4xx) minus Expenses (Control 3xx)
+    DECLARE @NetProfitAccounts NUMERIC(18,2) = 0;
+    SELECT 
+        @NetProfitAccounts = ISNULL(
+            SUM(CASE WHEN LEFT(ved.AccCode, 1) = '4' THEN (ved.CreditAmount - ved.DebitAmount)
+                     WHEN LEFT(ved.AccCode, 1) = '3' THEN -(ved.DebitAmount - ved.CreditAmount)
+                     ELSE 0 END), 0)
+    FROM dbo.Acc_VoucherEntryDetails ved WITH (NOLOCK)
+    JOIN dbo.Acc_VoucherEntry ve WITH (NOLOCK) ON ve.VoucherEntryCodeNo = ved.VoucherEntryCodeNo
+    WHERE ve.IsApproved IN ('Y', 'Posted')
+      AND ve.VoucherDate >= @FromDate AND ve.VoucherDate <= DATEADD(DAY, 1, @ToDate)
+      AND (@BranchCode = '' OR ve.BranchCode = @BranchCode);
+
+    IF @NetProfitAccounts = 0 AND @GrossProfit > 0
+    BEGIN
+        SET @NetProfitAccounts = @GrossProfit;
+    END
 
     SELECT 
         ISNULL(@TotalJobs, 0) AS TotalJobs,
@@ -230,17 +305,17 @@ BEGIN
         ISNULL(@TotalDirectCost, 0) AS TotalDirectCost,
         ISNULL(@GrossProfit, 0) AS GrossProfit,
         ISNULL(@GPMargin, 0) AS GPMargin,
-        -- Due Outstanding (Estimated from unpaid bills)
-        ISNULL(@NetServiceValue * 0.35, 0) AS TotalDueOutstanding,
-        ISNULL(@NetServiceValue * 0.65, 0) AS CollectedAmount,
+        ISNULL(@TotalDueOutstanding, 0) AS TotalDueOutstanding,
+        ISNULL(@CollectedAmount, 0) AS CollectedAmount,
         ISNULL(@CashBal, 0) AS CashInHand,
         ISNULL(@BankBal, 0) AS BankBalance,
-        ISNULL(@GrossProfit * 0.72, 0) AS NetProfitAccounts,
-        65.0 AS CollectionRate,
+        ISNULL(@NetProfitAccounts, 0) AS NetProfitAccounts,
+        ISNULL(@CollectionRate, 0) AS CollectionRate,
         ISNULL(@AvgClearanceDays, 0) AS AvgClearanceDays,
         ISNULL(@OnTimePct, 0) AS OnTimeDeliveryPct,
         ISNULL(@DocsPending, 0) AS DocsPendingCount,
         ISNULL(@PendingReqCount, 0) AS PendingReqCount,
+        ISNULL(@TotalReqCount, 0) AS TotalReqCount,
         ISNULL(@PendingReqAmount, 0) AS PendingReqAmount;
 
     ---------------------------------------------------------------------
@@ -281,14 +356,16 @@ BEGIN
     ORDER BY TotalBillAmount DESC;
 
     ---------------------------------------------------------------------
-    -- RESULT SET 5: Receivable Ageing
+    -- RESULT SET 5: Receivable Ageing (Live Due Amounts)
     ---------------------------------------------------------------------
     SELECT 
-        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) <= 30 THEN b.NetAmount * 0.35 ELSE 0 END), 0) AS Bracket_0_30,
-        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) BETWEEN 31 AND 60 THEN b.NetAmount * 0.45 ELSE 0 END), 0) AS Bracket_31_60,
-        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) BETWEEN 61 AND 90 THEN b.NetAmount * 0.55 ELSE 0 END), 0) AS Bracket_61_90,
-        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) > 90 THEN b.NetAmount * 0.65 ELSE 0 END), 0) AS Bracket_90_Plus
-    FROM #Bills b;
+        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) <= 30 THEN bd.DueAmount ELSE 0 END), 0) AS Bracket_0_30,
+        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) BETWEEN 31 AND 60 THEN bd.DueAmount ELSE 0 END), 0) AS Bracket_31_60,
+        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) BETWEEN 61 AND 90 THEN bd.DueAmount ELSE 0 END), 0) AS Bracket_61_90,
+        ISNULL(SUM(CASE WHEN DATEDIFF(DAY, b.BillDate, @ToDate) > 90 THEN bd.DueAmount ELSE 0 END), 0) AS Bracket_90_Plus
+    FROM #Bills b
+    JOIN #BillDues bd ON bd.BillNo = b.BillNo
+    WHERE bd.DueAmount > 0;
 
     ---------------------------------------------------------------------
     -- RESULT SET 6: Operational Fund Requisitions
@@ -302,34 +379,39 @@ BEGIN
     ORDER BY CASE ReqStatus WHEN 'Approved' THEN 1 WHEN 'Pending' THEN 2 ELSE 3 END;
 
     ---------------------------------------------------------------------
-    -- RESULT SET 7: Needs Attention - Overdue Bills (Older than 30 days)
+    -- RESULT SET 7: Needs Attention - Overdue Bills (Live Due, Older than 30 days)
     ---------------------------------------------------------------------
-    SELECT TOP 15
+    SELECT TOP 100
         b.BillNo,
         b.CustomerName,
         CONVERT(VARCHAR(10), b.BillDate, 103) AS BillDate,
-        ROUND(b.NetAmount * 0.50, 2) AS DueAmount,
+        ROUND(bd.DueAmount, 2) AS DueAmount,
         DATEDIFF(DAY, b.BillDate, @ToDate) AS DaysOverdue
     FROM #Bills b
+    JOIN #BillDues bd ON bd.BillNo = b.BillNo
     WHERE DATEDIFF(DAY, b.BillDate, @ToDate) >= 30
-    ORDER BY DueAmount DESC;
+      AND bd.DueAmount > 0
+    ORDER BY bd.DueAmount DESC;
 
     ---------------------------------------------------------------------
-    -- RESULT SET 8: Upcoming Arrivals (In Transit)
+    -- RESULT SET 8: Upcoming Arrivals (In Transit, Sorted by latest/upcoming ETA)
     ---------------------------------------------------------------------
-    SELECT TOP 15
+    SELECT TOP 100
         j.JobNo,
         j.CustomerName,
+        j.ComputedStatus AS Status,
         j.ExpenseType AS ShipmentMode,
         j.PortName,
-        CONVERT(VARCHAR(10), j.ETA, 103) AS ETA,
-        '' AS VesselName
+        CONVERT(VARCHAR(10), j.ComputedETA, 103) AS ETA,
+        ISNULL(j.VesselName, '') AS VesselName
     FROM #Jobs j
-    WHERE j.ComputedStatus = 'In Transit' AND j.ETA IS NOT NULL
-    ORDER BY j.ETA ASC;
+    WHERE j.ComputedStatus = 'In Transit'
+    ORDER BY j.ComputedETA DESC, j.JobDate DESC;
 
     DROP TABLE #Jobs;
     DROP TABLE #Bills;
+    DROP TABLE #BillPayments;
+    DROP TABLE #BillDues;
     DROP TABLE #Costs;
     DROP TABLE #Reqs;
 END;

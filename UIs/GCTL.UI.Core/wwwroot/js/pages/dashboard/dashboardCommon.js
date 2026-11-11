@@ -54,8 +54,8 @@ class Grid {
     constructor(id, options = {}) {
         this.id = id;
         this.o = Object.assign({
-            sizes: [10, 15, 25],
-            size: 10,
+            sizes: [5, 10, 15, 20, 25],
+            size: 5,
             search: true,
             sortable: true,
             card: 'g760'
@@ -118,19 +118,28 @@ class Grid {
         let v = this.rows;
         if (this.q) {
             v = v.filter(r => this.cols.some(c => {
-                const val = r[c.k];
+                const val = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
                 return val != null && String(val).toLowerCase().includes(this.q);
             }));
         }
 
         if (this.sk !== null) {
             const col = this.cols[this.sk];
-            const getVal = r => r[col.k];
+            const getVal = r => {
+                if (col.s) return col.s(r);
+                if (col.v) return col.v(r);
+                return r[col.k] !== undefined ? r[col.k] : (r[col.k.charAt(0).toUpperCase() + col.k.slice(1)] ?? r[col.k.toLowerCase()]);
+            };
             v = [...v].sort((a, b) => {
                 const x = getVal(a);
                 const y = getVal(b);
                 if (typeof x === 'number' && typeof y === 'number') {
                     return (x - y) * this.sd;
+                }
+                const numX = Number(x);
+                const numY = Number(y);
+                if (!isNaN(numX) && !isNaN(numY) && x !== '' && y !== '' && x != null && y != null) {
+                    return (numX - numY) * this.sd;
                 }
                 return String(x ?? '').localeCompare(String(y ?? '')) * this.sd;
             });
@@ -151,6 +160,8 @@ class Grid {
         const container = document.getElementById(this.id);
         if (!container) return;
 
+        const isNum = c => ['money', 'amt', 'pct', 'int'].includes(c.t);
+
         let h = `<table class="grid ${o.card}"><thead>`;
         if (o.groups) {
             h += '<tr class="grp">' + o.groups.map(g => `<th colspan="${g[1]}">${g[0]}</th>`).join('') + '</tr>';
@@ -158,24 +169,36 @@ class Grid {
         h += '<tr>' + this.cols.map((c, i) => {
             const sortable = o.sortable && c.t !== 'sn' && !c.nosort;
             const sortCls = this.sk === i ? (this.sd > 0 ? 'asc' : 'desc') : '';
-            return `<th class="${sortable ? 'sortable' : ''} ${sortCls} ${c.hide ? 'h-' + c.hide : ''}" data-i="${i}" ${c.w ? `style="width:${c.w}"` : ''}>${c.l}${sortable ? '<span class="si">&#x21C5;</span>' : ''}</th>`;
+            const thCls = [sortable ? 'sortable' : '', sortCls, c.hide ? 'h-' + c.hide : '', isNum(c) ? 'num' : ''].filter(Boolean).join(' ');
+            return `<th class="${thCls}" data-i="${i}" ${c.w ? `style="width:${c.w}"` : ''}>${c.l}${sortable ? '<span class="si">&#x21C5;</span>' : ''}</th>`;
         }).join('') + '</tr></thead><tbody>';
 
         if (!slice.length) {
             h += `<tr class="empty-row"><td colspan="${this.cols.length}">No records match the selected filters.</td></tr>`;
         } else {
             slice.forEach((r, i) => {
-                h += `<tr>` + this.cols.map(c => {
-                    let val = r[c.k];
+                h += `<tr class="${o.rowCls ? o.rowCls(r) : ''}">` + this.cols.map(c => {
                     let formatted = '';
-                    if (c.t === 'sn') formatted = s + i + 1;
-                    else if (c.t === 'money' || c.t === 'amt') formatted = (val === 0 ? '-' : amt(val));
-                    else if (c.t === 'pct') formatted = pct(val);
-                    else if (c.t === 'badge') formatted = `<span class="badge s-${slug(val)}">${esc(val)}</span>`;
-                    else formatted = esc(val ?? '');
+                    const rawVal = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                    if (c.r) {
+                        formatted = c.r(r, s + i);
+                    } else if (c.t === 'sn') {
+                        formatted = s + i + 1;
+                    } else if (c.t === 'badge') {
+                        formatted = `<span class="badge s-${slug(rawVal)}">${esc(rawVal)}</span>`;
+                    } else if (c.t === 'money' || c.t === 'amt') {
+                        formatted = (rawVal === 0 ? '–' : (rawVal == null || rawVal === '' ? '' : amt(rawVal)));
+                    } else if (c.t === 'int') {
+                        formatted = (rawVal === 0 ? '0' : (rawVal == null || rawVal === '' ? '' : int(rawVal)));
+                    } else if (c.t === 'pct') {
+                        formatted = pct(rawVal);
+                    } else {
+                        formatted = esc(rawVal ?? '');
+                    }
 
-                    const numCls = ['money', 'amt', 'pct', 'int'].includes(c.t) ? 'num' : (c.cls || '');
-                    return `<td class="${numCls} ${c.hide ? 'h-' + c.hide : ''}" data-l="${esc(c.l)}">${formatted}</td>`;
+                    const numCls = isNum(c) ? 'num' : '';
+                    const fullCls = [numCls, c.cls || '', c.hide ? 'h-' + c.hide : ''].filter(Boolean).join(' ');
+                    return `<td class="${fullCls}" data-l="${esc(c.l)}">${formatted}</td>`;
                 }).join('') + '</tr>';
             });
         }
@@ -190,7 +213,7 @@ class Grid {
                     const totalVal = this.view.reduce((sum, r) => sum + (Number(r[c.k]) || 0), 0);
                     txt = amt(totalVal);
                 }
-                const numCls = ['money', 'amt', 'pct', 'int'].includes(c.t) ? 'num' : '';
+                const numCls = isNum(c) ? 'num' : '';
                 return `<td class="${numCls}">${txt}</td>`;
             }).join('') + '</tr></tfoot>';
         }
@@ -203,10 +226,15 @@ class Grid {
         if (footEl) {
             const from = n ? s + 1 : 0;
             const to = Math.min(n, s + this.size);
-            let f = `<div>Showing ${int(from)} to ${int(to)} of ${int(n)} entries</div><div class="pager">`;
-            const btn = (p, l, dis, on) => `<button data-p="${p}" ${dis ? 'disabled' : ''} class="${on ? 'on' : ''}">${l}</button>`;
+            let f = `<div>Showing ${int(from)} to ${int(to)} of ${int(n)} entries${this.total != null && this.total !== n ? ` (filtered from ${int(this.total)} total entries)` : ''}</div><div class="pager">`;
+            const btn = (p, l, dis, on) => `<button data-p="${p}" ${dis ? 'disabled' : ''} class="${on ? 'on' : ''}" aria-label="page ${p}">${l}</button>`;
             f += btn(1, '&laquo;', this.page === 1) + btn(this.page - 1, '&lsaquo;', this.page === 1);
-            f += btn(this.page, this.page, false, true);
+            const P = this.page, nums = pages <= 7
+                ? [...Array(pages)].map((_, i) => i + 1)
+                : P <= 4 ? [1, 2, 3, 4, 5, '…', pages]
+                : P >= pages - 3 ? [1, '…', pages - 4, pages - 3, pages - 2, pages - 1, pages]
+                : [1, '…', P - 1, P, P + 1, '…', pages];
+            nums.forEach(x => f += x === '…' ? '<span class="dots">…</span>' : btn(x, x, false, x === P));
             f += btn(this.page + 1, '&rsaquo;', this.page === pages) + btn(pages, '&raquo;', this.page === pages) + '</div>';
             footEl.innerHTML = f;
         }
@@ -389,29 +417,9 @@ const DashboardApp = {
         this.setupTabNavigation();
         this.setupFilterEvents();
         this.setupExportMenu();
-        this.initSelect2Dropdowns();
 
         // Initial Load of Active Tab
         this.switchTab(this.currentTab);
-    },
-
-    initSelect2Dropdowns() {
-        if (window.jQuery && $.fn.select2) {
-            $('.custom-select-single').each(function () {
-                const $sel = $(this);
-                if (!$sel.hasClass('select2-hidden-accessible')) {
-                    $sel.select2({
-                        placeholder: $sel.data('placeholder') || 'Select',
-                        allowClear: true,
-                        width: '100%'
-                    });
-                }
-            });
-            $('.custom-select-single').on('change.dash', () => {
-                DashboardApp.updatePeriodDisplay();
-                DashboardApp.loadActiveTab();
-            });
-        }
     },
 
     showLoader(panelId) {
@@ -467,18 +475,36 @@ const DashboardApp = {
             this.loadActiveTab();
         };
 
-        d$('#fFrom')?.addEventListener('change', () => { if (d$('#fRange')) $(d$('#fRange')).val('custom').trigger('change.select2'); refresh(); });
-        d$('#fTo')?.addEventListener('change', () => { if (d$('#fRange')) $(d$('#fRange')).val('custom').trigger('change.select2'); refresh(); });
-        d$('#fBranch')?.addEventListener('change', refresh);
-        d$('#fMode')?.addEventListener('change', refresh);
-        d$('#fPort')?.addEventListener('change', refresh);
-        d$('#fCust')?.addEventListener('change', refresh);
-        d$('#fStatus')?.addEventListener('change', refresh);
-
-        d$('#fRange')?.addEventListener('change', e => {
-            this.applyQuickRange(e.target.value);
+        const onDateChanged = () => {
+            if (window.setSelect) {
+                window.setSelect('#fRange', 'custom');
+            } else if (d$('#fRange')) {
+                d$('#fRange').value = 'custom';
+            }
             refresh();
-        });
+        };
+
+        d$('#fFrom')?.addEventListener('change', onDateChanged);
+        d$('#fTo')?.addEventListener('change', onDateChanged);
+
+        if (window.jQuery) {
+            $('#fBranch, #fMode, #fPort, #fCust, #fStatus').on('change', refresh);
+            $('#fRange').on('change', function () {
+                DashboardApp.applyQuickRange(this.value);
+                refresh();
+            });
+        } else {
+            d$('#fBranch')?.addEventListener('change', refresh);
+            d$('#fMode')?.addEventListener('change', refresh);
+            d$('#fPort')?.addEventListener('change', refresh);
+            d$('#fCust')?.addEventListener('change', refresh);
+            d$('#fStatus')?.addEventListener('change', refresh);
+
+            d$('#fRange')?.addEventListener('change', e => {
+                this.applyQuickRange(e.target.value);
+                refresh();
+            });
+        }
 
         d$('#btnReset')?.addEventListener('click', () => {
             this.resetFilters();
@@ -526,13 +552,13 @@ const DashboardApp = {
 
     resetFilters() {
         this.applyQuickRange('3m');
-        if (window.jQuery) {
-            $('#fRange').val('3m').trigger('change.select2');
-            $('#fBranch').val('').trigger('change.select2');
-            $('#fMode').val('').trigger('change.select2');
-            $('#fPort').val('').trigger('change.select2');
-            $('#fCust').val('').trigger('change.select2');
-            $('#fStatus').val('').trigger('change.select2');
+        if (window.setSelect) {
+            window.setSelect('#fRange', '3m');
+            window.setSelect('#fBranch', '');
+            window.setSelect('#fMode', '');
+            window.setSelect('#fPort', '');
+            window.setSelect('#fCust', '');
+            window.setSelect('#fStatus', '');
         } else {
             if (d$('#fRange')) d$('#fRange').value = '3m';
             if (d$('#fBranch')) d$('#fBranch').value = '';
