@@ -34,6 +34,7 @@ namespace GCTL.Service.Dashboard
             parameters.Add("@ShipmentMode", filter.ShipmentMode ?? string.Empty, DbType.String);
             parameters.Add("@Port", filter.Port ?? string.Empty, DbType.String);
             parameters.Add("@CustomerID", filter.CustomerID ?? string.Empty, DbType.String);
+            parameters.Add("@JobStatus", filter.JobStatus ?? string.Empty, DbType.String);
 
             using var multi = await conn.QueryMultipleAsync(
                 "dbo.SP_Dashboard_JobReconcile",
