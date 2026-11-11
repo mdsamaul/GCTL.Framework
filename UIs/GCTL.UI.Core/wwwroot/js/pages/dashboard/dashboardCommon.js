@@ -601,6 +601,23 @@ const DashboardApp = {
         }
     },
 
+    getGPExportParams() {
+        const filter = this.getFilterState();
+        const selected = [];
+        document.querySelectorAll('#g_g .gp-row-chk:checked').forEach(chk => {
+            if (chk.value) selected.push(chk.value);
+        });
+
+        const params = new URLSearchParams();
+        if (filter.fromDate) params.append('fromDate', filter.fromDate);
+        if (filter.toDate) params.append('toDate', filter.toDate);
+        if (filter.branchCode) params.append('branchCode', filter.branchCode);
+        if (filter.shipmentMode) params.append('shipmentMode', filter.shipmentMode);
+        if (filter.customerID) params.append('customerId', filter.customerID);
+        if (selected.length > 0) params.append('selectedBillNos', selected.join(','));
+        return params.toString();
+    },
+
     setupExportMenu() {
         const menu = d$('#expMenu');
         d$('#btnExport')?.addEventListener('click', e => {
@@ -609,20 +626,40 @@ const DashboardApp = {
         });
         document.addEventListener('click', () => menu?.classList.remove('open'));
 
-        d$('#xPreview')?.addEventListener('click', () => window.print());
+        d$('#xPreview')?.addEventListener('click', () => this.exportPreview());
         d$('#xPdf')?.addEventListener('click', () => this.exportPdf());
         d$('#xExcel')?.addEventListener('click', () => this.exportExcel());
     },
 
-    exportPdf() {
-        if (!window.jspdf) {
-            alert('PDF library is loading. Please try again.');
-            return;
+    exportPreview() {
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.open(`/GPAnalysisReport/PreviewPdf?${qs}`, '_blank');
+        } else {
+            window.print();
         }
-        window.print();
+    },
+
+    exportPdf() {
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.location.href = `/GPAnalysisReport/ExportPdf?${qs}`;
+        } else {
+            if (!window.jspdf) {
+                alert('PDF library is loading. Please try again.');
+                return;
+            }
+            window.print();
+        }
     },
 
     exportExcel() {
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.location.href = `/GPAnalysisReport/ExportExcel?${qs}`;
+            return;
+        }
+
         if (!window.XLSX) {
             alert('Excel library not loaded.');
             return;
