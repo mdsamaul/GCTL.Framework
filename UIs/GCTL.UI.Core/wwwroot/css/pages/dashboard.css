@@ -296,3 +296,100 @@ table.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
   .panel:not(.on) { display: none!important; }
 }
 
+/* ==========================================================================
+   Scoped DataTables Layout Fix for Dashboard Bill Entry Grid (.job-bill-grid-card)
+   Overrides dashboard.css .row { display: grid } so length/search and info/paging stay side-by-side
+   ========================================================================== */
+.job-bill-grid-card .dt-container > .row,
+.job-bill-grid-card .dataTables_wrapper > .row {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    margin: 6px 0 !important;
+    gap: 12px !important;
+}
+
+.job-bill-grid-card .dt-container > .row:has(table),
+.job-bill-grid-card .dataTables_wrapper > .row:has(table) {
+    display: block !important;
+    width: 100% !important;
+}
+
+.job-bill-grid-card .dt-layout-start,
+.job-bill-grid-card .dt-length,
+.job-bill-grid-card .dt-info {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+}
+
+.job-bill-grid-card .dt-layout-end,
+.job-bill-grid-card .dt-search,
+.job-bill-grid-card .dt-paging {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+}
+
+.job-bill-grid-card .dt-paging .pagination {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    margin: 0 !important;
+}
+
+/* Second KPI Row (Minis) Styling - Balanced without captions */
+#p-bills .minis {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+#p-bills .minis .mini {
+    padding: 12px 14px;
+    min-height: 66px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#p-bills .minis .mini .mlbl {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    margin: 0;
+}
+
+#p-bills .minis .mini .mval {
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 4px 0 0 0;
+    line-height: 1.2;
+}
+
+#p-bills .minis .mini .msub {
+    display: none !important;
+}
+
+@media (max-width: 1200px) {
+    #p-bills .minis {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+}
+
