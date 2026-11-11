@@ -118,7 +118,12 @@ class Grid {
         let v = this.rows;
         if (this.q) {
             v = v.filter(r => this.cols.some(c => {
-                const val = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                let val = undefined;
+                if (typeof c.v === 'function') {
+                    val = c.v(r);
+                } else if (c.k) {
+                    val = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                }
                 return val != null && String(val).toLowerCase().includes(this.q);
             }));
         }
@@ -128,6 +133,7 @@ class Grid {
             const getVal = r => {
                 if (col.s) return col.s(r);
                 if (col.v) return col.v(r);
+                if (!col.k) return '';
                 return r[col.k] !== undefined ? r[col.k] : (r[col.k.charAt(0).toUpperCase() + col.k.slice(1)] ?? r[col.k.toLowerCase()]);
             };
             v = [...v].sort((a, b) => {
