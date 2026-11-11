@@ -1,6 +1,98 @@
 @* ============================================================
    Job Reconcile Tab Partial
    ============================================================ *@
+@{
+    var reconGridModel = new GridModel
+    {
+        GridId = "jobReconcileTable",
+        ServerSide = false,
+        Bordered = true,
+        Compact = true,
+        CustomGridWrapper = false,
+        DefaultPageLength = 10,
+        Hover = true,
+        ShowCheckbox = false,
+        ShowPagination = true,
+        ShowRowNumbers = false,
+        ShowSearchBox = true,
+        Striped = true,
+        Columns = new List<GridColumn>
+        {
+            new() { Data = "sn", Header = "SL", Width = "3%", Align = "center" },
+            new() { Data = "jobNo", Header = "Job No", Width = "9%", Align = "left", SortField = "jobNo" },
+            new() { Data = "customerName", Header = "Customer", Width = "20%", Align = "left", IsWrapable = true, SortField = "customerName" },
+            new() { Data = "revenue", Header = "Revenue / Bill", Width = "9%", Align = "right", RenderFn = "formatMoney", SortField = "revenue" },
+            new() { Data = "head1Amt", Header = "Head 1", Width = "8%", Align = "right", RenderFn = "formatMoney", SortField = "head1Amt" },
+            new() { Data = "head2Amt", Header = "Head 2", Width = "8%", Align = "right", RenderFn = "formatMoney", SortField = "head2Amt" },
+            new() { Data = "head3Amt", Header = "Head 3", Width = "8%", Align = "right", RenderFn = "formatMoney", SortField = "head3Amt" },
+            new() { Data = "otherExpenses", Header = "Other Expenses", Width = "9%", Align = "right", RenderFn = "formatMoney", SortField = "otherExpenses" },
+            new() { Data = "totalExpense", Header = "Total Expense", Width = "9%", Align = "right", RenderFn = "formatMoney", SortField = "totalExpense" },
+            new() { Data = "profit", Header = "Profit", Width = "9%", Align = "right", RenderFn = "formatMoney", SortField = "profit" },
+            new() { Data = "gpPercent", Header = "GP %", Width = "6%", Align = "right", RenderFn = "formatPercent", SortField = "gpPercent" }
+        }
+    };
+}
+
+<style>
+    /* JobReconcile Table Optimization */
+    .job-recon-grid-card,
+    .job-recon-grid-card .dt-container,
+    .job-recon-grid-card .dataTables_wrapper,
+    .job-recon-grid-card .table-responsive,
+    #jobReconcileTable {
+        width: 100% !important;
+    }
+
+    .job-recon-grid-card .dt-container > .row,
+    .job-recon-grid-card .dataTables_wrapper > .row {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        margin: 6px 0 !important;
+        gap: 12px !important;
+    }
+
+    .job-recon-grid-card .dt-container > .row:has(table),
+    .job-recon-grid-card .dataTables_wrapper > .row:has(table),
+    .job-recon-grid-card .dt-container > .row:has(.table-responsive),
+    .job-recon-grid-card .dataTables_wrapper > .row:has(.table-responsive) {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    #jobReconcileTable {
+        font-size: 11px !important;
+        table-layout: auto;
+    }
+
+    #jobReconcileTable thead th {
+        white-space: normal !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        padding: 4px 4px !important;
+        font-size: 11px !important;
+        line-height: 1.15 !important;
+    }
+
+    #jobReconcileTable tbody td {
+        padding: 4px 4px !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+    }
+
+    .job-recon-grid-card {
+        background: #fff;
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        margin-top: 10px;
+    }
+</style>
+
 <section class="panel" id="p-recon">
     <div class="ptitle">
         <h2>Job Number Wise Reconcile Statement (Actual)</h2>
@@ -33,11 +125,11 @@
 
     <!-- Minis -->
     <div class="minis">
-        <div class="mini blue" id="rm_avg"><div class="mlbl">Avg Profit / Job</div><div class="mval">0</div><div class="msub">mean profit</div></div>
-        <div class="mini orange" id="rm_ae"><div class="mlbl">Avg Expense / Job</div><div class="mval">0</div><div class="msub">mean expense</div></div>
-        <div class="mini green" id="rm_best"><div class="mlbl">Best Customer (GP%)</div><div class="mval">-</div><div class="msub">highest margin client</div></div>
-        <div class="mini red" id="rm_low"><div class="mlbl">Lowest-margin Job</div><div class="mval">-</div><div class="msub">job lowest GP%</div></div>
-        <div class="mini purple" id="rm_top"><div class="mlbl">Largest Expense Head</div><div class="mval">-</div><div class="msub">major cost contributor</div></div>
+        <div class="mini blue" id="rm_avg"><div class="mlbl">Avg Profit / Job</div><div class="mval">0</div></div>
+        <div class="mini orange" id="rm_ae"><div class="mlbl">Avg Expense / Job</div><div class="mval">0</div></div>
+        <div class="mini green" id="rm_best"><div class="mlbl">Best Customer (GP%)</div><div class="mval">-</div></div>
+        <div class="mini red" id="rm_low"><div class="mlbl">Lowest-margin Job</div><div class="mval">-</div></div>
+        <div class="mini purple" id="rm_top"><div class="mlbl">Largest Expense Head</div><div class="mval">-</div></div>
     </div>
 
     <!-- Charts Row 1 -->
@@ -68,17 +160,12 @@
         </section>
     </div>
 
-    <!-- Grid -->
-    <section class="card gridcard">
-        <header>
-            <h3>Job Number Wise Reconcile Statement</h3>
-        </header>
-        <div class="gtools">
-            <label>Show <select id="r_g_sz"></select> entries</label>
-            <input id="r_g_q" type="search" placeholder="Search reconciled jobs...">
+    <!-- Job Reconcile Grid Component -->
+    <div class="job-bill-grid-card job-recon-grid-card">
+        <div class="mb-2">
+            <h3 class="m-0" style="font-size: 13px; font-weight: 700; color: #1e293b;">Job Number Wise Reconcile Statement</h3>
         </div>
-        <div class="gbody"><div id="r_g"></div></div>
-        <div class="gfoot" id="r_g_f"></div>
-    </section>
+        @await Html.PartialAsync("_CustomGrid", reconGridModel)
+    </div>
 </section>
 

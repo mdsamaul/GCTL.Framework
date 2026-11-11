@@ -79,6 +79,15 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link @(Model == "ChartOfAccountsList" ? "active" : "")"
+               id="listView-tab"
+               href="@Url.Action("ListView", "ChartOfAccounts")"
+               role="tab"
+               aria-selected="@(Model == "ChartOfAccountsList" ? "true" : "false")">
+                <i class="fas fa-table me-1"></i> @Html.SmartLocalize("List View")
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link @(Model == "GroupLedger" ? "active" : "")"
                id="groupLedger-tab"
                href="@Url.Action("Index", "GroupLedger")"

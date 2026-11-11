@@ -1,36 +1,65 @@
 /**
  * Job Reconcile (Actual) Tab Module
+ * Integrated with _CustomGrid and JobWiseReconcileStatementController
  */
 'use strict';
 
+// Register formatters for CustomDataTable
+window.gctlRenderers = window.gctlRenderers || {};
+if (!window.gctlRenderers.formatMoney) {
+    window.gctlRenderers.formatMoney = function (data, type) {
+        if (data === null || data === undefined || data === '' || (typeof data === 'string' && data.trim() === '') || isNaN(data)) {
+            return (type === 'sort' || type === 'type') ? 0 : '-';
+        }
+        var num = parseFloat(data);
+        if (type === 'sort' || type === 'type') return num;
+        if (num === 0) return '-';
+        return typeof formatMoney === 'function' ? formatMoney(num) : num.toLocaleString('en-IN');
+    };
+}
+if (!window.gctlRenderers.formatPercent) {
+    window.gctlRenderers.formatPercent = function (data, type) {
+        if (data === null || data === undefined || data === '' || isNaN(data)) {
+            return (type === 'sort' || type === 'type') ? 0 : '0.00%';
+        }
+        var num = parseFloat(data);
+        if (type === 'sort' || type === 'type') return num;
+        return num.toFixed(2) + '%';
+    };
+}
+
 window.DashboardJobReconcile = {
-    grid: null,
+    gridTable: null,
+    isGridInitialized: false,
 
-    initGrid(firstRow) {
-        const h1 = firstRow?.head1Name || 'Expense Head 1';
-        const h2 = firstRow?.head2Name || 'Expense Head 2';
-        const h3 = firstRow?.head3Name || 'Expense Head 3';
+    initGrid() {
+        if (this.isGridInitialized) return;
+        if ($.gctlGrid && typeof $.gctlGrid.initFromModel === 'function') {
+            this.gridTable = $.gctlGrid.initFromModel({
+                gridId: 'jobReconcileTable'
+            });
 
-        this.grid = new Grid('r_g', {
-            card: 'g760',
-            totals: true,
-            columns: [
-                { t: 'sn', l: 'SL', w: '38px' },
-                { k: 'jobNo', l: 'Job No', cls: 'mono nw' },
-                { k: 'customerName', l: 'Customer', hide: 'md' },
-                { k: 'revenue', l: 'Revenue / Bill', t: 'money', tot: true },
-                { k: 'head1Amt', l: h1, t: 'money', tot: true, hide: 'md' },
-                { k: 'head2Amt', l: h2, t: 'money', tot: true, hide: 'md' },
-                { k: 'head3Amt', l: h3, t: 'money', tot: true, hide: 'lg' },
-                { k: 'otherExpenses', l: 'Other Expenses', t: 'money', tot: true, hide: 'lg' },
-                { k: 'totalExpense', l: 'Total Expense', t: 'money', tot: true },
-                { k: 'profit', l: 'Profit', t: 'money', tot: true },
-                { k: 'gpPercent', l: 'GP %', t: 'pct' }
-            ]
-        });
+            // Enforce side-by-side flex layout on DataTables top and bottom toolbars
+            $('#jobReconcileTable').on('init.dt draw.dt', function () {
+                const $container = $(this).closest('.dt-container, .dataTables_wrapper');
+                $container.find('> .row, .dt-layout-row').each(function () {
+                    if ($(this).find('table').length === 0) {
+                        $(this).attr('style', 'display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; flex-wrap: nowrap !important; width: 100% !important; margin: 6px 0 !important;');
+                        $(this).find('.dt-layout-start, [class*="col-"]:first-child').attr('style', 'display: flex !important; align-items: center !important; justify-content: flex-start !important; flex: 0 0 auto !important; width: auto !important;');
+                        $(this).find('.dt-layout-end, [class*="col-"]:last-child').attr('style', 'display: flex !important; align-items: center !important; justify-content: flex-end !important; flex: 0 0 auto !important; margin-left: auto !important; width: auto !important;');
+                    } else {
+                        $(this).attr('style', 'display: block !important; width: 100% !important;');
+                    }
+                });
+            });
+
+            this.isGridInitialized = true;
+        }
     },
 
     async load(filter) {
+        this.initGrid();
+
         if (window.DashboardApp) window.DashboardApp.showLoader('p-recon');
         try {
             const resp = await fetch('/DashboardJobReconcile/GetData', {
@@ -52,47 +81,55 @@ window.DashboardJobReconcile = {
     },
 
     render(data) {
+        if (!data) return;
         const k = data.kpis || data.kpIs || data.KPIs || {};
 
-        // KPIs
+        // KPIs (Formatted with Indian lakh/crore commas, no abbreviations)
         setK('r_n', int(k.totalBills ?? k.TotalBills), 'jobs reconciled');
-        setK('r_nbv', cur(k.netBillValue ?? k.NetBillValue), 'total revenue');
-        setK('r_cost', cur(k.totalCosting ?? k.TotalCosting), 'actual expense');
-        setK('r_gp', cur(k.grossProfit ?? k.GrossProfit), 'net profit');
+        setK('r_nbv', formatMoney(k.netBillValue ?? k.NetBillValue), 'total revenue');
+        setK('r_cost', formatMoney(k.totalCosting ?? k.TotalCosting), 'actual expense');
+        setK('r_gp', formatMoney(k.grossProfit ?? k.GrossProfit), 'net profit');
         setK('r_pct', pct(k.gpMargin ?? k.GPMargin, 2), 'gross margin');
 
-        // Minis
-        const setMini = (id, val, sub = null) => {
+        // Minis (No subtext, full money format)
+        const setMini = (id, val) => {
             const el = document.getElementById(id);
             if (el) {
                 const vEl = el.querySelector('.mval');
                 if (vEl) vEl.textContent = val;
-                if (sub !== null) {
-                    const sEl = el.querySelector('.msub');
-                    if (sEl) sEl.textContent = sub;
-                }
             }
         };
 
-        setMini('rm_avg', money(k.avgProfitPerJob), 'mean profit');
-        setMini('rm_ae', money(k.avgExpensePerJob), 'mean expense');
-        setMini('rm_best', pct(k.bestCustomerGP, 1), k.bestCustomer || '-');
-        setMini('rm_low', pct(k.lowestMarginGP, 1), k.lowestMarginJob || '-');
-        setMini('rm_top', k.largestExpenseHead || '-', cur(k.largestExpenseHeadAmt));
+        setMini('rm_avg', formatMoney(k.avgProfitPerJob));
+        setMini('rm_ae', formatMoney(k.avgExpensePerJob));
+        setMini('rm_best', pct(k.bestCustomerGP, 1));
+        setMini('rm_low', pct(k.lowestMarginGP, 1));
+        setMini('rm_top', k.largestExpenseHead || '-');
 
-        // Chart 1: Actual Expense by Head (Doughnut)
+        // Chart 1: Actual Expense by Head (Doughnut with centerText)
         const heads = data.topExpenseHeads || [];
-        mkChart('r_ch1', 'doughnut', heads.map(h => h.expenseHead), [
-            pieDs(heads.map(h => h.amount))
-        ], { money: true });
+        const topHeads = heads.slice(0, 7);
+        const restAmt = heads.slice(7).reduce((acc, cur) => acc + (Number(cur.amount) || 0), 0);
+        const pieHeads = topHeads.map(h => [h.expenseHead, Number(h.amount) || 0]);
+        if (restAmt > 0) pieHeads.push(['Others', restAmt]);
 
-        // Chart 2: Revenue Split (Expense vs Profit Doughnut)
+        mkChart('r_ch1', 'doughnut', pieHeads.map(x => x[0]), [
+            pieDs(pieHeads.map(x => x[1]))
+        ], {
+            money: true,
+            center: { text: formatMoney(k.totalCosting ?? 0), sub: 'actual expense' }
+        });
+
+        // Chart 2: Revenue Split (Expense vs Profit Doughnut with centerText)
         mkChart('r_ch2', 'doughnut', ['Total Expense', 'Gross Profit'], [
             pieDs([k.totalCosting, k.grossProfit], [
                 cssVar('--orange') || '#f08c00',
                 cssVar('--green') || '#1b8a3c'
             ])
-        ], { money: true });
+        ], {
+            money: true,
+            center: { text: pct(k.gpMargin ?? 0, 1), sub: 'GP margin' }
+        });
 
         // Chart 3: Job GP% Distribution (Brackets)
         const brk = data.gpBrackets || {};
@@ -122,19 +159,111 @@ window.DashboardJobReconcile = {
             barDs('Revenue', topCust.map(c => c.revenue), cssVar('--blue') || '#0b57d0'),
             barDs('Expense', topCust.map(c => c.expense), cssVar('--orange') || '#f08c00'),
             barDs('Profit', topCust.map(c => c.profit), cssVar('--green') || '#1b8a3c')
-        ], { money: true });
+        ], { money: true, legendAlign: 'end' });
 
-        // Chart 5: Top Expense Heads
+        // Chart 5: Top Expense Heads (Horizontal Bar)
         mkChart('r_ch5', 'bar', heads.map(h => h.expenseHead), [
-            barDs('Amount', heads.map(h => h.amount), cssVar('--purple') || '#8e24aa')
+            barDs('Amount', heads.map(h => h.amount), cssVar('--orange') || '#f08c00')
         ], { horizontal: true, money: true, legend: false });
 
-        // Grid
+        // Grid: Update Dynamic Column Headers & Populate Rows
         const rows = data.reconcileList || [];
-        this.initGrid(rows[0]);
-        if (this.grid) {
-            this.grid.setRows(rows);
+        if (this.gridTable) {
+            if (rows.length > 0) {
+                const first = rows[0];
+                const h1 = first.head1Name || 'Head 1';
+                const h2 = first.head2Name || 'Head 2';
+                const h3 = first.head3Name || 'Head 3';
+
+                const updateHeader = (colIdx, title) => {
+                    const $hdr = $(this.gridTable.column(colIdx).header());
+                    const $title = $hdr.find('.dt-column-title, .th-full, span').first();
+                    if ($title.length) {
+                        $title.text(title);
+                    } else {
+                        $hdr.text(title);
+                    }
+                };
+                updateHeader(4, h1);
+                updateHeader(5, h2);
+                updateHeader(6, h3);
+            }
+            this.gridTable.clear().rows.add(rows).draw();
+            this.gridTable.columns.adjust();
+            setTimeout(() => {
+                if (this.gridTable) this.gridTable.columns.adjust();
+            }, 100);
         }
+    },
+
+    exportExcel() {
+        const f = (window.DashboardApp && typeof window.DashboardApp.getFilterState === 'function')
+            ? window.DashboardApp.getFilterState()
+            : {};
+        const params = new URLSearchParams({
+            ExpenseTypeId: f.shipmentMode || $('#fMode').val() || '',
+            FromDate: f.fromDate || $('#fFrom').val() || '',
+            ToDate: f.toDate || $('#fTo').val() || '',
+            CustomerId: f.customerID || f.customerId || $('#fCust').val() || '',
+            ExportFormat: 'XLSX'
+        });
+        window.location.href = '/JobWiseReconcileStatement/ExportExcel?' + params.toString();
     }
 };
 
+// Wire Export Dropdown specifically for #recon tab
+(function () {
+    function updateDropdownVisibility() {
+        const isRecon = document.getElementById('p-recon')?.classList.contains('on');
+        const isBills = document.getElementById('p-bills')?.classList.contains('on');
+        const previewBtn = document.getElementById('xPreview');
+        const pdfBtn = document.getElementById('xPdf');
+        const excelBtn = document.getElementById('xExcel');
+
+        if (isRecon) {
+            if (previewBtn) previewBtn.style.display = 'none';
+            if (pdfBtn) pdfBtn.style.display = 'none';
+            if (excelBtn) excelBtn.style.display = '';
+            setTimeout(() => {
+                if (window.DashboardJobReconcile && window.DashboardJobReconcile.gridTable) {
+                    window.DashboardJobReconcile.gridTable.columns.adjust();
+                }
+            }, 60);
+        } else {
+            // Restore buttons when leaving #recon tab (unless #bills is active)
+            if (previewBtn && previewBtn.style.display === 'none') previewBtn.style.display = '';
+            if (pdfBtn && pdfBtn.style.display === 'none') pdfBtn.style.display = '';
+            if (excelBtn && !isBills && excelBtn.style.display === 'none') excelBtn.style.display = '';
+        }
+    }
+
+    function initExportWiring() {
+        const pRecon = document.getElementById('p-recon');
+        if (pRecon) {
+            const observer = new MutationObserver(updateDropdownVisibility);
+            observer.observe(pRecon, { attributes: true, attributeFilter: ['class'] });
+            updateDropdownVisibility();
+        }
+
+        // Also check on tab buttons click
+        document.querySelectorAll('#tabs .tab').forEach(btn => {
+            btn.addEventListener('click', () => setTimeout(updateDropdownVisibility, 50));
+        });
+
+        // Intercept Excel click for #recon tab in capture phase
+        document.getElementById('xExcel')?.addEventListener('click', function (e) {
+            if (document.getElementById('p-recon')?.classList.contains('on')) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                document.getElementById('expMenu')?.classList.remove('open');
+                window.DashboardJobReconcile.exportExcel();
+            }
+        }, true);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initExportWiring);
+    } else {
+        initExportWiring();
+    }
+})();
