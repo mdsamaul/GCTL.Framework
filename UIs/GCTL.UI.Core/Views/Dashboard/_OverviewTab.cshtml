@@ -1,0 +1,140 @@
+@* ============================================================
+   Overview Tab Partial
+   ============================================================ *@
+<section class="panel on" id="p-overview">
+    <div class="ptitle">
+        <h2>Executive Overview</h2>
+        <span data-period></span>
+    </div>
+
+    <!-- Main KPIs -->
+    <div class="kpis six">
+        <div class="kpi blue" id="o_jobs">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Jobs</div><div class="kval" data-v="0">0</div><div class="ksub">in selected period</div></div>
+        </div>
+        <div class="kpi green" id="o_nsv">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="kbody"><div class="klabel">Net Service Value</div><div class="kval" data-v="0">0</div><div class="ksub">total billed</div></div>
+        </div>
+        <div class="kpi purple" id="o_gp">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
+            <div class="kbody"><div class="klabel">Gross Profit</div><div class="kval" data-v="0">0</div><div class="ksub">net margin</div></div>
+        </div>
+        <div class="kpi orange" id="o_due">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Due Outstanding</div><div class="kval" data-v="0">0</div><div class="ksub">customer receivables</div></div>
+        </div>
+        <div class="kpi sky" id="o_cash">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div>
+            <div class="kbody"><div class="klabel">Cash in Hand</div><div class="kval" data-v="0">0</div><div class="ksub">active cash accounts</div></div>
+        </div>
+        <div class="kpi teal" id="o_bank">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M12 3L3 9h18z"/></svg></div>
+            <div class="kbody"><div class="klabel">Bank Balance</div><div class="kval" data-v="0">0</div><div class="ksub">liquid bank funds</div></div>
+        </div>
+    </div>
+
+    <!-- Mini KPI Cards -->
+    <div class="minis">
+        <div class="mini green" id="m_np">
+            <div class="klabel">Net Profit (Accounts)</div>
+            <div class="kval">–</div>
+            <div class="ksub">Margin 0%</div>
+        </div>
+        <div class="mini blue" id="m_col">
+            <div class="klabel">Collection Rate</div>
+            <div class="kval">–</div>
+            <div class="ksub">collected of billed</div>
+        </div>
+        <div class="mini purple" id="m_avg">
+            <div class="klabel">Avg Clearance Time</div>
+            <div class="kval">–</div>
+            <div class="ksub">job date → delivery</div>
+        </div>
+        <div class="mini sky" id="m_ot">
+            <div class="klabel">On-time Delivery</div>
+            <div class="kval">–</div>
+            <div class="ksub">delivered ≤ 10 days</div>
+        </div>
+        <div class="mini orange" id="m_doc">
+            <div class="klabel">Docs Pending</div>
+            <div class="kval">–</div>
+            <div class="ksub">jobs with incomplete documents</div>
+        </div>
+        <div class="mini red" id="m_req">
+            <div class="klabel">Pending Fund Requisitions</div>
+            <div class="kval">–</div>
+            <div class="ksub">0 of 0 requests</div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row c21">
+        <section class="card">
+            <header>
+                <h3>Revenue vs Direct Cost vs Gross Profit</h3>
+                <span class="hint">monthly</span>
+            </header>
+            <div class="cwrap"><canvas id="o_ch1"></canvas></div>
+        </section>
+        <section class="card">
+            <header>
+                <h3>Job Status</h3>
+                <span class="hint">active workload</span>
+            </header>
+            <div class="cwrap"><canvas id="o_ch2"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row c3">
+        <section class="card">
+            <header>
+                <h3>Top Customers by Service Value</h3>
+                <span class="hint">highest billing volume</span>
+            </header>
+            <div class="cwrap"><canvas id="o_ch3"></canvas></div>
+        </section>
+        <section class="card">
+            <header>
+                <h3>Receivable Ageing (Due Outstanding)</h3>
+                <span class="hint">by bill age</span>
+            </header>
+            <div class="cwrap"><canvas id="o_ch4"></canvas></div>
+        </section>
+        <section class="card">
+            <header>
+                <h3>Operational Fund Requisitions</h3>
+                <span class="hint">by status · amount</span>
+            </header>
+            <div class="cwrap"><canvas id="o_ch5"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Tables Row 3 -->
+    <div class="row c2">
+        <section class="card gridcard">
+            <header>
+                <h3>Needs Attention – Overdue Bills <span class="hint">(due 30+ days)</span></h3>
+            </header>
+            <div class="gtools">
+                <label>Show <select id="o_g1_sz"></select> entries</label>
+                <input id="o_g1_q" type="search" placeholder="Search records…" aria-label="Search Overdue Bills" />
+            </div>
+            <div class="gbody"><div id="o_g1"></div></div>
+            <div class="gfoot" id="o_g1_f"></div>
+        </section>
+        <section class="card gridcard">
+            <header>
+                <h3>Upcoming Arrivals <span class="hint">(in transit · next 7 days)</span></h3>
+            </header>
+            <div class="gtools">
+                <label>Show <select id="o_g2_sz"></select> entries</label>
+                <input id="o_g2_q" type="search" placeholder="Search records…" aria-label="Search Upcoming Arrivals" />
+            </div>
+            <div class="gbody"><div id="o_g2"></div></div>
+            <div class="gfoot" id="o_g2_f"></div>
+        </section>
+    </div>
+</section>

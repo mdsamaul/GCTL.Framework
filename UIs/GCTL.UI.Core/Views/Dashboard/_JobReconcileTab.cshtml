@@ -1,0 +1,84 @@
+@* ============================================================
+   Job Reconcile Tab Partial
+   ============================================================ *@
+<section class="panel" id="p-recon">
+    <div class="ptitle">
+        <h2>Job Number Wise Reconcile Statement (Actual)</h2>
+        <span data-period></span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+        <div class="kpi blue" id="r_n">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Bills</div><div class="kval">0</div><div class="ksub">jobs reconciled</div></div>
+        </div>
+        <div class="kpi green" id="r_nbv">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="kbody"><div class="klabel">Net Bill Value</div><div class="kval">0</div><div class="ksub">revenue</div></div>
+        </div>
+        <div class="kpi orange" id="r_cost">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Costing (Actual Expense)</div><div class="kval">0</div><div class="ksub">of bill value</div></div>
+        </div>
+        <div class="kpi purple" id="r_gp">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg></div>
+            <div class="kbody"><div class="klabel">Gross Profit</div><div class="kval">0</div><div class="ksub">net earnings</div></div>
+        </div>
+        <div class="kpi sky" id="r_pct">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg></div>
+            <div class="kbody"><div class="klabel">GP Margin</div><div class="kval">0.00%</div><div class="ksub">gross margin</div></div>
+        </div>
+    </div>
+
+    <!-- Minis -->
+    <div class="minis">
+        <div class="mini blue" id="rm_avg"><div class="mlbl">Avg Profit / Job</div><div class="mval">0</div><div class="msub">mean profit</div></div>
+        <div class="mini orange" id="rm_ae"><div class="mlbl">Avg Expense / Job</div><div class="mval">0</div><div class="msub">mean expense</div></div>
+        <div class="mini green" id="rm_best"><div class="mlbl">Best Customer (GP%)</div><div class="mval">-</div><div class="msub">highest margin client</div></div>
+        <div class="mini red" id="rm_low"><div class="mlbl">Lowest-margin Job</div><div class="mval">-</div><div class="msub">job lowest GP%</div></div>
+        <div class="mini purple" id="rm_top"><div class="mlbl">Largest Expense Head</div><div class="mval">-</div><div class="msub">major cost contributor</div></div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row c3">
+        <section class="card">
+            <div class="chdr"><h3>Actual Expense by Head</h3><span>composition</span></div>
+            <div class="cwrap"><canvas id="r_ch1"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Revenue Split</h3><span>expense vs profit</span></div>
+            <div class="cwrap"><canvas id="r_ch2"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Job GP% Distribution</h3><span>number of jobs</span></div>
+            <div class="cwrap"><canvas id="r_ch3"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row c21">
+        <section class="card">
+            <div class="chdr"><h3>Customer-wise Revenue, Expense &amp; Profit</h3><span>top customers</span></div>
+            <div class="cwrap"><canvas id="r_ch4"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Top Expense Heads</h3><span>BDT</span></div>
+            <div class="cwrap"><canvas id="r_ch5"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Grid -->
+    <section class="card gridcard">
+        <header>
+            <h3>Job Number Wise Reconcile Statement</h3>
+        </header>
+        <div class="gtools">
+            <label>Show <select id="r_g_sz"></select> entries</label>
+            <input id="r_g_q" type="search" placeholder="Search reconciled jobs...">
+        </div>
+        <div class="gbody"><div id="r_g"></div></div>
+        <div class="gfoot" id="r_g_f"></div>
+    </section>
+</section>
+

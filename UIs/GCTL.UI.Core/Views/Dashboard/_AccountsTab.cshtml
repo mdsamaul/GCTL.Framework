@@ -1,0 +1,145 @@
+@* ============================================================
+   Accounts Tab Partial
+   ============================================================ *@
+<section class="panel" id="p-accounts">
+    <div class="ptitle">
+        <h2>Financial Accounts &amp; Statements</h2>
+        <span data-period></span>
+    </div>
+
+    <!-- Sub Navigation -->
+    <div class="subnav" id="subnav">
+        <button class="on" data-s="cb">Cash &amp; Bank Summary</button>
+        <button data-s="tb">Trial Balance</button>
+        <button data-s="is">Income Statement</button>
+        <button data-s="bs">Balance Sheet</button>
+    </div>
+
+    <!-- Subview 1: Cash & Bank Summary -->
+    <div class="sub on" id="s-cb">
+        <div class="kpis">
+            <div class="kpi sky" id="a_cash">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div>
+                <div class="kbody"><div class="klabel">Cash in Hand</div><div class="kval">0</div><div class="ksub">all cash registers</div></div>
+            </div>
+            <div class="kpi teal" id="a_bank">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M12 3L3 9h18z"/></svg></div>
+                <div class="kbody"><div class="klabel">Bank Balance</div><div class="kval">0</div><div class="ksub">active bank accounts</div></div>
+            </div>
+            <div class="kpi green" id="a_dr">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div>
+                <div class="kbody"><div class="klabel">Receipts (Dr)</div><div class="kval">0</div><div class="ksub">cash/bank inflow</div></div>
+            </div>
+            <div class="kpi orange" id="a_cr">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div>
+                <div class="kbody"><div class="klabel">Payments (Cr)</div><div class="kval">0</div><div class="ksub">cash/bank outflow</div></div>
+            </div>
+            <div class="kpi purple" id="a_net">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
+                <div class="kbody"><div class="klabel">Net Cash Flow</div><div class="kval">0</div><div class="ksub">inflow - outflow</div></div>
+            </div>
+        </div>
+
+        <div class="minis">
+            <div class="mini blue" id="am_top"><div class="mlbl">Largest Bank Account</div><div class="mval">-</div><div class="msub">highest liquid balance</div></div>
+            <div class="mini green" id="am_cnt"><div class="mlbl">Active Accounts</div><div class="mval">0</div><div class="msub">cash &amp; bank accounts</div></div>
+            <div class="mini sky" id="am_qr"><div class="mlbl">Quick Ratio</div><div class="mval">1.42</div><div class="msub">liquid assets / current liab</div></div>
+            <div class="mini purple" id="am_nm"><div class="mlbl">Net Profit Margin</div><div class="mval">24.5%</div><div class="msub">net income / revenue</div></div>
+        </div>
+
+        <div class="row c3">
+            <section class="card">
+                <div class="chdr"><h3>Cash &amp; Bank Composition</h3><span>closing balance</span></div>
+                <div class="cwrap"><canvas id="a_ch1"></canvas></div>
+            </section>
+            <section class="card">
+                <div class="chdr"><h3>Cash + Bank Flow</h3><span>monthly net flow</span></div>
+                <div class="cwrap"><canvas id="a_ch2"></canvas></div>
+            </section>
+            <section class="card">
+                <div class="chdr"><h3>Receipts vs Payments</h3><span>monthly inflow vs outflow</span></div>
+                <div class="cwrap"><canvas id="a_ch3"></canvas></div>
+            </section>
+        </div>
+
+        <section class="card gridcard">
+            <header>
+                <h3>Cash in Hand &amp; Bank Accounts</h3>
+            </header>
+            <div class="gtools">
+                <label>Show <select id="a_g_sz"></select> entries</label>
+                <input id="a_g_q" type="search" placeholder="Search accounts...">
+            </div>
+            <div class="gbody"><div id="a_g"></div></div>
+            <div class="gfoot" id="a_g_f"></div>
+        </section>
+    </div>
+
+    <!-- Subview 2: Trial Balance -->
+    <div class="sub" id="s-tb">
+        <div class="kpis">
+            <div class="kpi blue" id="t_dr"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0zM5 7h14"/></svg></div><div class="kbody"><div class="klabel">Closing Debit</div><div class="kval">0</div><div class="ksub">total assets &amp; expenses</div></div></div>
+            <div class="kpi green" id="t_cr"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0zM5 7h14"/></svg></div><div class="kbody"><div class="klabel">Closing Credit</div><div class="kval">0</div><div class="ksub">total equity &amp; liab</div></div></div>
+            <div class="kpi orange" id="t_pd"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="kbody"><div class="klabel">Period Debit / Credit</div><div class="kval">0</div><div class="ksub">balanced activity</div></div></div>
+            <div class="kpi purple" id="t_st"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div><div class="kbody"><div class="klabel">Trial Balance</div><div class="kval" style="color:var(--green)">Balanced</div><div class="ksub">Dr = Cr</div></div></div>
+        </div>
+        <div class="row c2">
+            <section class="card"><div class="chdr"><h3>Closing Balance by Group</h3><span>Debit vs Credit</span></div><div class="cwrap"><canvas id="t_ch1"></canvas></div></section>
+            <section class="card"><div class="chdr"><h3>Closing Debit by Control Ledger</h3><span>assets &amp; expense</span></div><div class="cwrap"><canvas id="t_ch2"></canvas></div></section>
+        </div>
+        <section class="card gridcard">
+            <header>
+                <h3>Trial Balance</h3>
+            </header>
+            <div class="gtools">
+                <label>Show <select id="t_g_sz"></select> entries</label>
+                <input id="t_g_q" type="search" placeholder="Search accounts...">
+            </div>
+            <div class="gbody"><div id="t_g"></div></div>
+            <div class="gfoot" id="t_g_f"></div>
+        </section>
+    </div>
+
+    <!-- Subview 3: Income Statement -->
+    <div class="sub" id="s-is">
+        <div class="kpis">
+            <div class="kpi blue" id="i_rev"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="kbody"><div class="klabel">Total Revenue</div><div class="kval">0</div><div class="ksub">operating turnover</div></div></div>
+            <div class="kpi orange" id="i_dir"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="kbody"><div class="klabel">Direct Expenses</div><div class="kval">0</div><div class="ksub">job operational costs</div></div></div>
+            <div class="kpi purple" id="i_gp"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="kbody"><div class="klabel">Gross Profit</div><div class="kval">0</div><div class="ksub">revenue - direct</div></div></div>
+            <div class="kpi red" id="i_ind"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div><div class="kbody"><div class="klabel">Indirect + Finance</div><div class="kval">0</div><div class="ksub">admin &amp; financial</div></div></div>
+            <div class="kpi green" id="i_np"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div><div class="kbody"><div class="klabel">Net Profit / (Loss)</div><div class="kval">0</div><div class="ksub">bottom line</div></div></div>
+        </div>
+        <div class="row c3">
+            <section class="card"><div class="chdr"><h3>Profit Build-up</h3><span>waterfall</span></div><div class="cwrap"><canvas id="i_ch1"></canvas></div></section>
+            <section class="card"><div class="chdr"><h3>Expense Composition</h3><span>direct vs indirect</span></div><div class="cwrap"><canvas id="i_ch2"></canvas></div></section>
+            <section class="card"><div class="chdr"><h3>Monthly Revenue &amp; Net</h3><span>monthly</span></div><div class="cwrap"><canvas id="i_ch3"></canvas></div></section>
+        </div>
+        <section class="card gridcard">
+            <div class="gh"><h3>Income Statement</h3></div>
+            <div class="gbody"><div id="i_g"></div></div>
+            <div class="gfoot" id="i_g_f"></div>
+        </section>
+    </div>
+
+    <!-- Subview 4: Balance Sheet -->
+    <div class="sub" id="s-bs">
+        <div class="kpis">
+            <div class="kpi blue" id="s_ta"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg></div><div class="kbody"><div class="klabel">Total Assets</div><div class="kval">0</div><div class="ksub">current + non-current</div></div></div>
+            <div class="kpi red" id="s_tl"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0zM5 7h14"/></svg></div><div class="kbody"><div class="klabel">Total Liabilities</div><div class="kval">0</div><div class="ksub">payables &amp; borrowings</div></div></div>
+            <div class="kpi green" id="s_te"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div><div class="kbody"><div class="klabel">Total Equity</div><div class="kval">0</div><div class="ksub">capital + reserves</div></div></div>
+            <div class="kpi purple" id="s_wc"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="kbody"><div class="klabel">Working Capital</div><div class="kval">0</div><div class="ksub">current assets - liab</div></div></div>
+            <div class="kpi orange" id="s_cr"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg></div><div class="kbody"><div class="klabel">Current Ratio</div><div class="kval">1.85</div><div class="ksub">liquidity health</div></div></div>
+        </div>
+        <div class="row c3">
+            <section class="card"><div class="chdr"><h3>Assets Composition</h3><span>current vs non-current</span></div><div class="cwrap"><canvas id="s_ch1"></canvas></div></section>
+            <section class="card"><div class="chdr"><h3>Equity &amp; Liabilities</h3><span>capital structure</span></div><div class="cwrap"><canvas id="s_ch2"></canvas></div></section>
+            <section class="card"><div class="chdr"><h3>Assets vs Equity &amp; Liab</h3><span>balance verification</span></div><div class="cwrap"><canvas id="s_ch3"></canvas></div></section>
+        </div>
+        <section class="card gridcard">
+            <div class="gh"><h3>Balance Sheet</h3></div>
+            <div class="gbody"><div id="s_g"></div></div>
+            <div class="gfoot" id="s_g_f"></div>
+        </section>
+    </div>
+</section>
+
