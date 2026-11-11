@@ -47,10 +47,24 @@ namespace GCTL.Service.PaymentReceiveReport
             await connection.OpenAsync();
 
             // Customer Types
-            var customerTypes = (await connection.QueryAsync<(string Value, string Text)>(
-                "SELECT CustomerTypeID AS Value, CustomerType AS Text FROM Sales_Def_CustomerType WHERE CustomerType IS NOT NULL ORDER BY CustomerType"
-            )).Select(x => new SelectListItem { Value = x.Value, Text = x.Text }).ToList();
-            customerTypes.Insert(0, new SelectListItem { Value = "", Text = "All Customer Types" });
+            var customerTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "All Customer Types" },
+                new SelectListItem { Value = "1", Text = "In House" },
+                new SelectListItem { Value = "0", Text = "General" }
+            };
+
+            //var dbCustomerTypes = (await connection.QueryAsync<(string Value, string Text)>(
+            //    "SELECT CustomerTypeID AS Value, CustomerType AS Text FROM Sales_Def_CustomerType WHERE CustomerType IS NOT NULL ORDER BY CustomerType"
+            //)).Select(x => new SelectListItem { Value = x.Value, Text = x.Text }).ToList();
+
+            //foreach (var ct in dbCustomerTypes)
+            //{
+            //    if (!customerTypes.Any(x => string.Equals(x.Text, ct.Text, StringComparison.OrdinalIgnoreCase)))
+            //    {
+            //        customerTypes.Add(ct);
+            //    }
+            //}
             vm.CustomerTypes = customerTypes;
 
             // Districts
