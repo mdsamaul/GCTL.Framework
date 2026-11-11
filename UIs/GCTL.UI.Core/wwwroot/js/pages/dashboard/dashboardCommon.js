@@ -72,8 +72,19 @@ class Grid {
 
         const szEl = document.getElementById(id + '_sz');
         if (szEl) {
-            szEl.innerHTML = this.o.sizes.map(s => `<option ${s === this.size ? 'selected' : ''}>${s}</option>`).join('');
-            szEl.onchange = () => { this.size = +szEl.value; this.page = 1; this.render(); };
+            szEl.innerHTML = this.o.sizes.map(s => {
+                const isAll = s === 'All' || s === -1;
+                const val = isAll ? -1 : s;
+                const label = isAll ? 'All' : s;
+                const selected = (isAll && this.size >= 999999) || s === this.size ? 'selected' : '';
+                return `<option value="${val}" ${selected}>${label}</option>`;
+            }).join('');
+            szEl.onchange = () => {
+                const v = +szEl.value;
+                this.size = (v === -1 || isNaN(v)) ? 999999 : v;
+                this.page = 1;
+                this.render();
+            };
         }
 
         const qEl = document.getElementById(id + '_q');
@@ -353,6 +364,39 @@ function mkChart(id, type, labels, datasets, opts = {}) {
             grid: { drawOnChartArea: false },
             ticks: { callback: v => v + '%' }
         };
+    }
+
+    if (isPie && opts.center) {
+        chartConfig.options.cutout = opts.cutout || '68%';
+        chartConfig.plugins = chartConfig.plugins || [];
+        chartConfig.plugins.push({
+            id: 'centerText_' + id,
+            beforeDraw(chart) {
+                const { ctx, chartArea } = chart;
+                if (!chartArea) return;
+                const { left, right, top, bottom } = chartArea;
+                const cx = (left + right) / 2;
+                const cy = (top + bottom) / 2;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const mainText = opts.center.text || '';
+                const subText = opts.center.sub || '';
+
+                ctx.font = 'bold 18px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.fillStyle = '#0f172a';
+                ctx.fillText(mainText, cx, subText ? cy - 9 : cy);
+
+                if (subText) {
+                    ctx.font = '500 11.5px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText(subText, cx, cy + 13);
+                }
+                ctx.restore();
+            }
+        });
     }
 
     CH[id] = new Chart(document.getElementById(id), chartConfig);
