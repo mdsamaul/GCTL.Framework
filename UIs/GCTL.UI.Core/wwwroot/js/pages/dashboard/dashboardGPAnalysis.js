@@ -21,9 +21,9 @@ window.DashboardGPAnalysis = {
                             <th rowspan="3" style="width:75px;">Billing Date</th>
                             <th rowspan="3" style="width:130px;">Bill No</th>
                             <th rowspan="3" style="width:85px;">Total Bill<br/>(BDT)</th>
-                            <th colspan="5" class="text-white" style="background-color:#0d6efd;">Billing</th>
-                            <th colspan="7" class="text-white" style="background-color:#495057;">Costing</th>
-                            <th colspan="6" class="text-white" style="background-color:#198754;">PNL</th>
+                            <th colspan="5">Billing</th>
+                            <th colspan="7">Costing</th>
+                            <th colspan="6">PNL</th>
                         </tr>
                         <tr class="table-header-tier-2">
                             <th colspan="3">C &amp; F</th>

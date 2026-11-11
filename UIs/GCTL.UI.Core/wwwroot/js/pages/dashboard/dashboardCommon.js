@@ -185,7 +185,12 @@ class Grid {
             slice.forEach((r, i) => {
                 h += `<tr class="${o.rowCls ? o.rowCls(r) : ''}">` + this.cols.map(c => {
                     let formatted = '';
-                    const rawVal = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                    let rawVal = undefined;
+                    if (typeof c.v === 'function') {
+                        rawVal = c.v(r);
+                    } else if (c.k) {
+                        rawVal = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                    }
                     if (c.r) {
                         formatted = c.r(r, s + i);
                     } else if (c.t === 'sn') {
@@ -197,7 +202,7 @@ class Grid {
                     } else if (c.t === 'int') {
                         formatted = (rawVal === 0 ? '0' : (rawVal == null || rawVal === '' ? '' : int(rawVal)));
                     } else if (c.t === 'pct') {
-                        formatted = pct(rawVal);
+                        formatted = typeof rawVal === 'string' && rawVal.endsWith('%') ? esc(rawVal) : pct(rawVal);
                     } else {
                         formatted = esc(rawVal ?? '');
                     }
