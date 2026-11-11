@@ -50,9 +50,24 @@ BEGIN
     INTO #Bills
     FROM CF_BillEntry b WITH (NOLOCK)
     LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = b.CustomerID
+    LEFT JOIN Sep_Documentation d WITH (NOLOCK) ON d.JobNo = b.JobNo
+    LEFT JOIN HRM_EmployeeOfficialInfo emp WITH (NOLOCK) ON emp.EmployeeID = d.EmployeeId OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     WHERE (b.BillDate >= @FromDate AND b.BillDate <= DATEADD(DAY, 1, @ToDate))
       AND (@CustomerID = '' OR b.CustomerID = @CustomerID)
-      AND (@ShipmentMode = '' OR b.ExpenseTypeID = @ShipmentMode);
+      AND (@ShipmentMode = '' OR b.ExpenseTypeID = @ShipmentMode OR d.ExpenseTypeID = @ShipmentMode)
+      AND (@Port = '' OR d.PortNameId = @Port)
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      );
 
     CREATE CLUSTERED INDEX IX_Bills_BillNo ON #Bills(BillNo);
     CREATE INDEX IX_Bills_JobNo ON #Bills(JobNo);
@@ -130,6 +145,7 @@ BEGIN
         END AS ComputedStatus
     INTO #Jobs
     FROM Sep_Documentation d WITH (NOLOCK)
+    LEFT JOIN HRM_EmployeeOfficialInfo emp WITH (NOLOCK) ON emp.EmployeeID = d.EmployeeId OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     LEFT JOIN CF_Def_ExpenseType et WITH (NOLOCK) ON et.ExpenseTypeID = d.ExpenseTypeID
     LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = d.CustomerID
     LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON p.PortNameID = d.PortNameId
@@ -137,7 +153,19 @@ BEGIN
     WHERE (d.Date >= @FromDate AND d.Date <= DATEADD(DAY, 1, @ToDate))
       AND (@CustomerID = '' OR d.CustomerID = @CustomerID)
       AND (@ShipmentMode = '' OR d.ExpenseTypeID = @ShipmentMode)
-      AND (@Port = '' OR d.PortNameId = @Port);
+      AND (@Port = '' OR d.PortNameId = @Port)
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      );
 
     IF @JobStatus <> ''
     BEGIN
@@ -176,10 +204,24 @@ BEGIN
     INTO #Reqs
     FROM CF_OperationalFundRequisitionEntry req WITH (NOLOCK)
     LEFT JOIN Sep_Documentation d WITH (NOLOCK) ON d.JobNo = req.JobNo
+    LEFT JOIN HRM_EmployeeOfficialInfo emp WITH (NOLOCK) ON emp.EmployeeID = d.EmployeeId OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     LEFT JOIN CF_OperationalFundRequisitionDetails reqd WITH (NOLOCK) ON reqd.OFRNo = req.OFRNo
     WHERE (req.OFRDate >= @FromDate AND req.OFRDate <= DATEADD(DAY, 1, @ToDate))
       AND (@CustomerID = '' OR d.CustomerID = @CustomerID)
-      AND (@ShipmentMode = '' OR req.ExpenseTypeID = @ShipmentMode)
+      AND (@ShipmentMode = '' OR req.ExpenseTypeID = @ShipmentMode OR d.ExpenseTypeID = @ShipmentMode)
+      AND (@Port = '' OR d.PortNameId = @Port)
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      )
     GROUP BY req.OFRNo, req.OFRDate, req.JobNo, d.CustomerID,
              req.BillAdjustApprovalUser, req.BillAdjustApproveDate, req.ApprovedUser, req.ApprovedDate;
 
@@ -209,6 +251,7 @@ BEGIN
             SUM(CASE WHEN ob.TrType = 'Dr' THEN ISNULL(ob.OpeningBalance, 0) ELSE -ISNULL(ob.OpeningBalance, 0) END) AS NetBal
         FROM dbo.Acc_Company_Opening_Balance ob WITH (NOLOCK)
         WHERE ob.DeletedAt IS NULL AND ob.GeneralLedgerCodeNo LIKE '102004%'
+          AND (@BranchCode = '' OR @BranchCode = 'ALL' OR ob.BranchCode = @BranchCode)
         GROUP BY CASE WHEN ob.GeneralLedgerCodeNo LIKE '10200400003%' THEN 'Bank' ELSE 'Cash' END
         
         UNION ALL
@@ -220,6 +263,7 @@ BEGIN
         JOIN dbo.Acc_VoucherEntry ve WITH (NOLOCK) ON ve.VoucherEntryCodeNo = cd.VoucherEntryCodeNo
         WHERE ve.VoucherDate <= DATEADD(DAY, 1, @ToDate)
           AND ve.IsApproved IN ('Y', 'Posted')
+          AND (@BranchCode = '' OR @BranchCode = 'ALL' OR ve.BranchCode = @BranchCode)
         GROUP BY cd.AccType
     ) t;
 

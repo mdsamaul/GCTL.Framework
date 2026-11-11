@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using GCTL.Core.ViewModels.Dashboard;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
@@ -12,12 +13,14 @@ namespace GCTL.Service.Dashboard
     public class DashboardOverviewService : IDashboardOverviewService
     {
         private readonly string _connectionString;
+        private readonly IWebHostEnvironment? _webHostEnvironment;
 
-        public DashboardOverviewService(IConfiguration configuration)
+        public DashboardOverviewService(IConfiguration configuration, IWebHostEnvironment? webHostEnvironment = null)
         {
             _connectionString = configuration.GetConnectionString("connection")
                 ?? configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string not found.");
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task<DashboardOverviewDTO> GetOverviewDataAsync(DashboardFilterDTO filter)
@@ -67,6 +70,18 @@ namespace GCTL.Service.Dashboard
             result.UpcomingArrivals = (await multi.ReadAsync<DashboardOverviewUpcomingArrival>()).ToList();
 
             return result;
+        }
+
+        public async Task<byte[]> GeneratePdfReportAsync(DashboardFilterDTO filter, string printUser = "")
+        {
+            var data = await GetOverviewDataAsync(filter);
+            return DashboardOverviewPdfGenerator.Generate(data, filter, printUser, _webHostEnvironment);
+        }
+
+        public async Task<byte[]> GenerateExcelReportAsync(DashboardFilterDTO filter, string printUser = "")
+        {
+            var data = await GetOverviewDataAsync(filter);
+            return DashboardOverviewExcelGenerator.Generate(data, filter, printUser, _webHostEnvironment);
         }
     }
 }

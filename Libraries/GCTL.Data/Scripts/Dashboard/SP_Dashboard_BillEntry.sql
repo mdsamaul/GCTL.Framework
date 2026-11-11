@@ -46,6 +46,7 @@ BEGIN
     INTO #Bills
     FROM CF_BillEntry b WITH (NOLOCK)
     LEFT JOIN Sep_Documentation d WITH (NOLOCK) ON d.JobNo = b.JobNo
+    LEFT JOIN HRM_EmployeeOfficialInfo emp WITH (NOLOCK) ON emp.EmployeeID = d.EmployeeId OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     LEFT JOIN CF_Def_ExpenseType et WITH (NOLOCK) ON et.ExpenseTypeID = b.ExpenseTypeID
     LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = b.CustomerID
     LEFT JOIN HRM_Employee emp WITH (NOLOCK) 

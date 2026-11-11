@@ -943,7 +943,8 @@
             JobStatus: filters.JobStatus,
             ActiveTab: filters.ActiveTab,
             ReportOption: filters.ReportOption,
-            exportFormat: exportFormat
+            exportFormat: exportFormat,
+            download: true
         });
 
         window.location.href = '/JobStatusReport/Export?' + queryParams;

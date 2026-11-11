@@ -11,7 +11,7 @@ window.DashboardGPAnalysis = {
             this.grid = new Grid('g_g', {
                 card: 'g_gp_table',
                 size: 10,
-                sizes: [10, 25, 50, 100, 'All'],
+                sizes: [5, 10, 20, 50, 100, 'All'],
                 totals: true,
                 customHeader: () => `
                     <thead>
