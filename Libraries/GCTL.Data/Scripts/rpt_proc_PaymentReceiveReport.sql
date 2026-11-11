@@ -65,7 +65,12 @@ BEGIN
         CONVERT(VARCHAR(10), pr.PaymentReceiveDate, 103) AS PaymentReceiveDate,
         ISNULL(c.CustomerID, '') AS CustomerID,
         ISNULL(c.CustomerName, '') AS Customer,
-        ISNULL(ct.CustomerType, ISNULL(c.CustomerType, '')) AS CustomerType,
+        CASE 
+            WHEN ct.CustomerType IS NOT NULL AND ct.CustomerType <> '' THEN ct.CustomerType
+            WHEN LTRIM(RTRIM(c.CustomerType)) = '1' THEN 'In House'
+            WHEN LTRIM(RTRIM(c.CustomerType)) = '0' THEN 'General'
+            ELSE ISNULL(c.CustomerType, '')
+        END AS CustomerType,
         ISNULL(c.CustomerAddress, '') AS BillingAddress,
         ISNULL(NULLIF(LTRIM(RTRIM(CONCAT(e.FirstName, ' ', ISNULL(e.LastName, '')))), ''), ISNULL(pr.Receivedby, '')) AS Employee,
         COALESCE(NULLIF(pr.AgainstBillList, ''), inv.InvoiceNos, '') AS InvoiceNoList,

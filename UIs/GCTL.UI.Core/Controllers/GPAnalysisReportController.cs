@@ -157,6 +157,20 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> PreviewPdf([FromQuery] GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                var (fileBytes, contentType, _) = await _gpAnalysisReportService.ExportReportAsync(filter, "PDF");
+                return File(fileBytes, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ExportPdf([FromQuery] GPAnalysisReportFilter filter)
         {
             try

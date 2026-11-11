@@ -199,6 +199,60 @@ table.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
 .s-rejected { background: #fde1e3; color: #b3202b; }
 .pos { color: var(--green); } .neg { color: var(--red); }
 
+/* GP Analysis table styling matching GPAnalysisReport (No Horizontal Scroll, Full Responsive) */
+#p-gp .gbody { overflow-x: hidden; width: 100%; max-width: 100%; }
+#p-gp table.grid {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse;
+    font-size: clamp(8px, 0.70vw, 11px) !important;
+}
+#p-gp .grid th, #p-gp .grid td {
+    width: auto !important;
+    min-width: 0 !important;
+}
+#p-gp .grid th {
+    padding: 2.5px 1.5px !important;
+    font-size: clamp(8px, 0.70vw, 10.5px) !important;
+    line-height: 1.15 !important;
+    border: 1px solid #c2c9d1;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    letter-spacing: -0.15px;
+}
+#p-gp .table-header-tier-1 th {
+    font-size: clamp(8.5px, 0.74vw, 11px) !important;
+    font-weight: 700;
+    padding: 3px 1.5px !important;
+    background-color: #f8fafc;
+    color: #1e293b;
+}
+#p-gp .table-header-tier-2 th {
+    background-color: #f1f5f9;
+    color: #334155;
+    font-size: clamp(8.2px, 0.72vw, 10.5px) !important;
+    padding: 2.5px 1.5px !important;
+}
+#p-gp .table-header-tier-3 th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: clamp(8px, 0.68vw, 10px) !important;
+    padding: 2px 1.2px !important;
+}
+#p-gp .grid td {
+    padding: 2px 2px !important;
+    font-size: clamp(8.2px, 0.70vw, 10.5px) !important;
+    line-height: 1.2 !important;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+    letter-spacing: -0.1px;
+}
+#p-gp .grid td.nw { white-space: nowrap !important; }
+#p-gp .grid td.ctr { text-align: center !important; }
+#p-gp .grid td.num { white-space: nowrap !important; }
+
 /* hide-by-width helpers for grid columns */
 @media (max-width: 1250px) { .h-lg { display: none; } }
 @media (max-width: 1000px) { .h-md { display: none; } .grid tr.grp { display: none; } }
