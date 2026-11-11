@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Chart of Accounts - List View";
+}
+
+<link rel="stylesheet" href="~/css/pages/chartOfAccountsReports.css" asp-append-version="true" />
+
+<div class="coa-wrap">
+    <partial name="~/Views/Shared/_ChartOfAccountsTabs.cshtml" model='@("ChartOfAccountsList")' />
+
+    <div class="coa-card">
+        <div class="coa-tc">
+            <div class="coa-tc-left d-flex align-items-center gap-2">
+                <span class="badge bg-light text-dark border py-2 px-3 fs-9" id="coa-listCount">0 @Html.SmartLocalize("General Ledgers")</span>
+            </div>
+            <div class="coa-tc-center">
+                <label class="coa-in">
+                    <input type="checkbox" id="coa-showArchived"> @Html.SmartLocalize("Show archived")
+                </label>
+            </div>
+            <div class="coa-tc-right d-flex align-items-center gap-2">
+                <input id="coa-listSearch" class="coa-sr" placeholder="@Html.SmartLocalize("Search code or name...")" />
+                <a href="@Url.Action("ExportCsv", "ChartOfAccounts")" class="coa-btn">
+                    <i class="fas fa-file-csv me-1"></i> @Html.SmartLocalize("Export CSV")
+                </a>
+                <a href="@Url.Action("Index", "GroupLedger")" class="coa-btn pri">
+                    <i class="fas fa-plus me-1"></i> @Html.SmartLocalize("Add Group Ledger")
+                </a>
+            </div>
+        </div>
+
+        <div id="listViewContainer" class="coar-table-responsive p-0">
+            <div class="coa-em">
+                <div class="spinner-border spinner-border-sm text-success me-2"></div>
+                @Html.SmartLocalize("Loading chart of accounts list...")
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/finance/chartOfAccountsList.js" asp-append-version="true"></script>
+}
+

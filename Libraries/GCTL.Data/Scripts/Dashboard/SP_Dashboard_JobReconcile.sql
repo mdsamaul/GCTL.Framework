@@ -1,14 +1,11 @@
-IF OBJECT_ID('dbo.SP_Dashboard_JobReconcile', 'P') IS NOT NULL
-    DROP PROCEDURE dbo.SP_Dashboard_JobReconcile;
-GO
-
-CREATE PROCEDURE dbo.SP_Dashboard_JobReconcile
+CREATE OR ALTER PROCEDURE dbo.SP_Dashboard_JobReconcile
     @FromDate DATE = NULL,
     @ToDate DATE = NULL,
     @BranchCode NVARCHAR(50) = '',
     @ShipmentMode NVARCHAR(50) = '',
     @Port NVARCHAR(50) = '',
-    @CustomerID NVARCHAR(50) = ''
+    @CustomerID NVARCHAR(50) = '',
+    @JobStatus NVARCHAR(50) = ''
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -19,6 +16,7 @@ BEGIN
     SET @ShipmentMode = LTRIM(RTRIM(ISNULL(@ShipmentMode, '')));
     SET @Port = LTRIM(RTRIM(ISNULL(@Port, '')));
     SET @CustomerID = LTRIM(RTRIM(ISNULL(@CustomerID, '')));
+    SET @JobStatus = LTRIM(RTRIM(ISNULL(@JobStatus, '')));
 
     ---------------------------------------------------------------------
     -- 1. Filtered Jobs & Revenue
@@ -37,22 +35,54 @@ BEGIN
     FROM CF_BillEntry be WITH (NOLOCK)
     JOIN Sep_Documentation d WITH (NOLOCK) ON d.JobNo = be.JobNo
     LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = d.CustomerID
+    LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
+        ON COALESCE(NULLIF(be.EmployeeId, ''), d.EmployeeId) = emp.EmployeeID 
+        OR (LEN(COALESCE(NULLIF(be.EmployeeId, ''), d.EmployeeId)) >= 4 AND emp.EmployeeID LIKE '%' + COALESCE(NULLIF(be.EmployeeId, ''), d.EmployeeId))
     WHERE (be.BillDate >= @FromDate AND be.BillDate <= DATEADD(DAY, 1, @ToDate))
       AND (@CustomerID = '' OR d.CustomerID = @CustomerID)
       AND (@ShipmentMode = '' OR d.ExpenseTypeID = @ShipmentMode)
-      AND (@BranchCode = '' OR d.CompanyCode = @BranchCode)
-      AND (@Port = '' OR d.PortNameId = @Port);
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN be.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN be.JobNo LIKE '%Dha%' OR be.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN be.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      )
+      AND (@Port = '' OR d.PortNameId = @Port)
+      AND (
+          @JobStatus = '' 
+          OR d.ShipmentStatus = @JobStatus
+          OR (
+              CASE 
+                  WHEN d.DateOfClearence IS NOT NULL 
+                       OR ISNULL(d.ShipmentStatus,'') LIKE '%DELIVER%' 
+                       OR ISNULL(d.ShipmentStatus,'') LIKE '%SUCCESS%' 
+                       OR d.ShipmentStatus IN ('06', '14') THEN 'Delivered'
+                  WHEN d.ETA IS NOT NULL 
+                       OR ISNULL(d.BENo,'') <> '' 
+                       OR ISNULL(d.ShipmentStatus,'') LIKE '%TRANSIT%' 
+                       OR ISNULL(d.ShipmentStatus,'') LIKE '%PROCESSING%' 
+                       OR d.ShipmentStatus IN ('01','02','03','04','05','07','08','09','10','11','12','13') THEN 'In Transit'
+                  ELSE 'Pending'
+              END
+          ) = @JobStatus
+      );
 
     CREATE CLUSTERED INDEX IX_Jobs_JobNo ON #Jobs(JobNo);
 
     ---------------------------------------------------------------------
-    -- 2. Expense Head Aggregation per Job
+    -- 2. Expense Head Aggregation per Job (Actual Approved Expense)
     ---------------------------------------------------------------------
     SELECT 
         j.JobNo,
         d.ExpenseHeadID,
         ISNULL(e.ExpenseHead, 'Other') AS ExpenseHead,
-        SUM(ISNULL(d.BillAdjustAmount, 0)) AS HeadAmount
+        SUM(ISNULL(COALESCE(NULLIF(d.AdjustApprovalAmount, 0), NULLIF(d.BillAdjustAmount, 0), d.ActualAmount, 0), 0)) AS HeadAmount
     INTO #JobHeads
     FROM #Jobs j
     INNER JOIN CF_OperationalFundRequisitionDetails d WITH (NOLOCK) ON d.JobNo = j.JobNo

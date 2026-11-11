@@ -19,15 +19,21 @@ BEGIN
     SELECT 
         gl.GeneralLedgerCodeNo,
         CASE 
-            WHEN cust.CustomerID IS NOT NULL AND gl.GeneralLedgerName NOT LIKE '%(%)%'
+            WHEN cust.CustomerID IS NOT NULL 
                 THEN CONCAT(cust.CustomerName, ' (', cust.CustomerID, ')')
+            WHEN bank.AccountNO IS NOT NULL
+                THEN CONCAT(bank.AccountName, ' (', bank.AccountNO, ')')
+            WHEN exphead.ExpenseHeadID IS NOT NULL
+                THEN CONCAT(exphead.ExpenseHead, ' (', exphead.ExpenseHeadID, ')')
+            WHEN sup.SupplierId IS NOT NULL
+                THEN CONCAT(sup.SupplierName, ' (', sup.SupplierId, ')')
             ELSE gl.GeneralLedgerName 
         END AS GeneralLedgerName,
-        ISNULL(NULLIF(gl.ShortName, ''), ISNULL(cust.ShortName, '')) AS GeneralLedgerShortName,
+        ISNULL(NULLIF(gl.ShortName, ''), ISNULL(cust.ShortName, ISNULL(bki.ShortName, ISNULL(exphead.ShortName, ISNULL(sup.SupplierCode, ''))))) AS GeneralLedgerShortName,
         ISNULL(gl.IsActive, '1') AS IsActive,
         
         ISNULL(ssl.SubsidiaryLedgerCodeNo, gl.SubsidiaryLedgerCodeNo) AS SubsidiaryLedgerCodeNo,
-        ISNULL(ssl.SubSubsidiaryLedgerName, '') AS SubSubsidiaryLedgerName,
+        ISNULL(ssl.SubsidiaryLedgerName, '') AS SubSubsidiaryLedgerName,
         ssl.ShortName AS SubSubsidiaryShortName,
         
         ISNULL(sc.SubControlLedgerCodeNo, gl.SubControlLedgerCodeNo) AS SubControlLedgerCodeNo,
@@ -53,18 +59,32 @@ BEGIN
     FROM Acc_GeneralLedger gl
     LEFT JOIN dbo.Sales_Customer cust WITH (NOLOCK) 
         ON (gl.GeneralLedgerName = cust.CustomerID OR gl.GeneralLedgerName LIKE '%(' + cust.CustomerID + ')')
-    LEFT JOIN Acc_SubSubsidiaryLedger ssl ON ssl.SubsidiaryLedgerCodeNo = gl.SubsidiaryLedgerCodeNo
-    LEFT JOIN Acc_SubControlLedger sc ON sc.SubControlLedgerCodeNo = gl.SubControlLedgerCodeNo
-    LEFT JOIN Acc_ControlLedger c ON c.ControlLedgerCodeNo = gl.ControlLedgerCodeNo
-    LEFT JOIN Acc_GroupLedger g ON g.GroupLedgerCodeNo = gl.GroupLedgerCodeNo
+    LEFT JOIN dbo.Core_BankAccountInformation bank WITH (NOLOCK) 
+        ON (gl.GeneralLedgerName = bank.AccountNO OR gl.GeneralLedgerName LIKE '%(' + bank.AccountNO + ')')
+    LEFT JOIN dbo.SALES_Def_BankInfo bki WITH (NOLOCK) 
+        ON bank.BankID = bki.BankID
+    LEFT JOIN dbo.CF_Def_ExpenseHead exphead WITH (NOLOCK) 
+        ON (gl.GeneralLedgerName = exphead.ExpenseHeadID OR gl.GeneralLedgerName LIKE '%(' + exphead.ExpenseHeadID + ')')
+    LEFT JOIN dbo.RMG_Def_Supplier sup WITH (NOLOCK)
+        ON (gl.GeneralLedgerName = sup.SupplierId OR gl.GeneralLedgerName LIKE '%(' + sup.SupplierId + ')')
+    LEFT JOIN Acc_SubsidiaryLedger ssl WITH (NOLOCK) ON ssl.SubsidiaryLedgerCodeNo = gl.SubsidiaryLedgerCodeNo
+    LEFT JOIN Acc_SubControlLedger sc WITH (NOLOCK) ON sc.SubControlLedgerCodeNo = gl.SubControlLedgerCodeNo
+    LEFT JOIN Acc_ControlLedger c WITH (NOLOCK) ON c.ControlLedgerCodeNo = gl.ControlLedgerCodeNo
+    LEFT JOIN Acc_GroupLedger g WITH (NOLOCK) ON g.GroupLedgerCodeNo = gl.GroupLedgerCodeNo
     WHERE (@ShowArchived = 1 OR gl.IsActive = '1' OR gl.IsActive IS NULL)
       AND (@Search IS NULL OR (
             gl.GeneralLedgerCodeNo LIKE @Search OR 
             gl.GeneralLedgerName LIKE @Search OR 
             (cust.CustomerName IS NOT NULL AND cust.CustomerName LIKE @Search) OR
             (cust.CustomerID IS NOT NULL AND cust.CustomerID LIKE @Search) OR
+            (bank.AccountName IS NOT NULL AND bank.AccountName LIKE @Search) OR
+            (bank.AccountNO IS NOT NULL AND bank.AccountNO LIKE @Search) OR
+            (exphead.ExpenseHead IS NOT NULL AND exphead.ExpenseHead LIKE @Search) OR
+            (exphead.ExpenseHeadID IS NOT NULL AND exphead.ExpenseHeadID LIKE @Search) OR
+            (sup.SupplierName IS NOT NULL AND sup.SupplierName LIKE @Search) OR
+            (sup.SupplierId IS NOT NULL AND sup.SupplierId LIKE @Search) OR
             ssl.SubsidiaryLedgerCodeNo LIKE @Search OR 
-            ssl.SubSubsidiaryLedgerName LIKE @Search OR 
+            ssl.SubsidiaryLedgerName LIKE @Search OR 
             sc.SubControlLedgerCodeNo LIKE @Search OR 
             sc.SubControlLedgerName LIKE @Search OR 
             c.ControlLedgerCodeNo LIKE @Search OR 
