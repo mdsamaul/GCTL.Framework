@@ -1,0 +1,110 @@
+@* ============================================================
+   Overview Tab Partial
+   ============================================================ *@
+<section class="panel on" id="p-overview">
+    <div class="ptitle">
+        <h2>Executive Overview</h2>
+        <span data-period></span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis six">
+        <div class="kpi blue" id="o_jobs">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Jobs</div><div class="kval" data-v="0">0</div><div class="ksub">in selected period</div></div>
+        </div>
+        <div class="kpi green" id="o_nsv">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="kbody"><div class="klabel">Net Service Value</div><div class="kval" data-v="0">0</div><div class="ksub">total billed</div></div>
+        </div>
+        <div class="kpi purple" id="o_gp">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
+            <div class="kbody"><div class="klabel">Gross Profit</div><div class="kval" data-v="0">0</div><div class="ksub">net margin</div></div>
+        </div>
+        <div class="kpi orange" id="o_due">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Due Outstanding</div><div class="kval" data-v="0">0</div><div class="ksub">customer receivables</div></div>
+        </div>
+        <div class="kpi sky" id="o_cash">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div>
+            <div class="kbody"><div class="klabel">Cash in Hand</div><div class="kval" data-v="0">0</div><div class="ksub">active cash accounts</div></div>
+        </div>
+        <div class="kpi teal" id="o_bank">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M12 3L3 9h18z"/></svg></div>
+            <div class="kbody"><div class="klabel">Bank Balance</div><div class="kval" data-v="0">0</div><div class="ksub">liquid bank funds</div></div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row c21">
+        <section class="card">
+            <div class="chdr">
+                <h3>Monthly Revenue &amp; Profit Trend</h3>
+                <span>Net Service Value vs Profit</span>
+            </div>
+            <div class="cwrap"><canvas id="o_ch1"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr">
+                <h3>Job Status Share</h3>
+                <span>active workload</span>
+            </div>
+            <div class="cwrap"><canvas id="o_ch2"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row c12">
+        <section class="card">
+            <div class="chdr">
+                <h3>Top Customers by Billed Value</h3>
+                <span>highest billing volume</span>
+            </div>
+            <div class="cwrap"><canvas id="o_ch3"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr">
+                <h3>Outstanding Ageing</h3>
+                <span>receivables aging breakdown</span>
+            </div>
+            <div class="cwrap"><canvas id="o_ch4"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Tables Row 3 -->
+    <div class="row c2">
+        <section class="card gridcard">
+            <div class="gh">
+                <h3>Overdue Bills (Action Required)</h3>
+                <span class="badge s-due" id="o_overdue_badge">0 overdue</span>
+            </div>
+            <div class="gbody">
+                <table class="grid" id="o_t1">
+                    <thead>
+                        <tr><th>Bill No</th><th>Customer</th><th>Bill Date</th><th class="num">Due Amount</th><th class="ctr">Days Overdue</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="empty-row"><td colspan="5">No overdue bills.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="card gridcard">
+            <div class="gh">
+                <h3>Upcoming Arrivals (Next 7 Days)</h3>
+                <span class="badge s-in-transit" id="o_arrivals_badge">0 upcoming</span>
+            </div>
+            <div class="gbody">
+                <table class="grid" id="o_t2">
+                    <thead>
+                        <tr><th>Job No</th><th>Customer</th><th>Mode</th><th>Port</th><th>ETA</th><th>Vessel</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="empty-row"><td colspan="6">No upcoming arrivals in this period.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</section>
+

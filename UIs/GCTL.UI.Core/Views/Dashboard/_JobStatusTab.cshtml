@@ -1,0 +1,84 @@
+@* ============================================================
+   Job Status Tab Partial
+   ============================================================ *@
+<section class="panel" id="p-jobs">
+    <div class="ptitle">
+        <h2>Job Status &amp; Clearance Pipeline</h2>
+        <span data-period></span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+        <div class="kpi blue" id="j_n">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Jobs</div><div class="kval">0</div><div class="ksub">jobs handled</div></div>
+        </div>
+        <div class="kpi orange" id="j_pen">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div class="kbody"><div class="klabel">Pending</div><div class="kval">0</div><div class="ksub">awaiting action</div></div>
+        </div>
+        <div class="kpi purple" id="j_tr">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+            <div class="kbody"><div class="klabel">In Transit</div><div class="kval">0</div><div class="ksub">clearance ongoing</div></div>
+        </div>
+        <div class="kpi green" id="j_del">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div>
+            <div class="kbody"><div class="klabel">Delivered</div><div class="kval">0</div><div class="ksub">completed &amp; handed over</div></div>
+        </div>
+        <div class="kpi sky" id="j_lc">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></div>
+            <div class="kbody"><div class="klabel">Total LC Value</div><div class="kval">0</div><div class="ksub">declared consignment value</div></div>
+        </div>
+    </div>
+
+    <!-- Minis -->
+    <div class="minis">
+        <div class="mini blue" id="jm_dr"><div class="mlbl">Delivery Rate</div><div class="mval">0.0%</div><div class="msub">delivered / total</div></div>
+        <div class="mini teal" id="jm_wt"><div class="mlbl">Total Gross Weight</div><div class="mval">0.00 MT</div><div class="msub">manifest weight</div></div>
+        <div class="mini purple" id="jm_topm"><div class="mlbl">Leading Mode</div><div class="mval">-</div><div class="msub">most active shipment mode</div></div>
+        <div class="mini sky" id="jm_topp"><div class="mlbl">Busiest Port</div><div class="mval">-</div><div class="msub">primary handling port</div></div>
+        <div class="mini green" id="jm_topc"><div class="mlbl">Largest Customer</div><div class="mval">-</div><div class="msub">highest job volume</div></div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row c3">
+        <section class="card">
+            <div class="chdr"><h3>Shipment Mode Distribution</h3><span>job count by mode</span></div>
+            <div class="cwrap"><canvas id="j_ch1"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Status Breakdown</h3><span>pipeline distribution</span></div>
+            <div class="cwrap"><canvas id="j_ch2"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Port-wise Workload</h3><span>jobs by port</span></div>
+            <div class="cwrap"><canvas id="j_ch3"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row c21">
+        <section class="card">
+            <div class="chdr"><h3>Monthly Job Volume</h3><span>created vs delivered</span></div>
+            <div class="cwrap"><canvas id="j_ch4"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Top Customers</h3><span>job volume</span></div>
+            <div class="cwrap"><canvas id="j_ch5"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Grid -->
+    <section class="card gridcard">
+        <div class="gh">
+            <h3>Job Status Master List</h3>
+            <div class="gtools">
+                <label>Show <select id="j_g_sz"><option>10</option><option>15</option><option>25</option></select> entries</label>
+                <input id="j_g_q" type="search" placeholder="Search jobs...">
+            </div>
+        </div>
+        <div class="gbody"><div id="j_g"></div></div>
+        <div class="gfoot" id="j_g_f"></div>
+    </section>
+</section>
+
