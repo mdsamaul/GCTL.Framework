@@ -78,6 +78,7 @@ namespace GCTL.Core.ViewModels.Dashboard
         public string JobNo { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public string ShipmentMode { get; set; } = string.Empty;
+        public string Status { get; set; } = "In Transit";
         public string ETA { get; set; } = string.Empty;
         public string PortName { get; set; } = string.Empty;
         public string VesselName { get; set; } = string.Empty;

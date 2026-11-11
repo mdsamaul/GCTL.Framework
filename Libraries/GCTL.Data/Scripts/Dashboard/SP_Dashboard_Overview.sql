@@ -325,7 +325,7 @@ BEGIN
     ---------------------------------------------------------------------
     -- RESULT SET 7: Needs Attention - Overdue Bills (Older than 30 days)
     ---------------------------------------------------------------------
-    SELECT TOP 15
+    SELECT TOP 100
         b.BillNo,
         b.CustomerName,
         CONVERT(VARCHAR(10), b.BillDate, 103) AS BillDate,
@@ -338,9 +338,10 @@ BEGIN
     ---------------------------------------------------------------------
     -- RESULT SET 8: Upcoming Arrivals (In Transit)
     ---------------------------------------------------------------------
-    SELECT TOP 15
+    SELECT TOP 100
         j.JobNo,
         j.CustomerName,
+        j.ComputedStatus AS Status,
         j.ExpenseType AS ShipmentMode,
         j.PortName,
         CONVERT(VARCHAR(10), j.ComputedETA, 103) AS ETA,

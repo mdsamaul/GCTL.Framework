@@ -129,48 +129,49 @@ window.DashboardOverview = {
             center: { text: compact(totalReq), sub: 'requested' }
         });
 
-        // 8. Needs Attention – Overdue Bills Table
-        const overdue = data.overdueBills || [];
-        const obBadge = document.getElementById('o_overdue_badge');
-        if (obBadge) obBadge.textContent = `${overdue.length} overdue`;
-
-        const t1Body = document.querySelector('#o_t1 tbody');
-        if (t1Body) {
-            if (!overdue.length) {
-                t1Body.innerHTML = '<tr class="empty-row"><td colspan="5">No overdue bills found.</td></tr>';
-            } else {
-                t1Body.innerHTML = overdue.slice(0, 10).map(b => `
-                    <tr>
-                        <td class="mono nw">${esc(b.billNo)}</td>
-                        <td class="nw">${esc(b.billDate)}</td>
-                        <td>${esc(b.customerName)}</td>
-                        <td class="ctr"><span class="badge s-rejected">${b.daysOverdue} d</span></td>
-                        <td class="num font-bold text-red-600">${money(b.dueAmount)}</td>
-                    </tr>
-                `).join('');
-            }
+        // 8. Grids Initialization & Data Population
+        if (!GRIDS.o_g1 && document.getElementById('o_g1')) {
+            new Grid('o_g1', {
+                size: 6,
+                sizes: [6, 10, 20],
+                search: false,
+                card: 'g760',
+                columns: [
+                    { k: 'billNo', l: 'Bill No', cls: 'mono nw' },
+                    { k: 'billDate', l: 'Bill Date', t: 'date', cls: 'nw' },
+                    { k: 'customerName', l: 'Customer', hide: 'md' },
+                    { k: 'daysOverdue', l: 'Age (days)', t: 'int' },
+                    { k: 'dueAmount', l: 'Due (BDT)', t: 'amt' }
+                ]
+            });
+        }
+        if (!GRIDS.o_g2 && document.getElementById('o_g2')) {
+            new Grid('o_g2', {
+                size: 6,
+                sizes: [6, 10, 20],
+                search: false,
+                card: 'g760',
+                columns: [
+                    { k: 'jobNo', l: 'Job No', cls: 'mono nw' },
+                    { k: 'eta', l: 'ETA', t: 'date', cls: 'nw' },
+                    { k: 'customerName', l: 'Customer', hide: 'md' },
+                    { k: 'shipmentMode', l: 'Mode', hide: 'md' },
+                    { k: 'status', l: 'Status', t: 'badge' }
+                ]
+            });
         }
 
-        // 9. Upcoming Arrivals Table (In Transit - Next 7 Days)
-        const arrivals = data.upcomingArrivals || [];
-        const arBadge = document.getElementById('o_arrivals_badge');
-        if (arBadge) arBadge.textContent = `${arrivals.length} upcoming`;
+        const overdue = data.overdueBills || [];
+        if (GRIDS.o_g1) {
+            GRIDS.o_g1.setRows(overdue);
+        }
 
-        const t2Body = document.querySelector('#o_t2 tbody');
-        if (t2Body) {
-            if (!arrivals.length) {
-                t2Body.innerHTML = '<tr class="empty-row"><td colspan="5">No upcoming arrivals in this period.</td></tr>';
-            } else {
-                t2Body.innerHTML = arrivals.slice(0, 10).map(a => `
-                    <tr>
-                        <td class="mono nw">${esc(a.jobNo)}</td>
-                        <td class="nw font-semibold">${esc(a.eta)}</td>
-                        <td>${esc(a.customerName)}</td>
-                        <td>${esc(a.shipmentMode)}</td>
-                        <td><span class="badge s-in-transit">In Transit</span></td>
-                    </tr>
-                `).join('');
-            }
+        const arrivals = (data.upcomingArrivals || []).map(a => ({
+            ...a,
+            status: a.status || 'In Transit'
+        }));
+        if (GRIDS.o_g2) {
+            GRIDS.o_g2.setRows(arrivals);
         }
     }
 };
