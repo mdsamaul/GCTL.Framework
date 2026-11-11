@@ -6,11 +6,26 @@ namespace GCTL.Core.ViewModels.Dashboard
     public class DashboardOverviewKPIs
     {
         public int TotalJobs { get; set; }
+        public int PendingJobs { get; set; }
+        public int TransitJobs { get; set; }
+        public int DeliveredJobs { get; set; }
+        public int TotalBills { get; set; }
         public decimal NetServiceValue { get; set; }
+        public decimal TotalDirectCost { get; set; }
         public decimal GrossProfit { get; set; }
+        public decimal GPMargin { get; set; }
         public decimal TotalDueOutstanding { get; set; }
+        public decimal CollectedAmount { get; set; }
         public decimal CashInHand { get; set; }
         public decimal BankBalance { get; set; }
+        public decimal NetProfitAccounts { get; set; }
+        public decimal CollectionRate { get; set; }
+        public decimal AvgClearanceDays { get; set; }
+        public decimal OnTimeDeliveryPct { get; set; }
+        public int DocsPendingCount { get; set; }
+        public int PendingReqCount { get; set; }
+        public int TotalReqCount { get; set; }
+        public decimal PendingReqAmount { get; set; }
     }
 
     public class DashboardOverviewMonthlyTrend
@@ -44,8 +59,9 @@ namespace GCTL.Core.ViewModels.Dashboard
 
     public class DashboardOverviewReqBreakdown
     {
-        public string Category { get; set; } = string.Empty;
-        public decimal Amount { get; set; }
+        public string StatusName { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
+        public int ReqCount { get; set; }
     }
 
     public class DashboardOverviewOverdueBill

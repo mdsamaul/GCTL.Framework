@@ -97,9 +97,10 @@
 @media (min-width: 1760px) { .kpis.six { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 .minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .mini { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 9px; padding: 8px 12px; box-shadow: var(--shadow); }
-.mini .mlbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 600; }
-.mini .mval { font-size: 15px; font-weight: 700; color: var(--ink); }
-.mini .msub { font-size: 11px; color: var(--muted); }
+.mini .mlbl, .mini .klabel { font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 600; }
+.mini .mval, .mini .kval { font-size: 15px; font-weight: 700; color: var(--ink); margin: 2px 0; }
+.mini .msub, .mini .ksub { font-size: 11px; color: var(--muted); }
+.mini .msub b, .mini .ksub b { color: var(--ink); font-weight: 600; }
 
 /* ---- layout rows ---- */
 .row { display: grid; gap: 14px; margin-bottom: 14px; }
@@ -107,12 +108,17 @@
 .c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .c21 { grid-template-columns: 2fr 1fr; }
 .c12 { grid-template-columns: 1fr 2fr; }
+@media (max-width: 1200px) {
+    .c3 { grid-template-columns: 1fr; }
+    .c21 { grid-template-columns: 1fr; }
+    .c2 { grid-template-columns: 1fr; }
+}
 
 /* ---- card / charts ---- */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; min-width: 0; }
-.chdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-.chdr h3 { font-size: 13.5px; font-weight: 700; color: var(--brand); }
-.chdr span { font-size: 11px; color: var(--muted); }
+.card header, .chdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.card header h3, .chdr h3 { font-size: 13.5px; font-weight: 700; color: var(--brand); margin: 0; }
+.card header .hint, .card header span, .chdr span { font-size: 11px; color: var(--muted); }
 .cwrap { position: relative; height: 260px; width: 100%; }
 .cwrap.tall { height: 320px; }
 .empty { height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
