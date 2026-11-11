@@ -33,6 +33,8 @@ namespace GCTL.Core.ViewModels.Dashboard
         public string MonthKey { get; set; } = string.Empty;
         public string MonthLabel { get; set; } = string.Empty;
         public decimal Revenue { get; set; }
+        public decimal DirectCost { get; set; }
+        public decimal Cost { get => DirectCost; set => DirectCost = value; }
         public decimal Profit { get; set; }
         public decimal GPMargin { get; set; }
     }

@@ -62,7 +62,7 @@ window.DashboardOverview = {
         const trends = data.monthlyTrends || [];
         const mLabels = trends.map(t => t.monthLabel);
         const revData = trends.map(t => Number(t.revenue || 0));
-        const costData = trends.map(t => Number(t.directCost || 0));
+        const costData = trends.map(t => Number(t.directCost ?? t.cost ?? t.DirectCost ?? 0));
         const prfData = trends.map(t => Number(t.profit || 0));
 
         mkChart('o_ch1', 'bar', mLabels, [
