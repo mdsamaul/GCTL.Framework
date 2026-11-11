@@ -40,7 +40,7 @@ window.DashboardOverview = {
         // 2. Mini KPI Cards (6 cards in 2nd row)
         const netProfit = Number(k.netProfitAccounts ?? 0);
         const netService = Number(k.netServiceValue ?? 0);
-        const marginPct = (netService > 0 && netProfit > 0) ? (netProfit / netService * 100) : 20.0;
+        const marginPct = netService > 0 ? (netProfit / netService * 100) : 0;
         setK('m_np', cur(netProfit), `Margin ${pct(marginPct, 1)}`);
 
         const colRate = Number(k.collectionRate ?? 0);
