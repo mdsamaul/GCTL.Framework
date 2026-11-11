@@ -238,7 +238,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Export Action
         [HttpGet]
-        public async Task<IActionResult> Export([FromQuery] JobStatusReportFilterVM filter, [FromQuery] string exportFormat = "PDF")
+        public async Task<IActionResult> Export([FromQuery] JobStatusReportFilterVM filter, [FromQuery] string exportFormat = "PDF", [FromQuery] bool download = false)
         {
             try
             {
@@ -295,6 +295,11 @@ namespace GCTL.UI.Core.Controllers
                     // Default fallback to PDF
                     var bytes = await _reportService.GeneratePdfReportAsync(filter);
                     string fileName = $"JobStatusReport_{filter.ActiveTab}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                    if (!download)
+                    {
+                        Response.Headers["Content-Disposition"] = $"inline; filename=\"{fileName}\"";
+                        return File(bytes, "application/pdf");
+                    }
                     return File(bytes, "application/pdf", fileName);
                 }
             }
@@ -302,6 +307,12 @@ namespace GCTL.UI.Core.Controllers
             {
                 return BadRequest($"Report export failed: {ex.Message}");
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PreviewPdf([FromQuery] JobStatusReportFilterVM filter)
+        {
+            return await Export(filter, "PDF", download: false);
         }
         #endregion
 

@@ -59,11 +59,11 @@ window.DashboardOverview = {
         setK('m_req', cur(k.pendingReqAmount ?? 0), `${reqCount} of ${reqTotal} requests`);
 
         // 3. Chart 1: Revenue vs Direct Cost vs Gross Profit (Monthly Bar Chart)
-        const trends = data.monthlyTrends || [];
-        const mLabels = trends.map(t => t.monthLabel);
-        const revData = trends.map(t => Number(t.revenue || 0));
-        const costData = trends.map(t => Number(t.directCost ?? t.cost ?? t.DirectCost ?? 0));
-        const prfData = trends.map(t => Number(t.profit || 0));
+        const trends = data.monthlyTrends || data.MonthlyTrends || [];
+        const mLabels = trends.map(t => t.monthLabel || t.MonthLabel || t.monthKey || t.MonthKey || '');
+        const revData = trends.map(t => Number(t.revenue ?? t.Revenue ?? 0));
+        const costData = trends.map(t => Number(t.directCost ?? t.DirectCost ?? t.cost ?? t.Cost ?? 0));
+        const prfData = trends.map(t => Number(t.profit ?? t.Profit ?? 0));
 
         mkChart('o_ch1', 'bar', mLabels, [
             barDs('Net Service Value', revData, cssVar('--blue') || '#0b57d0'),
@@ -72,10 +72,10 @@ window.DashboardOverview = {
         ], { money: true });
 
         // 4. Chart 2: Job Status (Doughnut with Center Text)
-        const statuses = data.statusShares || [];
-        const statusLabels = statuses.map(s => s.statusName);
-        const statusCounts = statuses.map(s => Number(s.jobCount || 0));
-        const totalJobsCount = statusCounts.reduce((a, b) => a + b, 0) || Number(k.totalJobs || 0);
+        const statuses = data.statusShares || data.StatusShares || [];
+        const statusLabels = statuses.map(s => s.statusName || s.StatusName || '');
+        const statusCounts = statuses.map(s => Number(s.jobCount ?? s.JobCount ?? 0));
+        const totalJobsCount = statusCounts.reduce((a, b) => a + b, 0) || Number(k.totalJobs ?? k.TotalJobs ?? 0);
 
         mkChart('o_ch2', 'doughnut', statusLabels.length ? statusLabels : ['Pending', 'In Transit', 'Delivered'], [
             pieDs(statusCounts.length ? statusCounts : [k.pendingJobs || 0, k.transitJobs || 0, k.deliveredJobs || 0], [
@@ -88,9 +88,11 @@ window.DashboardOverview = {
         });
 
         // 5. Chart 3: Top Customers by Service Value (Horizontal Bar)
-        const topCust = data.topCustomers || [];
-        mkChart('o_ch3', 'bar', topCust.map(c => c.customerName), [
-            barDs('Service Value', topCust.map(c => Number(c.totalBillAmount || 0)), cssVar('--blue') || '#0b57d0')
+        const topCust = data.topCustomers || data.TopCustomers || [];
+        const custLabels = topCust.map(c => c.customerName || c.CustomerName || 'Unknown');
+        const custVals = topCust.map(c => Number(c.totalBillAmount ?? c.TotalBillAmount ?? c.billAmount ?? c.BillAmount ?? 0));
+        mkChart('o_ch3', 'bar', custLabels, [
+            barDs('Service Value', custVals, cssVar('--blue') || '#0b57d0')
         ], { horizontal: true, money: true, legend: false });
 
         // 6. Chart 4: Receivable Ageing (Due Outstanding) - Vertical Bar Chart
@@ -126,7 +128,7 @@ window.DashboardOverview = {
             ])
         ], {
             money: true,
-            center: { text: compact(totalReq), sub: 'requested' }
+            center: { text: cur(totalReq), sub: 'requested' }
         });
 
         // 8. Grids Initialization & Data Population

@@ -89,7 +89,7 @@ window.DashboardAccounts = {
             }
         };
 
-        setMini('am_top', k.largestBank || '-', compact(k.largestBankAmt));
+        setMini('am_top', k.largestBank || '-', cur(k.largestBankAmt));
         setMini('am_cnt', String(k.activeAccounts || 0));
 
         // Chart 1: Cash & Bank Composition (Doughnut)

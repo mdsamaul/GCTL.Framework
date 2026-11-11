@@ -47,11 +47,25 @@ BEGIN
     INTO #Bills
     FROM CF_BillEntry b WITH (NOLOCK)
     LEFT JOIN Sep_Documentation d WITH (NOLOCK) ON d.JobNo = b.JobNo
+    LEFT JOIN HRM_EmployeeOfficialInfo emp WITH (NOLOCK) ON emp.EmployeeID = d.EmployeeId OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     LEFT JOIN CF_Def_ExpenseType et WITH (NOLOCK) ON et.ExpenseTypeID = b.ExpenseTypeID
     LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = b.CustomerID
     WHERE (b.BillDate >= @FromDate AND b.BillDate <= DATEADD(DAY, 1, @ToDate))
       AND (@CustomerID = '' OR b.CustomerID = @CustomerID)
-      AND (@ShipmentMode = '' OR b.ExpenseTypeID = @ShipmentMode);
+      AND (@ShipmentMode = '' OR b.ExpenseTypeID = @ShipmentMode OR d.ExpenseTypeID = @ShipmentMode)
+      AND (@Port = '' OR d.PortNameId = @Port)
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      );
 
     CREATE CLUSTERED INDEX IX_Bills_BillNo ON #Bills(BillNo);
     CREATE INDEX IX_Bills_JobNo ON #Bills(JobNo);

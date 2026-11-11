@@ -11,6 +11,11 @@ namespace GCTL.Core.ViewModels.Dashboard
         public decimal TotalLCValue { get; set; }
         public decimal TotalGrossWeight { get; set; }
         public decimal DeliveryRate { get; set; }
+        public decimal AvgClearanceDays { get; set; }
+        public decimal OnTimeDeliveryRate { get; set; }
+        public int DocsPending { get; set; }
+        public int ArrivalsIn7Days { get; set; }
+        public decimal TotalInvoiceValue { get; set; }
     }
 
     public class DashboardJobStatusShare
@@ -23,6 +28,10 @@ namespace GCTL.Core.ViewModels.Dashboard
     {
         public string ModeName { get; set; } = string.Empty;
         public int JobCount { get; set; }
+        public int PendingCount { get; set; }
+        public int TransitCount { get; set; }
+        public int DeliveredCount { get; set; }
+        public int TotalCount { get; set; }
     }
 
     public class DashboardJobStatusPort
@@ -37,6 +46,9 @@ namespace GCTL.Core.ViewModels.Dashboard
         public string MonthLabel { get; set; } = string.Empty;
         public int TotalJobs { get; set; }
         public int DeliveredJobs { get; set; }
+        public int PendingCount { get; set; }
+        public int TransitCount { get; set; }
+        public int DeliveredCount { get; set; }
     }
 
     public class DashboardJobStatusTopCustomer

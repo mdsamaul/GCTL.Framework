@@ -78,7 +78,7 @@ window.DashboardJobReconcile = {
         setMini('rm_ae', money(k.avgExpensePerJob), 'mean expense');
         setMini('rm_best', pct(k.bestCustomerGP, 1), k.bestCustomer || '-');
         setMini('rm_low', pct(k.lowestMarginGP, 1), k.lowestMarginJob || '-');
-        setMini('rm_top', k.largestExpenseHead || '-', compact(k.largestExpenseHeadAmt));
+        setMini('rm_top', k.largestExpenseHead || '-', cur(k.largestExpenseHeadAmt));
 
         // Chart 1: Actual Expense by Head (Doughnut)
         const heads = data.topExpenseHeads || [];

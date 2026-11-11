@@ -328,7 +328,7 @@ ORDER BY fj.JobNo ASC;
 
             using var cmd = new SqlCommand(sql, conn);
             cmd.CommandType = CommandType.Text;
-            cmd.CommandTimeout = 30;
+            cmd.CommandTimeout = 120;
             cmd.Parameters.Add(new SqlParameter("@DateUse", dateUse));
             cmd.Parameters.Add(new SqlParameter("@FromDate", fromDate ?? DBNull.Value));
             cmd.Parameters.Add(new SqlParameter("@ToDate", toDate ?? DBNull.Value));
@@ -828,7 +828,7 @@ ORDER BY fj.JobNo ASC;
 
             using var cmd = new SqlCommand(sql, conn);
             cmd.CommandType = CommandType.Text;
-            cmd.CommandTimeout = 30;
+            cmd.CommandTimeout = 120;
             cmd.Parameters.Add(new SqlParameter("@DateUse", dateUse));
             cmd.Parameters.Add(new SqlParameter("@FromDate", fromDate ?? DBNull.Value));
             cmd.Parameters.Add(new SqlParameter("@ToDate", toDate ?? DBNull.Value));
@@ -1242,6 +1242,7 @@ ORDER BY fj.JobNo ASC;
                 ws.Row(currRow).Height = 25;
                 currRow++;
 
+                int groupStartRow = currRow;
                 int customerSl = 1;
                 foreach (var item in group)
                 {
@@ -1264,7 +1265,6 @@ ORDER BY fj.JobNo ASC;
                     {
                         ws.Cell(currRow, 8).Value = !string.IsNullOrWhiteSpace(rawInv) ? $"{sym} {item.InvoiceValue}" : "";
                     }
-                    ws.Cell(currRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                     ws.Cell(currRow, 9).Value = item.ContainerPkgs;
                     ws.Cell(currRow, 10).Value = item.Shipper;
@@ -1292,36 +1292,30 @@ ORDER BY fj.JobNo ASC;
                     ws.Cell(currRow, 32).Value = item.ContainerNo;
                     ws.Cell(currRow, 33).Value = item.FreightForwarder;
 
-                    for (int c = 1; c <= totalCols; c++)
-                    {
-                        var cell = ws.Cell(currRow, c);
-                        cell.Style.Font.FontSize = 8.5;
-                        cell.Style.Font.FontName = "Times New Roman";
-                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                        cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
-                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-                        if (c == 8) // Invoice Value (Amount) -> Right
-                        {
-                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                        }
-                        else if (c == 9) // Container / Packages Quantity (Details) -> Left
-                        {
-                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        }
-                        else // All other columns -> Center
-                        {
-                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        }
-                    }
-
                     currRow++;
+                }
+
+                int groupEndRow = currRow - 1;
+                if (groupEndRow >= groupStartRow)
+                {
+                    var dataRange = ws.Range(groupStartRow, 1, groupEndRow, totalCols);
+                    dataRange.Style.Font.FontSize = 8.5;
+                    dataRange.Style.Font.FontName = "Times New Roman";
+                    dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                    dataRange.Style.Border.InsideBorderColor = XLColor.FromHtml("#CCCCCC");
+                    dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    dataRange.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
+                    dataRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    dataRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                    ws.Range(groupStartRow, 8, groupEndRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Range(groupStartRow, 9, groupEndRow, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 }
 
                 currRow++;
             }
 
-            AutoFitColumnsToContent(ws, totalCols);
+            ApplySeaColumnWidths(ws);
         }
 
         private static void BuildAirExcelWorksheet(XLWorkbook workbook, List<AirJobReportItemDTO> airJobs, JobStatusReportFilterVM filter)
@@ -1398,6 +1392,7 @@ ORDER BY fj.JobNo ASC;
                 ws.Row(currRow).Height = 25;
                 currRow++;
 
+                int groupStartRow = currRow;
                 int customerSl = 1;
                 foreach (var item in group)
                 {
@@ -1420,7 +1415,6 @@ ORDER BY fj.JobNo ASC;
                     {
                         ws.Cell(currRow, 8).Value = !string.IsNullOrWhiteSpace(rawInvAir) ? $"{symAir} {item.InvoiceValue}" : "";
                     }
-                    ws.Cell(currRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                     ws.Cell(currRow, 9).Value = item.MaterialNamePkgsQty;
                     ws.Cell(currRow, 10).Value = item.ExpressNameCountry;
@@ -1443,36 +1437,56 @@ ORDER BY fj.JobNo ASC;
                     ws.Cell(currRow, 27).Value = item.ShipmentStatus;
                     ws.Cell(currRow, 28).Value = item.Remarks;
 
-                    for (int c = 1; c <= totalCols; c++)
-                    {
-                        var cell = ws.Cell(currRow, c);
-                        cell.Style.Font.FontSize = 8.5;
-                        cell.Style.Font.FontName = "Times New Roman";
-                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                        cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
-                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-                        if (c == 8) // Invoice Value (Amount) -> Right
-                        {
-                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                        }
-                        else if (c == 9) // Material Name & Packages Quantity (Details) -> Left
-                        {
-                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        }
-                        else // All other columns -> Center
-                        {
-                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        }
-                    }
-
                     currRow++;
+                }
+
+                int groupEndRow = currRow - 1;
+                if (groupEndRow >= groupStartRow)
+                {
+                    var dataRange = ws.Range(groupStartRow, 1, groupEndRow, totalCols);
+                    dataRange.Style.Font.FontSize = 8.5;
+                    dataRange.Style.Font.FontName = "Times New Roman";
+                    dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                    dataRange.Style.Border.InsideBorderColor = XLColor.FromHtml("#CCCCCC");
+                    dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    dataRange.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
+                    dataRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    dataRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                    ws.Range(groupStartRow, 8, groupEndRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Range(groupStartRow, 9, groupEndRow, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 }
 
                 currRow++;
             }
 
-            AutoFitColumnsToContent(ws, totalCols);
+            ApplyAirColumnWidths(ws);
+        }
+
+        private static readonly double[] SeaColWidths = new double[]
+        {
+            7, 16, 12, 14, 15, 13, 15, 14, 22, 14, 15, 13, 14, 13, 13, 13, 13, 13, 15, 13, 14, 14, 14, 15, 13, 14, 14, 13, 20, 10, 20, 15, 22
+        };
+
+        private static readonly double[] AirColWidths = new double[]
+        {
+            7, 16, 12, 14, 15, 13, 15, 14, 22, 14, 15, 15, 13, 13, 13, 13, 13, 13, 15, 13, 14, 14, 14, 15, 13, 14, 13, 20
+        };
+
+        private static void ApplySeaColumnWidths(IXLWorksheet ws)
+        {
+            for (int i = 0; i < SeaColWidths.Length; i++)
+            {
+                ws.Column(i + 1).Width = SeaColWidths[i];
+            }
+        }
+
+        private static void ApplyAirColumnWidths(IXLWorksheet ws)
+        {
+            for (int i = 0; i < AirColWidths.Length; i++)
+            {
+                ws.Column(i + 1).Width = AirColWidths[i];
+            }
         }
 
         private static void WriteHeaders(IXLWorksheet ws, int row, string[] headers, int totalCols)
@@ -1495,7 +1509,7 @@ ORDER BY fj.JobNo ASC;
 
         private static void AutoFitColumnsToContent(IXLWorksheet ws, int totalCols)
         {
-            ws.Columns(1, totalCols).AdjustToContents();
+            ws.Columns(1, totalCols).AdjustToContents(1, Math.Min(ws.LastRowUsed()?.RowNumber() ?? 50, 50));
         }
         #endregion
 

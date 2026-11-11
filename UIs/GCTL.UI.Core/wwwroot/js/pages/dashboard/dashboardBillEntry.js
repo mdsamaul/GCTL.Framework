@@ -77,10 +77,10 @@ window.DashboardBillEntry = {
 
         const comps = data.serviceValueCompositions || [];
         const trComp = comps.find(c => c.serviceHead.toLowerCase().includes('transport'));
-        setMini('bm_tr', compact(trComp ? trComp.amount : 0));
+        setMini('bm_tr', cur(trComp ? trComp.amount : 0));
 
         const otherSum = comps.filter(c => !c.serviceHead.toLowerCase().includes('transport')).reduce((s, c) => s + c.amount, 0);
-        setMini('bm_cnf', compact(otherSum));
+        setMini('bm_cnf', cur(otherSum));
 
         // Chart 1: Service Value Composition
         mkChart('b_ch1', 'doughnut', comps.map(c => c.serviceHead), [

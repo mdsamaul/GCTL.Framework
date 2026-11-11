@@ -3,82 +3,171 @@
    ============================================================ *@
 <section class="panel" id="p-jobs">
     <div class="ptitle">
-        <h2>Job Status &amp; Clearance Pipeline</h2>
+        <h2>Job Status Report</h2>
         <span data-period></span>
     </div>
 
-    <!-- KPIs -->
-    <div class="kpis">
-        <div class="kpi blue" id="j_n">
+    <!-- KPIs (4 Cards matching prototype) -->
+    <div class="kpis four">
+        <div class="kpi blue" id="j_tot">
             <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
-            <div class="kbody"><div class="klabel">Total Jobs</div><div class="kval">0</div><div class="ksub">jobs handled</div></div>
+            <div class="kbody"><div class="klabel">TOTAL JOBS</div><div class="kval">0</div><div class="ksub">jobs in period</div></div>
         </div>
         <div class="kpi orange" id="j_pen">
             <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-            <div class="kbody"><div class="klabel">Pending</div><div class="kval">0</div><div class="ksub">awaiting action</div></div>
+            <div class="kbody"><div class="klabel">PENDING</div><div class="kval">0</div><div class="ksub">0% of total</div></div>
         </div>
         <div class="kpi purple" id="j_tr">
             <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-            <div class="kbody"><div class="klabel">In Transit</div><div class="kval">0</div><div class="ksub">clearance ongoing</div></div>
+            <div class="kbody"><div class="klabel">IN TRANSIT</div><div class="kval">0</div><div class="ksub">0% of total</div></div>
         </div>
         <div class="kpi green" id="j_del">
             <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div>
-            <div class="kbody"><div class="klabel">Delivered</div><div class="kval">0</div><div class="ksub">completed &amp; handed over</div></div>
-        </div>
-        <div class="kpi sky" id="j_lc">
-            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></div>
-            <div class="kbody"><div class="klabel">Total LC Value</div><div class="kval">0</div><div class="ksub">declared consignment value</div></div>
+            <div class="kbody"><div class="klabel">DELIVERED</div><div class="kval">0</div><div class="ksub">0% of total</div></div>
         </div>
     </div>
 
-    <!-- Minis -->
+    <!-- Minis (5 Cards matching prototype) -->
     <div class="minis">
-        <div class="mini blue" id="jm_dr"><div class="mlbl">Delivery Rate</div><div class="mval">0.0%</div><div class="msub">delivered / total</div></div>
-        <div class="mini teal" id="jm_wt"><div class="mlbl">Total Gross Weight</div><div class="mval">0.00 MT</div><div class="msub">manifest weight</div></div>
-        <div class="mini purple" id="jm_topm"><div class="mlbl">Leading Mode</div><div class="mval">-</div><div class="msub">most active shipment mode</div></div>
-        <div class="mini sky" id="jm_topp"><div class="mlbl">Busiest Port</div><div class="mval">-</div><div class="msub">primary handling port</div></div>
-        <div class="mini green" id="jm_topc"><div class="mlbl">Largest Customer</div><div class="mval">-</div><div class="msub">highest job volume</div></div>
+        <div class="mini red" id="jm_avg"><div class="mlbl">AVG CLEARANCE TIME</div><div class="mval">0.0 days</div></div>
+        <div class="mini sky" id="jm_ot"><div class="mlbl">ON-TIME DELIVERY</div><div class="mval">0.0%</div><div class="msub">≤ 10 days</div></div>
+        <div class="mini orange" id="jm_doc"><div class="mlbl">DOCS PENDING</div><div class="mval">0</div></div>
+        <div class="mini blue" id="jm_arr"><div class="mlbl">ARRIVALS IN 7 DAYS</div><div class="mval">0</div><div class="msub">ETA ≤ 7 days</div></div>
+        <div class="mini green" id="jm_val"><div class="mlbl">TOTAL INVOICE VALUE</div><div class="mval">$ 0.00</div></div>
     </div>
 
-    <!-- Charts Row 1 -->
+    <!-- Charts Row (Exactly 3 Cards matching prototype) -->
     <div class="row c3">
         <section class="card">
-            <div class="chdr"><h3>Shipment Mode Distribution</h3><span>job count by mode</span></div>
+            <div class="chdr"><h3>Job Status Share</h3></div>
             <div class="cwrap"><canvas id="j_ch1"></canvas></div>
         </section>
         <section class="card">
-            <div class="chdr"><h3>Status Breakdown</h3><span>pipeline distribution</span></div>
+            <div class="chdr"><h3>Jobs by Shipment Mode</h3><span class="hint">stacked by status</span></div>
             <div class="cwrap"><canvas id="j_ch2"></canvas></div>
         </section>
         <section class="card">
-            <div class="chdr"><h3>Port-wise Workload</h3><span>jobs by port</span></div>
+            <div class="chdr"><h3>Port-wise Workload</h3><span class="hint">jobs</span></div>
             <div class="cwrap"><canvas id="j_ch3"></canvas></div>
         </section>
     </div>
 
-    <!-- Charts Row 2 -->
-    <div class="row c21">
+    <!-- Monthly Job Trend & Top Customers -->
+    <div class="row c2 mt-3">
         <section class="card">
-            <div class="chdr"><h3>Monthly Job Volume</h3><span>created vs delivered</span></div>
+            <div class="chdr"><h3>Monthly Job Trend</h3><span class="hint">jobs created</span></div>
             <div class="cwrap"><canvas id="j_ch4"></canvas></div>
         </section>
         <section class="card">
-            <div class="chdr"><h3>Top Customers</h3><span>job volume</span></div>
+            <div class="chdr"><h3>Top Customers</h3><span class="hint">jobs</span></div>
             <div class="cwrap"><canvas id="j_ch5"></canvas></div>
         </section>
     </div>
 
-    <!-- Grid -->
-    <section class="card gridcard">
-        <header>
-            <h3>Job Status Master List</h3>
-        </header>
-        <div class="gtools">
-            <label>Show <select id="j_g_sz"></select> entries</label>
-            <input id="j_g_q" type="search" placeholder="Search jobs...">
+    <!-- Data Tables Container (Unified Single Container - Dynamically Changes Grid) -->
+    <div class="job-tables-card mt-3">
+        <div class="p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
+                <div class="fw-bold text-secondary d-flex align-items-center gap-2" id="j_gridTitle" style="font-size: 0.95rem;">
+                    <i class="fas fa-plane text-primary"></i> <span>Job List(Air):</span>
+                </div>
+                <div class="btn-group btn-group-sm" role="group" id="j_modeSwitchGroup">
+                    <button type="button" class="btn btn-outline-primary active" id="j_btnModeAir" title="Switch to Air Freight">
+                        <i class="fas fa-plane me-1"></i> Air Freight
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="j_btnModeSea" title="Switch to Sea Freight">
+                        <i class="fas fa-ship me-1"></i> Sea Freight
+                    </button>
+                </div>
+            </div>
+
+            <!-- Air Freight Table (21 Columns) - Default Visible -->
+            <div id="airTableContainer" style="display: block;">
+                <div class="job-table-outer">
+                    <table id="airJobTable" class="table table-bordered table-hover custom-grid-table w-100">
+                        <thead>
+                            <tr>
+                                <th class="text-center align-middle" title="Serial Number" data-bs-toggle="tooltip" style="width: 32px;">SL</th>
+                                <th class="text-center align-middle" title="Job Number" data-bs-toggle="tooltip">Job No</th>
+                                <th class="text-center align-middle" title="Job Date" data-bs-toggle="tooltip">Job Dt</th>
+                                <th class="text-center align-middle" title="Shipment Mode" data-bs-toggle="tooltip">Mode</th>
+                                <th class="text-center align-middle" title="Port Name" data-bs-toggle="tooltip">Port</th>
+                                <th class="text-center align-middle" title="Doc's Receive Date" data-bs-toggle="tooltip">Doc Rec.</th>
+                                <th class="text-center align-middle" title="Invoice Number" data-bs-toggle="tooltip">Inv. No</th>
+                                <th class="text-center align-middle" title="Invoice Value" data-bs-toggle="tooltip">Inv. Val</th>
+                                <th class="text-center align-middle" title="Material Name &amp; Packages Quantity" data-bs-toggle="tooltip">Material &amp; Qty</th>
+                                <th class="text-center align-middle" title="Express Name, Country" data-bs-toggle="tooltip">Express/Ctry</th>
+                                <th class="text-center align-middle" title="Letter of Credit (L/C) Number" data-bs-toggle="tooltip">L/C No</th>
+                                <th class="text-center align-middle" title="Express / House Air Waybill (HAWB) Number" data-bs-toggle="tooltip">HAWB No</th>
+                                <th class="text-center align-middle" title="Master Air Waybill (MAWB) Number" data-bs-toggle="tooltip">MAWB No</th>
+                                <th class="text-center align-middle" title="Estimated Time of Departure (ETD)" data-bs-toggle="tooltip">ETD</th>
+                                <th class="text-center align-middle" title="Flight Actual Arrival Date" data-bs-toggle="tooltip">Flight Arr.</th>
+                                <th class="text-center align-middle" title="Arrival Notice Received From Express Date" data-bs-toggle="tooltip">Arr. Notice</th>
+                                <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
+                                <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                <th class="text-center align-middle" title="Requisition Number" data-bs-toggle="tooltip">Req. No</th>
+                                <th class="text-center align-middle" title="Requisition Date" data-bs-toggle="tooltip">Req. Dt</th>
+                                <th class="text-center align-middle" title="Operational Fund Approval Report" data-bs-toggle="tooltip">OFR Approval</th>
+                                <th class="text-center align-middle" title="OFR Adjust Approval Report" data-bs-toggle="tooltip">OFR Adjust</th>
+                                <th class="text-center align-middle" title="Voucher Status" data-bs-toggle="tooltip">Voucher Status</th>
+                                <th class="text-center align-middle" title="Job Bill Number" data-bs-toggle="tooltip">Bill No</th>
+                                <th class="text-center align-middle" title="Bill Date" data-bs-toggle="tooltip">Bill Dt</th>
+                                <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Delivery Dt</th>
+                                <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
+                                <th class="text-center align-middle" title="Remarks" data-bs-toggle="tooltip">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sea Freight Table (26 Columns) - Hidden by default -->
+            <div id="seaTableContainer" style="display: none;">
+                <div class="job-table-outer">
+                    <table id="seaJobTable" class="table table-bordered table-hover custom-grid-table w-100">
+                        <thead>
+                            <tr>
+                                <th class="text-center align-middle" title="Serial Number" data-bs-toggle="tooltip" style="width: 32px;">SL</th>
+                                <th class="text-center align-middle" title="Job Number" data-bs-toggle="tooltip">Job No</th>
+                                <th class="text-center align-middle" title="Job Date" data-bs-toggle="tooltip">Job Dt</th>
+                                <th class="text-center align-middle" title="Shipment Mode" data-bs-toggle="tooltip">Mode</th>
+                                <th class="text-center align-middle" title="Port Name" data-bs-toggle="tooltip">Port</th>
+                                <th class="text-center align-middle" title="Doc's Receive Date" data-bs-toggle="tooltip">Doc Rec.</th>
+                                <th class="text-center align-middle" title="Invoice Number" data-bs-toggle="tooltip">Inv. No</th>
+                                <th class="text-center align-middle" title="Invoice Value" data-bs-toggle="tooltip">Inv. Val</th>
+                                <th class="text-center align-middle" title="Container / Packages Quantity" data-bs-toggle="tooltip">Cont./Pkgs</th>
+                                <th class="text-center align-middle" title="Shipper" data-bs-toggle="tooltip">Shipper</th>
+                                <th class="text-center align-middle" title="Bill of Lading (B/L) Number" data-bs-toggle="tooltip">B/L No</th>
+                                <th class="text-center align-middle" title="Estimated Time of Departure (ETD)" data-bs-toggle="tooltip">ETD</th>
+                                <th class="text-center align-middle" title="Final IGM Receive Date" data-bs-toggle="tooltip">IGM Rec.</th>
+                                <th class="text-center align-middle" title="Ship Arrived Date" data-bs-toggle="tooltip">Ship Arr.</th>
+                                <th class="text-center align-middle" title="Unstuff / Discharge Date" data-bs-toggle="tooltip">Discharge</th>
+                                <th class="text-center align-middle" title="Docs Bank Sign Date" data-bs-toggle="tooltip">Bank Sign</th>
+                                <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
+                                <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                <th class="text-center align-middle" title="Requisition Number" data-bs-toggle="tooltip">Req. No</th>
+                                <th class="text-center align-middle" title="Requisition Date" data-bs-toggle="tooltip">Req. Dt</th>
+                                <th class="text-center align-middle" title="Operational Fund Approval Report" data-bs-toggle="tooltip">OFR Approval</th>
+                                <th class="text-center align-middle" title="OFR Adjust Approval Report" data-bs-toggle="tooltip">OFR Adjust</th>
+                                <th class="text-center align-middle" title="Voucher Status" data-bs-toggle="tooltip">Voucher Status</th>
+                                <th class="text-center align-middle" title="Job Bill Number" data-bs-toggle="tooltip">Bill No</th>
+                                <th class="text-center align-middle" title="Bill Date" data-bs-toggle="tooltip">Bill Dt</th>
+                                <th class="text-center align-middle" title="Estimated Delivery Date" data-bs-toggle="tooltip">Est. Del.</th>
+                                <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Act. Del.</th>
+                                <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
+                                <th class="text-center align-middle" title="Remarks" data-bs-toggle="tooltip">Remarks</th>
+                                <th class="text-center align-middle" title="Term" data-bs-toggle="tooltip">Term</th>
+                                <th class="text-center align-middle" title="Vessel Name &amp; Rotation No." data-bs-toggle="tooltip">Vessel</th>
+                                <th class="text-center align-middle" title="Container Number" data-bs-toggle="tooltip">Cont. No</th>
+                                <th class="text-center align-middle" title="Freight Forwarder Name &amp; Phone" data-bs-toggle="tooltip">Forwarder</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="gbody"><div id="j_g"></div></div>
-        <div class="gfoot" id="j_g_f"></div>
-    </section>
+    </div>
 </section>
 
