@@ -156,7 +156,6 @@ namespace GCTL.UI.Core.Controllers
                 Striped = true,
                 Columns = new List<GridColumn>
                 {
-                    new GridColumn { Data = "slNo", Header = "SL", Width = "30px", Align = "center" },
                     new GridColumn { Data = "paymentReceiveNo", Header = "Payment Receive No.", Width = "110px", Align = "center" },
                     new GridColumn { Data = "paymentReceiveDate", Header = "Date", Width = "75px", Align = "center" },
                     new GridColumn { Data = "customerID", Header = "Customer ID", Width = "80px", Align = "center" },

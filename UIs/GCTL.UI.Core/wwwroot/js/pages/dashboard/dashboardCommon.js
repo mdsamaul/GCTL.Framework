@@ -37,8 +37,8 @@ const pct = (n, d = 2) => (Number(n) || 0).toFixed(d) + '%';
 const compact = n => {
     const v = Number(n) || 0;
     const a = Math.abs(v);
-    if (a >= 1e7) return (v / 1e7).toFixed(2) + ' Cr';
-    if (a >= 1e5) return (v / 1e5).toFixed(2) + ' L';
+    if (a >= 1e7) return (v / 1e7).toFixed(v % 1e7 === 0 ? 0 : (a >= 1e8 ? 1 : 2)) + ' Cr';
+    if (a >= 1e5) return (v / 1e5).toFixed(v % 1e5 === 0 ? 0 : 2) + ' Lac';
     if (a >= 1e3) return (v / 1e3).toFixed(1) + ' k';
     return amt(v);
 };
@@ -84,8 +84,19 @@ class Grid {
 
         const szEl = document.getElementById(id + '_sz');
         if (szEl) {
-            szEl.innerHTML = this.o.sizes.map(s => `<option ${s === this.size ? 'selected' : ''}>${s}</option>`).join('');
-            szEl.onchange = () => { this.size = +szEl.value; this.page = 1; this.render(); };
+            szEl.innerHTML = this.o.sizes.map(s => {
+                const isAll = s === 'All' || s === -1;
+                const val = isAll ? -1 : s;
+                const label = isAll ? 'All' : s;
+                const selected = (isAll && this.size >= 999999) || s === this.size ? 'selected' : '';
+                return `<option value="${val}" ${selected}>${label}</option>`;
+            }).join('');
+            szEl.onchange = () => {
+                const v = +szEl.value;
+                this.size = (v === -1 || isNaN(v)) ? 999999 : v;
+                this.page = 1;
+                this.render();
+            };
         }
 
         const qEl = document.getElementById(id + '_q');
@@ -130,7 +141,12 @@ class Grid {
         let v = this.rows;
         if (this.q) {
             v = v.filter(r => this.cols.some(c => {
-                const val = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                let val = undefined;
+                if (typeof c.v === 'function') {
+                    val = c.v(r);
+                } else if (c.k) {
+                    val = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                }
                 return val != null && String(val).toLowerCase().includes(this.q);
             }));
         }
@@ -140,6 +156,7 @@ class Grid {
             const getVal = r => {
                 if (col.s) return col.s(r);
                 if (col.v) return col.v(r);
+                if (!col.k) return '';
                 return r[col.k] !== undefined ? r[col.k] : (r[col.k.charAt(0).toUpperCase() + col.k.slice(1)] ?? r[col.k.toLowerCase()]);
             };
             v = [...v].sort((a, b) => {
@@ -174,16 +191,22 @@ class Grid {
 
         const isNum = c => ['money', 'amt', 'pct', 'int'].includes(c.t);
 
-        let h = `<table class="grid ${o.card}"><thead>`;
-        if (o.groups) {
-            h += '<tr class="grp">' + o.groups.map(g => `<th colspan="${g[1]}">${g[0]}</th>`).join('') + '</tr>';
+        let h = `<table class="grid ${o.card}">`;
+        if (typeof o.customHeader === 'function') {
+            h += o.customHeader();
+        } else {
+            h += '<thead>';
+            if (o.groups) {
+                h += '<tr class="grp">' + o.groups.map(g => `<th colspan="${g[1]}">${g[0]}</th>`).join('') + '</tr>';
+            }
+            h += '<tr>' + this.cols.map((c, i) => {
+                const sortable = o.sortable && c.t !== 'sn' && !c.nosort;
+                const sortCls = this.sk === i ? (this.sd > 0 ? 'asc' : 'desc') : '';
+                const thCls = [sortable ? 'sortable' : '', sortCls, c.hide ? 'h-' + c.hide : '', isNum(c) ? 'num' : ''].filter(Boolean).join(' ');
+                return `<th class="${thCls}" data-i="${i}" ${c.w ? `style="width:${c.w}"` : ''}>${c.l}${sortable ? '<span class="si">&#x21C5;</span>' : ''}</th>`;
+            }).join('') + '</tr></thead>';
         }
-        h += '<tr>' + this.cols.map((c, i) => {
-            const sortable = o.sortable && c.t !== 'sn' && !c.nosort;
-            const sortCls = this.sk === i ? (this.sd > 0 ? 'asc' : 'desc') : '';
-            const thCls = [sortable ? 'sortable' : '', sortCls, c.hide ? 'h-' + c.hide : '', isNum(c) ? 'num' : ''].filter(Boolean).join(' ');
-            return `<th class="${thCls}" data-i="${i}" ${c.w ? `style="width:${c.w}"` : ''}>${c.l}${sortable ? '<span class="si">&#x21C5;</span>' : ''}</th>`;
-        }).join('') + '</tr></thead><tbody>';
+        h += '<tbody>';
 
         if (!slice.length) {
             h += `<tr class="empty-row"><td colspan="${this.cols.length}">No records match the selected filters.</td></tr>`;
@@ -191,7 +214,12 @@ class Grid {
             slice.forEach((r, i) => {
                 h += `<tr class="${o.rowCls ? o.rowCls(r) : ''}">` + this.cols.map(c => {
                     let formatted = '';
-                    const rawVal = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                    let rawVal = undefined;
+                    if (typeof c.v === 'function') {
+                        rawVal = c.v(r);
+                    } else if (c.k) {
+                        rawVal = r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? r[c.k.toLowerCase()]);
+                    }
                     if (c.r) {
                         formatted = c.r(r, s + i);
                     } else if (c.t === 'sn') {
@@ -203,7 +231,7 @@ class Grid {
                     } else if (c.t === 'int') {
                         formatted = (rawVal === 0 ? '0' : (rawVal == null || rawVal === '' ? '' : int(rawVal)));
                     } else if (c.t === 'pct') {
-                        formatted = pct(rawVal);
+                        formatted = typeof rawVal === 'string' && rawVal.endsWith('%') ? esc(rawVal) : pct(rawVal);
                     } else {
                         formatted = esc(rawVal ?? '');
                     }
@@ -221,8 +249,10 @@ class Grid {
             h += '<tfoot><tr>' + this.cols.map((c, i) => {
                 let txt = '';
                 if (i === 0) txt = 'Total';
-                if (c.tot) {
-                    const totalVal = this.view.reduce((sum, r) => sum + (Number(r[c.k]) || 0), 0);
+                if (c.totf) {
+                    txt = c.totf(this.view);
+                } else if (c.tot) {
+                    const totalVal = this.view.reduce((sum, r) => sum + (Number(r[c.k] !== undefined ? r[c.k] : (r[c.k.charAt(0).toUpperCase() + c.k.slice(1)] ?? 0)) || 0), 0);
                     txt = amt(totalVal);
                 }
                 const numCls = isNum(c) ? 'num' : '';
@@ -277,6 +307,10 @@ function mkChart(id, type, labels, datasets, opts = {}) {
     }
 
     const isPie = type === 'doughnut' || type === 'pie';
+    const catAxis = opts.horizontal ? 'y' : 'x';
+    const valAxis = opts.horizontal ? 'x' : 'y';
+    const tv = opts.tfmt || (opts.money ? money : int);
+    const av = opts.afmt || (opts.money ? compact : int);
     const isHoriz = !!opts.horizontal;
 
     // Register centerText plugin for doughnut charts if not present
@@ -345,6 +379,19 @@ function mkChart(id, type, labels, datasets, opts = {}) {
                             return (labels && labels[idx] !== undefined ? labels[idx] : items[0].label) || '';
                         },
                         label: ctx => {
+                            const ds = ctx.dataset;
+                            if (isPie) {
+                                const total = (ds.data || []).reduce((s, x) => s + (Number(x) || 0), 0);
+                                return ` ${ctx.label}: ${tv(ctx.raw)} (${total ? (ctx.raw / total * 100).toFixed(1) : 0}%)`;
+                            }
+                            const v = ctx.parsed ? ctx.parsed[valAxis] : ctx.raw;
+                            return ` ${ds.label ? ds.label + ': ' : ''}${ds.yAxisID === 'y2' ? pct(v, 1) : tv(v)}`;
+                        }
+                    }
+                }
+            },
+            scales: isPie ? {} : {
+                [catAxis]: {
                             const val = isHoriz ? (ctx.parsed?.x ?? ctx.raw) : (ctx.parsed?.y ?? ctx.raw);
                             if (opts.money) return ` ${ctx.dataset.label || ctx.label || 'Amount'}: ${formatMoney(val)} BDT`;
                             return ` ${ctx.dataset.label || ctx.label}: ${int(val)}`;
@@ -385,15 +432,25 @@ function mkChart(id, type, labels, datasets, opts = {}) {
                 x: {
                     stacked: !!opts.stacked,
                     grid: { display: false },
-                    ticks: { font: { size: 10.5 } }
+                    ticks: {
+                        autoSkip: labels.length > 9,
+                        maxRotation: 0,
+                        font: { size: 10.5 },
+                        callback: function (val) {
+                            let l = String(this.getLabelForValue ? this.getLabelForValue(val) : val);
+                            const m = opts.horizontal ? 26 : 18;
+                            if (l.length > m) l = l.slice(0, m - 1) + '…';
+                            return (!opts.horizontal && l.length > 9 && l.includes(' ')) ? l.split(' ') : l;
+                        }
+                    }
                 },
-                y: {
+                [valAxis]: {
                     stacked: !!opts.stacked,
                     beginAtZero: true,
                     grid: { color: '#eef2f8' },
                     ticks: {
                         font: { size: 10.5 },
-                        callback: v => opts.money ? compact(v) : int(v)
+                        callback: v => av(v)
                     }
                 }
             })
@@ -407,6 +464,39 @@ function mkChart(id, type, labels, datasets, opts = {}) {
             grid: { drawOnChartArea: false },
             ticks: { callback: v => v + '%' }
         };
+    }
+
+    if (isPie && opts.center) {
+        chartConfig.options.cutout = opts.cutout || '68%';
+        chartConfig.plugins = chartConfig.plugins || [];
+        chartConfig.plugins.push({
+            id: 'centerText_' + id,
+            beforeDraw(chart) {
+                const { ctx, chartArea } = chart;
+                if (!chartArea) return;
+                const { left, right, top, bottom } = chartArea;
+                const cx = (left + right) / 2;
+                const cy = (top + bottom) / 2;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const mainText = opts.center.text || '';
+                const subText = opts.center.sub || '';
+
+                ctx.font = 'bold 18px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.fillStyle = '#0f172a';
+                ctx.fillText(mainText, cx, subText ? cy - 9 : cy);
+
+                if (subText) {
+                    ctx.font = '500 11.5px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText(subText, cx, cy + 13);
+                }
+                ctx.restore();
+            }
+        });
     }
 
     CH[id] = new Chart(document.getElementById(id), chartConfig);
@@ -683,6 +773,23 @@ const DashboardApp = {
         }
     },
 
+    getGPExportParams() {
+        const filter = this.getFilterState();
+        const selected = [];
+        document.querySelectorAll('#g_g .gp-row-chk:checked').forEach(chk => {
+            if (chk.value) selected.push(chk.value);
+        });
+
+        const params = new URLSearchParams();
+        if (filter.fromDate) params.append('fromDate', filter.fromDate);
+        if (filter.toDate) params.append('toDate', filter.toDate);
+        if (filter.branchCode) params.append('branchCode', filter.branchCode);
+        if (filter.shipmentMode) params.append('shipmentMode', filter.shipmentMode);
+        if (filter.customerID) params.append('customerId', filter.customerID);
+        if (selected.length > 0) params.append('selectedBillNos', selected.join(','));
+        return params.toString();
+    },
+
     setupExportMenu() {
         const menu = d$('#expMenu');
         d$('#btnExport')?.addEventListener('click', e => {
@@ -691,20 +798,40 @@ const DashboardApp = {
         });
         document.addEventListener('click', () => menu?.classList.remove('open'));
 
-        d$('#xPreview')?.addEventListener('click', () => window.print());
+        d$('#xPreview')?.addEventListener('click', () => this.exportPreview());
         d$('#xPdf')?.addEventListener('click', () => this.exportPdf());
         d$('#xExcel')?.addEventListener('click', () => this.exportExcel());
     },
 
-    exportPdf() {
-        if (!window.jspdf) {
-            alert('PDF library is loading. Please try again.');
-            return;
+    exportPreview() {
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.open(`/GPAnalysisReport/PreviewPdf?${qs}`, '_blank');
+        } else {
+            window.print();
         }
-        window.print();
+    },
+
+    exportPdf() {
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.location.href = `/GPAnalysisReport/ExportPdf?${qs}`;
+        } else {
+            if (!window.jspdf) {
+                alert('PDF library is loading. Please try again.');
+                return;
+            }
+            window.print();
+        }
     },
 
     exportExcel() {
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.location.href = `/GPAnalysisReport/ExportExcel?${qs}`;
+            return;
+        }
+
         if (!window.XLSX) {
             alert('Excel library not loaded.');
             return;

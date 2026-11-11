@@ -69,14 +69,21 @@ namespace GCTL.Core.ViewModels.Dashboard
         public string ExpenseType { get; set; } = string.Empty;
         public decimal Commission { get; set; }
         public decimal OthersBill { get; set; }
+        public decimal TotalCNFBilling { get; set; }
         public decimal TransportBill { get; set; }
         public decimal TotalBill { get; set; }
+        public decimal CostRec { get; set; }
+        public decimal CostNonRec { get; set; }
         public decimal CNFCost { get; set; }
+        public decimal SwiftCost { get; set; }
+        public decimal HairCost { get; set; }
         public decimal TransCost { get; set; }
         public decimal TotalCost { get; set; }
         public decimal CNFGP { get; set; }
         public decimal TransGP { get; set; }
         public decimal TotalGP { get; set; }
+        public decimal CNFGPPercent { get; set; }
+        public decimal TransportGPPercent { get; set; }
         public decimal GPPercent { get; set; }
     }
 

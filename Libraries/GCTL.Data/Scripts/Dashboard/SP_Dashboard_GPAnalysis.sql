@@ -281,7 +281,7 @@ BEGIN
     ORDER BY GrossProfit DESC;
 
     ---------------------------------------------------------------------
-    -- RESULT SET 7: Detail Grid
+    -- RESULT SET 7: Detail Grid (matching GPAnalysisReport structure)
     ---------------------------------------------------------------------
     SELECT 
         ROW_NUMBER() OVER (ORDER BY BillDate DESC, BillNo DESC) AS SN,
@@ -292,14 +292,21 @@ BEGIN
         ExpenseType,
         Commission,
         OthersBill,
+        TotalCNFBilling,
         BillingTransportBill AS TransportBill,
         TotalBilling AS TotalBill,
+        CostingReceptableAmount AS CostRec,
+        CostingNonReceptableAmount AS CostNonRec,
         CNFCosting AS CNFCost,
+        CAST(0 AS decimal(18,2)) AS SwiftCost,
+        CostingTransport AS HairCost,
         CostingTransport AS TransCost,
         TotalCosting AS TotalCost,
         CNFGP,
         TransportGP AS TransGP,
         TotalGP,
+        CNFGPPercent,
+        TransportGPPercent,
         TotalGPPercent AS GPPercent
     FROM #GPRows
     ORDER BY BillDate DESC, BillNo DESC;
