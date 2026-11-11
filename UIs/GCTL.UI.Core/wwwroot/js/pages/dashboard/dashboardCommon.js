@@ -21,6 +21,18 @@ const amt = n => {
     return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 const money = n => amt(n);
+
+// Reusable Indian Lakh/Crore Formatter
+const formatMoney = n => {
+    if (n === null || n === undefined || n === '') return '0';
+    const v = Number(n) || 0;
+    const hasDec = (v % 1 !== 0);
+    return v.toLocaleString('en-IN', {
+        minimumFractionDigits: hasDec ? 2 : 0,
+        maximumFractionDigits: 2
+    });
+};
+window.formatMoney = formatMoney;
 const pct = (n, d = 2) => (Number(n) || 0).toFixed(d) + '%';
 const compact = n => {
     const v = Number(n) || 0;
@@ -265,6 +277,35 @@ function mkChart(id, type, labels, datasets, opts = {}) {
     }
 
     const isPie = type === 'doughnut' || type === 'pie';
+    const isHoriz = !!opts.horizontal;
+
+    // Register centerText plugin for doughnut charts if not present
+    if (window.Chart && !Chart.registry?.plugins?.get('centerText')) {
+        Chart.register({
+            id: 'centerText',
+            afterDraw(ch, _a, opt) {
+                if (!opt || !opt.text) return;
+                const a = ch.chartArea;
+                if (!a) return;
+                const cx = (a.left + a.right) / 2;
+                const cy = (a.top + a.bottom) / 2;
+                const ctx = ch.ctx;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = cssVar('--ink') || '#1a2740';
+                ctx.font = '700 16px ' + (Chart.defaults.font?.family || 'sans-serif');
+                ctx.fillText(opt.text, cx, cy - (opt.sub ? 8 : 0));
+                if (opt.sub) {
+                    ctx.fillStyle = cssVar('--muted') || '#64748b';
+                    ctx.font = '11px ' + (Chart.defaults.font?.family || 'sans-serif');
+                    ctx.fillText(opt.sub, cx, cy + 11);
+                }
+                ctx.restore();
+            }
+        });
+    }
+
     const chartConfig = {
         type: type,
         data: { labels, datasets },
@@ -272,24 +313,75 @@ function mkChart(id, type, labels, datasets, opts = {}) {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 350 },
-            indexAxis: opts.horizontal ? 'y' : 'x',
+            indexAxis: isHoriz ? 'y' : 'x',
+            layout: {
+                padding: {
+                    top: isPie ? 4 : (opts.legend !== false && !isPie ? 4 : 0),
+                    right: isPie ? 12 : 12,
+                    left: 4,
+                    bottom: 4
+                }
+            },
             plugins: {
                 legend: {
                     display: opts.legend !== false && (isPie || datasets.length > 1),
-                    position: isPie ? 'bottom' : 'top',
-                    labels: { boxWidth: 10, font: { size: 11 } }
+                    position: isPie ? 'right' : (opts.legendPosition || 'top'),
+                    align: isPie ? 'center' : (opts.legendAlign || 'end'),
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 7,
+                        boxHeight: 7,
+                        padding: isPie ? 12 : 14,
+                        font: { size: 11, family: Chart.defaults.font?.family || 'sans-serif' }
+                    }
                 },
+                centerText: opts.center || false,
                 tooltip: {
                     callbacks: {
+                        title: items => {
+                            if (!items || !items.length) return '';
+                            const idx = items[0].dataIndex;
+                            return (labels && labels[idx] !== undefined ? labels[idx] : items[0].label) || '';
+                        },
                         label: ctx => {
-                            const val = ctx.parsed?.y ?? ctx.parsed?.x ?? ctx.raw;
-                            if (opts.money) return ` ${ctx.dataset.label || ctx.label}: ${money(val)}`;
+                            const val = isHoriz ? (ctx.parsed?.x ?? ctx.raw) : (ctx.parsed?.y ?? ctx.raw);
+                            if (opts.money) return ` ${ctx.dataset.label || ctx.label || 'Amount'}: ${formatMoney(val)} BDT`;
                             return ` ${ctx.dataset.label || ctx.label}: ${int(val)}`;
                         }
                     }
                 }
             },
-            scales: isPie ? {} : {
+            scales: isPie ? {} : (isHoriz ? {
+                y: {
+                    type: 'category',
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 11 },
+                        autoSkip: false,
+                        callback: function (val, idx) {
+                            const label = this.getLabelForValue ? this.getLabelForValue(val) : labels[idx];
+                            const str = String(label ?? '');
+                            return str.length > 22 ? str.substring(0, 20) + '…' : str;
+                        }
+                    },
+                    afterFit: function (axis) {
+                        if (axis.width < 140) axis.width = 140;
+                    }
+                },
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: '#eef2f8',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: { size: 10.5 },
+                        callback: v => opts.money ? compact(v) : int(v)
+                    }
+                }
+            } : {
                 x: {
                     stacked: !!opts.stacked,
                     grid: { display: false },
@@ -304,11 +396,11 @@ function mkChart(id, type, labels, datasets, opts = {}) {
                         callback: v => opts.money ? compact(v) : int(v)
                     }
                 }
-            }
+            })
         }
     };
 
-    if (opts.y2 && !isPie) {
+    if (opts.y2 && !isPie && !isHoriz) {
         chartConfig.options.scales.y2 = {
             position: 'right',
             beginAtZero: true,
@@ -318,6 +410,28 @@ function mkChart(id, type, labels, datasets, opts = {}) {
     }
 
     CH[id] = new Chart(document.getElementById(id), chartConfig);
+
+    // Show full customer name in tooltip when hovering over truncated axis labels
+    if (isHoriz) {
+        cv.onmousemove = e => {
+            const chart = CH[id];
+            if (!chart || !chart.chartArea || !chart.scales?.y) return;
+            const rect = cv.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            if (x < chart.chartArea.left) {
+                const yAxis = chart.scales.y;
+                for (let i = 0; i < labels.length; i++) {
+                    const py = yAxis.getPixelForValue(i);
+                    if (Math.abs(y - py) <= 12) {
+                        cv.title = labels[i] || '';
+                        return;
+                    }
+                }
+            }
+            cv.title = '';
+        };
+    }
 }
 
 const barDs = (label, data, color, extra = {}) => Object.assign({

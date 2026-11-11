@@ -1,43 +1,258 @@
 @* ============================================================
    Bill Entry Tab Partial
    ============================================================ *@
+@{
+    var billGridModel = new GridModel
+    {
+        GridId = "jobBillEntryReportTable",
+        AjaxUrl = Url.Action("GetGridData", "JobBillEntryReport"),
+        AjaxMethod = "POST",
+        ServerSide = true,
+        Bordered = true,
+        CheckAllId = "chkSelectAllBills",
+        CheckboxClass = "chk-bill-item",
+        CheckColumnData = "billNo",
+        Compact = true,
+        CustomGridWrapper = false,
+        DefaultPageLength = 10,
+        Hover = true,
+        ShowCheckbox = true,
+        ShowPagination = true,
+        ShowRowNumbers = false,
+        ShowSearchBox = true,
+        Striped = true,
+        Columns = new List<GridColumn>
+        {
+            new() { Data = "billNo", Header = "Bill No", Width = "7%", Align = "left", SortField = "BillNo" },
+            new() { Data = "billDate", Header = "Date", Width = "6%", Align = "center", SortField = "BillDate" },
+            new() { Data = "jobNo", Header = "Job No", Width = "7%", Align = "left", IsWrapable = true, SortField = "JobNo" },
+            new() { Data = "materialDescription", Header = "Material Description", Width = "18%", Align = "left", SortField = "MaterialDescription" },
+            new() { Data = "quantity", Header = "Quantity", ShortHeader = "Qty", Width = "6%", Align = "center", SortField = "Quantity" },
+            new() { Data = "weight", Header = "Weight", Width = "6%", Align = "center", SortField = "DocWeight" },
+            new() { Data = "receiptableAmount", Header = "Receiptable Amount", ShortHeader = "Rec.<br/>Amount", Width = "7%", Align = "right", RenderFn = "formatCurrency" },
+            new() { Data = "nonReceiptableAmount", Header = "Non-Receiptable Amount", ShortHeader = "Non-Rec.<br/>Amount", Width = "8%", Align = "right", RenderFn = "formatCurrency" },
+            new() { Data = "transportAmount", Header = "Transport", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
+            new() { Data = "agencyCommission", Header = "Agency Commission", ShortHeader = "Agency<br/>Comm.", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
+            new() { Data = "totalAmount", Header = "Total Amount", ShortHeader = "Total<br/>Amount", Width = "7%", Align = "right", RenderFn = "formatCurrency", SortField = "BillAmount" },
+            new() { Data = "deduction", Header = "Deduction", ShortHeader = "Deduct.", Width = "6%", Align = "right", RenderFn = "formatCurrency", SortField = "SpecialDiscount" },
+            new() { Data = "netAmount", Header = "Net Amount", ShortHeader = "Net<br/>Amount", Width = "8%", Align = "right", RenderFn = "formatCurrency" }
+        }
+    };
+}
+
+<style>
+    /* JobBillEntryReport Table Optimization */
+    #jobBillEntryReportTable {
+        width: 100% !important;
+        font-size: 11px !important;
+        table-layout: auto;
+    }
+
+    #jobBillEntryReportTable thead th {
+        white-space: normal !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        padding: 4px 2px !important;
+        font-size: 11px !important;
+        line-height: 1.15 !important;
+    }
+
+    #jobBillEntryReportTable tbody td {
+        padding: 4px 3px !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+    }
+
+    #jobBillEntryReportTable td:nth-child(5) {
+        white-space: normal !important;
+        word-break: break-word;
+        line-height: 1.2;
+    }
+
+    #jobBillEntryReportTable th.col-select-cell,
+    #jobBillEntryReportTable td.col-select-cell {
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        padding: 2px !important;
+    }
+
+    .th-full {
+        display: none !important;
+    }
+    .th-compact {
+        display: inline !important;
+    }
+
+    @@media (min-width: 1600px) {
+        .th-full {
+            display: inline !important;
+        }
+        .th-compact {
+            display: none !important;
+        }
+        #jobBillEntryReportTable {
+            font-size: 12.5px !important;
+        }
+        #jobBillEntryReportTable thead th {
+            font-size: 12.5px !important;
+            padding: 0.35rem 0.5rem !important;
+            white-space: nowrap !important;
+        }
+        #jobBillEntryReportTable tbody td {
+            font-size: 12.5px !important;
+            padding: 0.35rem 0.5rem !important;
+        }
+        #jobBillEntryReportTable th.col-select-cell,
+        #jobBillEntryReportTable td.col-select-cell {
+            width: 45px !important;
+            min-width: 45px !important;
+            max-width: 45px !important;
+        }
+    }
+
+    .job-bill-grid-card {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border, #e0e6ed);
+        padding: 10px 12px;
+        margin-top: 14px;
+        overflow-x: auto;
+    }
+
+    /* Scoped DataTables Toolbar & Pagination layout for Dashboard Bill Entry Grid */
+    .job-bill-grid-card .dt-container > .row,
+    .job-bill-grid-card .dataTables_wrapper > .row {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        margin: 6px 0 !important;
+        gap: 12px !important;
+    }
+
+    .job-bill-grid-card .dt-container > .row:has(table),
+    .job-bill-grid-card .dataTables_wrapper > .row:has(table) {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .job-bill-grid-card .dt-layout-start,
+    .job-bill-grid-card .dt-length,
+    .job-bill-grid-card .dt-info {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+    }
+
+    .job-bill-grid-card .dt-layout-end,
+    .job-bill-grid-card .dt-search,
+    .job-bill-grid-card .dt-paging {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        flex: 0 0 auto !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        width: auto !important;
+        white-space: nowrap !important;
+        text-align: right !important;
+    }
+
+    .job-bill-grid-card .dt-paging .pagination {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        margin: 0 !important;
+    }
+
+    /* Second KPI Row (Minis) Styling - Balanced without captions */
+    #p-bills .minis {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    #p-bills .minis .mini {
+        padding: 12px 14px;
+        min-height: 66px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: var(--card, #fff);
+        border: 1px solid var(--line, #e2e8f0);
+        border-radius: 9px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    #p-bills .minis .mini .mlbl {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: var(--muted, #64748b);
+        margin: 0;
+    }
+
+    #p-bills .minis .mini .mval {
+        font-size: 16.5px;
+        font-weight: 700;
+        color: var(--ink, #1e293b);
+        margin: 4px 0 0 0;
+        line-height: 1.2;
+    }
+
+    @@media (max-width: 1200px) {
+        #p-bills .minis {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+    }
+</style>
+
 <section class="panel" id="p-bills">
     <div class="ptitle">
-        <h2>Bill Entry Register &amp; Receivables</h2>
+        <h2>Bill Entry Report</h2>
         <span data-period></span>
     </div>
 
-    <!-- KPIs -->
+    <!-- KPIs (Matching Mockup & JobBillEntryReport) -->
     <div class="kpis">
         <div class="kpi blue" id="b_n">
             <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></div>
-            <div class="kbody"><div class="klabel">Total Bills</div><div class="kval">0</div><div class="ksub">bills issued</div></div>
+            <div class="kbody"><div class="klabel">Total Bill</div><div class="kval">0</div><div class="ksub">bills in period</div></div>
         </div>
         <div class="kpi green" id="b_nbv">
-            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-            <div class="kbody"><div class="klabel">Net Bill Value</div><div class="kval">0</div><div class="ksub">total billed</div></div>
-        </div>
-        <div class="kpi purple" id="b_col">
-            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div>
-            <div class="kbody"><div class="klabel">Total Collected</div><div class="kval">0</div><div class="ksub">realized funds</div></div>
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="kbody"><div class="klabel">Net Service Value</div><div class="kval">0</div><div class="ksub">after deductions</div></div>
         </div>
         <div class="kpi orange" id="b_due">
             <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div>
-            <div class="kbody"><div class="klabel">Outstanding Due</div><div class="kval">0</div><div class="ksub">uncollected balance</div></div>
+            <div class="kbody"><div class="klabel">Total Due Outstanding</div><div class="kval">0</div><div class="ksub">uncollected balance</div></div>
         </div>
-        <div class="kpi teal" id="b_comm">
-            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div>
-            <div class="kbody"><div class="klabel">Agency Commission</div><div class="kval">0</div><div class="ksub">fee component</div></div>
+        <div class="kpi purple" id="b_lv">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+            <div class="kbody"><div class="klabel">Last Service Value</div><div class="kval">0</div><div class="ksub">last bill</div></div>
+        </div>
+        <div class="kpi sky" id="b_ld">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="kbody"><div class="klabel">Last Service Date</div><div class="kval">–</div><div class="ksub">last bill date</div></div>
         </div>
     </div>
 
-    <!-- Minis -->
+    <!-- Minis (Second KPI Row - sub-text removed) -->
     <div class="minis">
-        <div class="mini green" id="bm_eff"><div class="mlbl">Collection Efficiency</div><div class="mval">0.0%</div><div class="msub">collected / net</div></div>
-        <div class="mini blue" id="bm_avg"><div class="mlbl">Avg Bill Value</div><div class="mval">0</div><div class="msub">per bill</div></div>
-        <div class="mini purple" id="bm_top"><div class="mlbl">Top Customer</div><div class="mval">-</div><div class="msub">highest billed</div></div>
-        <div class="mini orange" id="bm_tr"><div class="mlbl">Transport Revenue</div><div class="mval">0</div><div class="msub">transport billing</div></div>
-        <div class="mini sky" id="bm_cnf"><div class="mlbl">C&amp;F Other Revenue</div><div class="mval">0</div><div class="msub">receivable &amp; non-rec</div></div>
+        <div class="mini green" id="bm_col"><div class="mlbl">Collected</div><div class="mval">0</div></div>
+        <div class="mini blue" id="bm_rate"><div class="mlbl">Collection Rate</div><div class="mval">0.0%</div></div>
+        <div class="mini purple" id="bm_avg"><div class="mlbl">Avg Bill Value</div><div class="mval">0</div></div>
+        <div class="mini sky" id="bm_comm"><div class="mlbl">Agency Commission</div><div class="mval">0</div></div>
+        <div class="mini red" id="bm_ded"><div class="mlbl">Total Deductions</div><div class="mval">0</div></div>
     </div>
 
     <!-- Charts Row 1 -->
@@ -47,7 +262,7 @@
             <div class="cwrap"><canvas id="b_ch1"></canvas></div>
         </section>
         <section class="card">
-            <div class="chdr"><h3>Mode-wise Billing</h3><span>revenue by shipment mode</span></div>
+            <div class="chdr"><h3>Net Service Value by Shipment Mode</h3><span>revenue by shipment mode</span></div>
             <div class="cwrap"><canvas id="b_ch2"></canvas></div>
         </section>
         <section class="card">
@@ -68,17 +283,11 @@
         </section>
     </div>
 
-    <!-- Grid -->
-    <section class="card gridcard">
-        <header>
-            <h3>Bill Entry Register</h3>
-        </header>
-        <div class="gtools">
-            <label>Show <select id="b_g_sz"></select> entries</label>
-            <input id="b_g_q" type="search" placeholder="Search bills...">
+    <!-- JobBillEntryReport Grid Component -->
+    <div class="job-bill-grid-card">
+        <div class="mb-2">
+            <h3 class="m-0" style="font-size: 13px; font-weight: 700; color: #1e293b;">Bill Entry Register</h3>
         </div>
-        <div class="gbody"><div id="b_g"></div></div>
-        <div class="gfoot" id="b_g_f"></div>
-    </section>
+        @await Html.PartialAsync("_CustomGrid", billGridModel)
+    </div>
 </section>
-
