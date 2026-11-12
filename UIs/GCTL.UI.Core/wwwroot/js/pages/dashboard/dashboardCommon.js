@@ -114,7 +114,7 @@ class Grid {
         this.rows = [];
         this.view = [];
         this.page = 1;
-        this.size = this.o.size;
+        this.size = (this.o.size === -1 || this.o.size === 'All') ? 999999 : (Number(this.o.size) || 10);
         this.sk = null;
         this.sd = 1;
         this.q = '';
@@ -126,7 +126,7 @@ class Grid {
                 const isAll = s === 'All' || s === -1;
                 const val = isAll ? -1 : s;
                 const label = isAll ? 'All' : s;
-                const selected = (isAll && this.size >= 999999) || s === this.size ? 'selected' : '';
+                const selected = (isAll && this.size >= 999999) || (!isAll && s === this.size) ? 'selected' : '';
                 return `<option value="${val}" ${selected}>${label}</option>`;
             }).join('');
             szEl.onchange = () => {

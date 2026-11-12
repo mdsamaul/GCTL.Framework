@@ -81,29 +81,7 @@
     </div>
 
     <!-- Subview 2: Trial Balance -->
-    <div class="sub" id="s-tb">
-        <div class="kpis">
-            <div class="kpi blue" id="t_dr"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0zM5 7h14"/></svg></div><div class="kbody"><div class="klabel">Closing Debit</div><div class="kval">0</div><div class="ksub">total assets &amp; expenses</div></div></div>
-            <div class="kpi green" id="t_cr"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0zM5 7h14"/></svg></div><div class="kbody"><div class="klabel">Closing Credit</div><div class="kval">0</div><div class="ksub">total equity &amp; liab</div></div></div>
-            <div class="kpi orange" id="t_pd"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="kbody"><div class="klabel">Period Debit / Credit</div><div class="kval">0</div><div class="ksub">balanced activity</div></div></div>
-            <div class="kpi purple" id="t_st"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div><div class="kbody"><div class="klabel">Trial Balance</div><div class="kval" style="color:var(--green)">Balanced</div><div class="ksub">Dr = Cr</div></div></div>
-        </div>
-        <div class="row c2">
-            <section class="card"><div class="chdr"><h3>Closing Balance by Group</h3><span>Debit vs Credit</span></div><div class="cwrap"><canvas id="t_ch1"></canvas></div></section>
-            <section class="card"><div class="chdr"><h3>Closing Debit by Control Ledger</h3><span>assets &amp; expense</span></div><div class="cwrap"><canvas id="t_ch2"></canvas></div></section>
-        </div>
-        <section class="card gridcard">
-            <header>
-                <h3>Trial Balance</h3>
-            </header>
-            <div class="gtools">
-                <label>Show <select id="t_g_sz"></select> entries</label>
-                <input id="t_g_q" type="search" placeholder="Search accounts...">
-            </div>
-            <div class="gbody"><div id="t_g"></div></div>
-            <div class="gfoot" id="t_g_f"></div>
-        </section>
-    </div>
+    <partial name="_TrialBalanceTab" />
 
     <!-- Subview 3: Income Statement -->
     <div class="sub" id="s-is">
