@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using GCTL.Core.ViewModels;
 
@@ -33,6 +33,6 @@ namespace GCTL.Core.ViewModels.Finance.TrialBalance
         public List<TrialBalanceSpResultDto> RawItems { get; set; } = new List<TrialBalanceSpResultDto>();
         public List<CommonSelectVM> Companies { get; set; } = new List<CommonSelectVM>();
         public List<CommonSelectVM> Branches { get; set; } = new List<CommonSelectVM>();
-        public string CompanyName { get; set; } = "Greenfield International School";
+        public string CompanyName { get; set; } = "Formosa Logistics Limited";
     }
 }

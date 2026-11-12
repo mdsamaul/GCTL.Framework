@@ -55,7 +55,7 @@ namespace GCTL.Service.Finance.TrialBalance
                 // Centered School Name and Details
                 column.Item().AlignCenter().Column(col =>
                 {
-                    col.Item().AlignCenter().Text(_model.CompanyName ?? "School Management ERP")
+                    col.Item().AlignCenter().Text(_model.CompanyName ?? "Formosa Logistics Limited")
                         .FontSize(15).Bold().FontColor(PdfColors.TextDark);
 
                     col.Item().AlignCenter().Text("Trial Balance")
@@ -88,18 +88,18 @@ namespace GCTL.Service.Finance.TrialBalance
                 table.Header(header =>
                 {
                     // Row 1
-                    header.Cell().RowSpan(2).Element(HeaderCellStyle).AlignMiddle().Text("Particulars").Bold();
-                    header.Cell().ColumnSpan(2).Element(HeaderGroupCellStyle).AlignCenter().Text("Opening Balance").Bold();
-                    header.Cell().ColumnSpan(2).Element(HeaderGroupCellStyle).AlignCenter().Text("Transactions").Bold();
-                    header.Cell().ColumnSpan(2).Element(HeaderGroupCellStyle).AlignCenter().Text("Closing Balance").Bold();
+                    header.Cell().RowSpan(2).Element(HeaderCellStyle).AlignCenter().AlignMiddle().Text("Particulars").Bold();
+                    header.Cell().ColumnSpan(2).Element(HeaderGroupCellStyle).AlignCenter().AlignMiddle().Text("Opening Balance").Bold();
+                    header.Cell().ColumnSpan(2).Element(HeaderGroupCellStyle).AlignCenter().AlignMiddle().Text("Transactions").Bold();
+                    header.Cell().ColumnSpan(2).Element(HeaderGroupCellStyle).AlignCenter().AlignMiddle().Text("Closing Balance").Bold();
 
                     // Row 2
-                    header.Cell().Element(HeaderSubCellStyle).AlignRight().Text("Debit").Bold();
-                    header.Cell().Element(HeaderSubCellStyle).AlignRight().Text("Credit").Bold();
-                    header.Cell().Element(HeaderSubCellStyle).AlignRight().Text("Debit").Bold();
-                    header.Cell().Element(HeaderSubCellStyle).AlignRight().Text("Credit").Bold();
-                    header.Cell().Element(HeaderSubCellStyle).AlignRight().Text("Debit").Bold();
-                    header.Cell().Element(HeaderSubCellStyle).AlignRight().Text("Credit").Bold();
+                    header.Cell().Element(HeaderSubCellStyle).AlignCenter().AlignMiddle().Text("Debit").Bold();
+                    header.Cell().Element(HeaderSubCellStyle).AlignCenter().AlignMiddle().Text("Credit").Bold();
+                    header.Cell().Element(HeaderSubCellStyle).AlignCenter().AlignMiddle().Text("Debit").Bold();
+                    header.Cell().Element(HeaderSubCellStyle).AlignCenter().AlignMiddle().Text("Credit").Bold();
+                    header.Cell().Element(HeaderSubCellStyle).AlignCenter().AlignMiddle().Text("Debit").Bold();
+                    header.Cell().Element(HeaderSubCellStyle).AlignCenter().AlignMiddle().Text("Credit").Bold();
                 });
 
                 foreach (var item in displayItems)
