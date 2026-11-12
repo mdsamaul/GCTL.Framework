@@ -53,8 +53,8 @@ window.DashboardAccounts = {
             this.gridTB = new Grid('t_g', {
                 card: 'g760',
                 sortable: false,
-                size: 15,
-                sizes: [15, 25, 50, 100],
+                size: 10,
+                sizes: [10, 15, 25, 50, 100],
                 rowCls: r => 'l' + (r.level || r.Level || 1),
                 groups: [
                     ['', 1],
@@ -63,13 +63,19 @@ window.DashboardAccounts = {
                     ['Closing Balance', 2]
                 ],
                 columns: [
-                    { k: 'particularName', l: 'Particulars', r: lv, x: r => ((r.code || r.Code) ? (r.code || r.Code) + ' – ' : '') + (r.particularName || r.ParticularName || '') },
-                    { k: 'opDr', l: 'Debit', t: 'money' },
-                    { k: 'opCr', l: 'Credit', t: 'money' },
-                    { k: 'trDr', l: 'Debit', t: 'money' },
-                    { k: 'trCr', l: 'Credit', t: 'money' },
-                    { k: 'clDr', l: 'Debit', t: 'money' },
-                    { k: 'clCr', l: 'Credit', t: 'money' }
+                    {
+                        k: 'particularName',
+                        l: 'Particulars',
+                        r: lv,
+                        v: r => ((r.code || r.Code) ? (r.code || r.Code) + ' ' : '') + (r.particularName || r.ParticularName || r.name || '') + ' ' + (r.particulars || r.Particulars || ''),
+                        x: r => ((r.code || r.Code) ? (r.code || r.Code) + ' – ' : '') + (r.particularName || r.ParticularName || '')
+                    },
+                    { k: 'opDr', l: 'Debit', t: 'money', v: r => r.opDr ?? r.OpDr },
+                    { k: 'opCr', l: 'Credit', t: 'money', v: r => r.opCr ?? r.OpCr },
+                    { k: 'trDr', l: 'Debit', t: 'money', v: r => r.trDr ?? r.TrDr },
+                    { k: 'trCr', l: 'Credit', t: 'money', v: r => r.trCr ?? r.TrCr },
+                    { k: 'clDr', l: 'Debit', t: 'money', v: r => r.clDr ?? r.ClDr },
+                    { k: 'clCr', l: 'Credit', t: 'money', v: r => r.clCr ?? r.ClCr }
                 ]
             });
 
