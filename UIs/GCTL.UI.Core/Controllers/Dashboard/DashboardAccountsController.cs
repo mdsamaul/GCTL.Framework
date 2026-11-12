@@ -44,5 +44,19 @@ namespace GCTL.UI.Core.Controllers.Dashboard
                 return Json(new { isSuccess = false, message = ex.Message });
             }
         }
+
+        [HttpPost("GetBalanceSheetData")]
+        public async Task<IActionResult> GetBalanceSheetData([FromBody] DashboardFilterDTO filter)
+        {
+            try
+            {
+                var data = await _accountsService.GetBalanceSheetDataAsync(filter ?? new DashboardFilterDTO());
+                return Json(new { isSuccess = true, data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isSuccess = false, message = ex.Message });
+            }
+        }
     }
 }

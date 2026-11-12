@@ -609,7 +609,7 @@ window.setSelect = setSelectVal;
 
 function getDateValue(id) {
     const el = document.getElementById(id);
-    if (!el) return '';
+    if (!el) return null;
     const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
     if (fp && fp.selectedDates && fp.selectedDates.length > 0) {
         const d = fp.selectedDates[0];
@@ -617,14 +617,30 @@ function getDateValue(id) {
         const month = String(d.getMonth() + 1).padStart(2, '0');
         return `${d.getFullYear()}-${month}-${day}`;
     }
-    const val = (el.value || '').trim();
-    if (!val) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-    const parts = val.split('/');
-    if (parts.length === 3) {
-        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    let val = (el.value || '').trim();
+    if (!val && fp && fp.altInput) {
+        val = (fp.altInput.value || '').trim();
     }
-    return val;
+    if (!val && el.parentElement) {
+        const alt = el.parentElement.querySelector('.flatpickr-alt-input');
+        if (alt) val = (alt.value || '').trim();
+    }
+    if (!val) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    const dmy = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (dmy) {
+        const day = dmy[1].padStart(2, '0');
+        const month = dmy[2].padStart(2, '0');
+        const year = dmy[3];
+        return `${year}-${month}-${day}`;
+    }
+    const parsed = new Date(val);
+    if (!isNaN(parsed.getTime())) {
+        const day = String(parsed.getDate()).padStart(2, '0');
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        return `${parsed.getFullYear()}-${month}-${day}`;
+    }
+    return null;
 }
 
 function getDateDisplay(id) {
@@ -645,6 +661,10 @@ function getDateDisplay(id) {
         const p = val.split('-');
         return `${p[2]}/${p[1]}/${p[0]}`;
     }
+    const dmy = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (dmy) {
+        return `${dmy[1].padStart(2, '0')}/${dmy[2].padStart(2, '0')}/${dmy[3]}`;
+    }
     return val;
 }
 
@@ -656,11 +676,16 @@ function setDateValue(id, dateObj) {
     const year = dateObj.getFullYear();
     const dmy = `${day}/${month}/${year}`;
     const iso = `${year}-${month}-${day}`;
-    const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
-    if (fp) {
-        fp.setDate(dateObj, false);
+    if (window.setDate) {
+        window.setDate('#' + id, dmy);
     } else {
-        el.value = iso;
+        const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
+        if (fp) {
+            fp.setDate(dateObj, false);
+            if (fp.altInput) fp.altInput.value = dmy;
+        } else {
+            el.value = iso;
+        }
     }
 }
 
@@ -794,8 +819,16 @@ const DashboardApp = {
             // Quick range change
             $(document).on('change', '#fRange', onRangeChanged);
 
-            // Date inputs change
-            $(document).on('change', '#fFrom, #fTo', onDateChanged);
+            // Date inputs & flatpickr alt-input change / blur / enter
+            $(document).on('change blur', '#fFrom, #fTo, input.flatpickr-alt-input, .custom-datepicker', onDateChanged);
+            $(document).on('keyup', '#fFrom, #fTo, input.flatpickr-alt-input', function (e) {
+                if (e.key === 'Enter') onDateChanged();
+            });
+
+            // Delegated click on flatpickr calendar day cells
+            $(document).on('click', '.flatpickr-day', function () {
+                setTimeout(onDateChanged, 50);
+            });
 
             // Delegated click for custom-select-2 dropdown options and clear icons
             $(document).on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-clear-icon, .custom-dd-item', function () {
@@ -814,7 +847,7 @@ const DashboardApp = {
             });
 
             // Manual typing in flatpickr alt-input
-            $(document).on('input change blur', '.flatpickr-alt-input', function () {
+            $(document).on('input', '.flatpickr-alt-input', function () {
                 triggerRefresh(300);
             });
         }
@@ -837,18 +870,26 @@ const DashboardApp = {
             const el = document.getElementById(id);
             if (!el) return;
             const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
-            if (fp && fp.config && Array.isArray(fp.config.onChange)) {
+            if (fp && fp.config) {
+                if (!Array.isArray(fp.config.onChange)) {
+                    fp.config.onChange = fp.config.onChange ? [fp.config.onChange] : [];
+                }
                 if (!fp.config.onChange.includes(onDateChanged)) {
                     fp.config.onChange.push(onDateChanged);
                 }
+                if (!Array.isArray(fp.config.onClose)) {
+                    fp.config.onClose = fp.config.onClose ? [fp.config.onClose] : [];
+                }
+                if (!fp.config.onClose.includes(onDateChanged)) {
+                    fp.config.onClose.push(onDateChanged);
+                }
             }
         };
-        hookFp('fFrom');
-        hookFp('fTo');
-        setTimeout(() => {
+        [50, 150, 300, 600, 1200, 2500].forEach(ms => setTimeout(() => { hookFp('fFrom'); hookFp('fTo'); }, ms));
+        $(document).on('focus click', '#fFrom, #fTo, .flatpickr-alt-input', () => {
             hookFp('fFrom');
             hookFp('fTo');
-        }, 150);
+        });
     },
 
     applyQuickRange(code) {

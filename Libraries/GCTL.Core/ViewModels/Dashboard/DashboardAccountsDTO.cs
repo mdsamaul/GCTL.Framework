@@ -49,5 +49,42 @@ namespace GCTL.Core.ViewModels.Dashboard
         public List<DashboardAccountsBalanceComp> AccountCompositions { get; set; } = new();
         public List<DashboardAccountsMonthlyCashFlow> MonthlyCashFlows { get; set; } = new();
         public List<DashboardCashBankAccountRow> AccountsList { get; set; } = new();
+        public DashboardBalanceSheetDTO BalanceSheet { get; set; } = new();
+    }
+
+    public class DashboardBalanceSheetKPIs
+    {
+        public decimal TotalAssets { get; set; }
+        public decimal NonCurrentAssets { get; set; }
+        public decimal CurrentAssets { get; set; }
+        public decimal TotalLiabilities { get; set; }
+        public decimal NonCurrentLiabilities { get; set; }
+        public decimal CurrentLiabilities { get; set; }
+        public decimal TotalEquity { get; set; }
+        public decimal ProfitOrLoss { get; set; }
+        public decimal WorkingCapital { get; set; }
+        public string CurrentRatio { get; set; } = "–";
+    }
+
+    public class DashboardBalanceSheetRowDTO
+    {
+        public string Label { get; set; } = string.Empty;
+        public decimal? Amt { get; set; }
+        public decimal? Pct { get; set; }
+        public string Kind { get; set; } = "item"; // "head", "item", "sub", "total"
+    }
+
+    public class DashboardChartSliceDTO
+    {
+        public string Label { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+    }
+
+    public class DashboardBalanceSheetDTO
+    {
+        public DashboardBalanceSheetKPIs KPIs { get; set; } = new();
+        public List<DashboardBalanceSheetRowDTO> Rows { get; set; } = new();
+        public List<DashboardChartSliceDTO> AssetsComposition { get; set; } = new();
+        public List<DashboardChartSliceDTO> EquityLiabilitiesComposition { get; set; } = new();
     }
 }

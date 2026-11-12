@@ -940,7 +940,7 @@ namespace GCTL.Service.BillService
                 var now = DateTime.Now;
                 string username = userInfo?.Username ?? "System";
                 string empId = !string.IsNullOrEmpty(userInfo?.EmployeeId) ? userInfo.EmployeeId : username;
-                string companyCode = !string.IsNullOrEmpty(userInfo?.CompanyCode) ? userInfo.CompanyCode : "GCTL";
+                string companyCode = !string.IsNullOrEmpty(userInfo?.CompanyCode) ? userInfo.CompanyCode : "001";
                 string ip = userInfo?.IPAddress ?? string.Empty;
                 string mac = userInfo?.MacAddress ?? string.Empty;
 
