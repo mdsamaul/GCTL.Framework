@@ -328,7 +328,7 @@
     padding: 6px 10px !important;
     background: #f1f5f2 !important;
     border-bottom: 1px solid #e0e8e4 !important;
-    text-transform: uppercase !important;
+    text-transform: capitalize !important;
     letter-spacing: 0.5px !important;
 }
 
