@@ -6,5 +6,6 @@ namespace GCTL.Service.Dashboard
     public interface IDashboardAccountsService
     {
         Task<DashboardAccountsDTO> GetAccountsDataAsync(DashboardFilterDTO filter);
+        Task<DashboardTrialBalanceDTO> GetTrialBalanceDataAsync(DashboardFilterDTO filter);
     }
 }
