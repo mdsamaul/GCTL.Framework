@@ -6,19 +6,23 @@
 window.DashboardAccounts = {
     currentSub: 'cb',
     gridCB: null,
-    gridTB: null,
     gridIS: null,
     gridBS: null,
+    lastFilter: null,
 
     initSubnav() {
         const subnav = document.getElementById('subnav');
-        if (subnav) {
+        if (subnav && !this._subnavBound) {
+            this._subnavBound = true;
             subnav.onclick = e => {
                 const b = e.target.closest('button');
                 if (!b) return;
                 this.currentSub = b.dataset.s;
                 d$$('#subnav button').forEach(x => x.classList.toggle('on', x.dataset.s === this.currentSub));
                 d$$('#p-accounts .sub').forEach(s => s.classList.toggle('on', s.id === 's-' + this.currentSub));
+                if (this.currentSub === 'tb' && window.DashboardTrialBalance && !window.DashboardTrialBalance.rawData) {
+                    window.DashboardTrialBalance.load(this.lastFilter);
+                }
             };
         }
     },
@@ -44,6 +48,7 @@ window.DashboardAccounts = {
     },
 
     async load(filter) {
+        this.lastFilter = filter;
         this.initSubnav();
         this.initGrids();
         if (window.DashboardApp) window.DashboardApp.showLoader('p-accounts');
@@ -59,6 +64,9 @@ window.DashboardAccounts = {
                 return;
             }
             this.render(res.data);
+
+            // Trial Balance (separate module)
+            if (window.DashboardTrialBalance) await window.DashboardTrialBalance.load(filter);
         } catch (err) {
             console.error('Error loading Accounts data:', err);
         } finally {
@@ -116,4 +124,3 @@ window.DashboardAccounts = {
         }
     }
 };
-
