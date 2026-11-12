@@ -55,7 +55,7 @@ namespace GCTL.Service.Finance.TrialBalance
                 // Centered School Name and Details
                 column.Item().AlignCenter().Column(col =>
                 {
-                    col.Item().AlignCenter().Text(_model.CompanyName ?? "School Management ERP")
+                    col.Item().AlignCenter().Text(_model.CompanyName ?? "Formosa Logistics Limited")
                         .FontSize(15).Bold().FontColor(PdfColors.TextDark);
 
                     col.Item().AlignCenter().Text("Trial Balance")

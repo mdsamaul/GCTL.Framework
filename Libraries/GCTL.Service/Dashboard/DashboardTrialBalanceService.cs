@@ -66,9 +66,10 @@ namespace GCTL.Service.Dashboard
         public async Task<byte[]> GeneratePdfAsync(DashboardFilterDTO filter, int level)
         {
             var today = DateTime.Today;
+            var compCode = string.IsNullOrWhiteSpace(filter.CompanyCode) ? "001" : filter.CompanyCode;
             var reportFilter = new TrialBalanceFilterVM
             {
-                Main_CompanyCode = filter.CompanyCode ?? string.Empty,
+                Main_CompanyCode = compCode,
                 BranchCode = string.IsNullOrWhiteSpace(filter.BranchCode) ? "All" : filter.BranchCode,
                 FromDate = filter.FromDate ?? today.AddMonths(-3),
                 ToDate = filter.ToDate ?? today,
