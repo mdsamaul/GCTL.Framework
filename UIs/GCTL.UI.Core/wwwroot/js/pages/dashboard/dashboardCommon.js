@@ -71,7 +71,7 @@ class Grid {
         this.rows = [];
         this.view = [];
         this.page = 1;
-        this.size = (this.o.size === -1 || this.o.size === 'All') ? 999999 : (Number(this.o.size) || 10);
+        this.size = this.o.size;
         this.sk = null;
         this.sd = 1;
         this.q = '';
@@ -83,7 +83,7 @@ class Grid {
                 const isAll = s === 'All' || s === -1;
                 const val = isAll ? -1 : s;
                 const label = isAll ? 'All' : s;
-                const selected = (isAll && this.size >= 999999) || (!isAll && s === this.size) ? 'selected' : '';
+                const selected = (isAll && this.size >= 999999) || s === this.size ? 'selected' : '';
                 return `<option value="${val}" ${selected}>${label}</option>`;
             }).join('');
             szEl.onchange = () => {
@@ -676,16 +676,18 @@ function setDateValue(id, dateObj) {
     const year = dateObj.getFullYear();
     const dmy = `${day}/${month}/${year}`;
     const iso = `${year}-${month}-${day}`;
+
     if (window.setDate) {
         window.setDate('#' + id, dmy);
-    } else {
-        const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
-        if (fp) {
-            fp.setDate(dateObj, false);
-            if (fp.altInput) fp.altInput.value = dmy;
-        } else {
-            el.value = iso;
-        }
+    }
+    const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
+    if (fp && typeof fp.setDate === 'function') {
+        fp.setDate(dateObj, false);
+        if (fp.altInput) fp.altInput.value = dmy;
+    }
+    el.value = dmy;
+    if (el.nextElementSibling && el.nextElementSibling.classList.contains('flatpickr-alt-input')) {
+        el.nextElementSibling.value = dmy;
     }
 }
 

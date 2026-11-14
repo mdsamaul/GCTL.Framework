@@ -17,7 +17,7 @@
 
     <!-- Subview 1: Cash & Bank Summary -->
     <div class="sub on" id="s-cb">
-        <div class="kpis">
+        <div class="kpis six">
             <div class="kpi sky" id="a_cash">
                 <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div>
                 <div class="kbody"><div class="klabel">Cash in Hand</div><div class="kval">0</div><div class="ksub">all cash registers</div></div>
@@ -26,25 +26,30 @@
                 <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M12 3L3 9h18z"/></svg></div>
                 <div class="kbody"><div class="klabel">Bank Balance</div><div class="kval">0</div><div class="ksub">active bank accounts</div></div>
             </div>
-            <div class="kpi green" id="a_dr">
-                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div>
-                <div class="kbody"><div class="klabel">Receipts (Dr)</div><div class="kval">0</div><div class="ksub">cash/bank inflow</div></div>
+            <div class="kpi blue" id="a_tb">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0zM5 7h14"/></svg></div>
+                <div class="kbody"><div class="klabel">Trial Balance</div><div class="kval">0</div><div class="ksub">Debit = Credit</div></div>
+            </div>
+            <div class="kpi green" id="a_np">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
+                <div class="kbody"><div class="klabel">Net Profit / (Loss)</div><div class="kval">0</div><div class="ksub">revenue - expense</div></div>
+            </div>
+            <div class="kpi purple" id="a_ta">
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg></div>
+                <div class="kbody"><div class="klabel">Total Assets</div><div class="kval">0</div><div class="ksub">current + non-current</div></div>
             </div>
             <div class="kpi orange" id="a_cr">
-                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div>
-                <div class="kbody"><div class="klabel">Payments (Cr)</div><div class="kval">0</div><div class="ksub">cash/bank outflow</div></div>
-            </div>
-            <div class="kpi purple" id="a_net">
-                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div>
-                <div class="kbody"><div class="klabel">Net Cash Flow</div><div class="kval">0</div><div class="ksub">inflow - outflow</div></div>
+                <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg></div>
+                <div class="kbody"><div class="klabel">Current Ratio</div><div class="kval">0</div><div class="ksub">current assets / current liabilities</div></div>
             </div>
         </div>
 
         <div class="minis">
-            <div class="mini blue" id="am_top"><div class="mlbl">Largest Bank Account</div><div class="mval">-</div><div class="msub">highest liquid balance</div></div>
-            <div class="mini green" id="am_cnt"><div class="mlbl">Active Accounts</div><div class="mval">0</div><div class="msub">cash &amp; bank accounts</div></div>
-            <div class="mini sky" id="am_qr"><div class="mlbl">Quick Ratio</div><div class="mval">1.42</div><div class="msub">liquid assets / current liab</div></div>
-            <div class="mini purple" id="am_nm"><div class="mlbl">Net Profit Margin</div><div class="mval">24.5%</div><div class="msub">net income / revenue</div></div>
+            <div class="mini blue" id="am_ar"><div class="mlbl">Trade Receivable</div><div class="mval">0</div><div class="msub">customer receivables</div></div>
+            <div class="mini red" id="am_ap"><div class="mlbl">Trade Payable</div><div class="mval">0</div><div class="msub">vendor payables</div></div>
+            <div class="mini green" id="am_wc"><div class="mlbl">Working Capital</div><div class="mval">0</div><div class="msub">current assets - current liab</div></div>
+            <div class="mini sky" id="am_qr"><div class="mlbl">Quick Ratio</div><div class="mval">0</div><div class="msub">liquid assets / current liab</div></div>
+            <div class="mini purple" id="am_nm"><div class="mlbl">Net Profit Margin</div><div class="mval">0%</div><div class="msub">net profit / revenue</div></div>
         </div>
 
         <div class="row c3">
@@ -53,11 +58,11 @@
                 <div class="cwrap"><canvas id="a_ch1"></canvas></div>
             </section>
             <section class="card">
-                <div class="chdr"><h3>Cash + Bank Flow</h3><span>monthly net flow</span></div>
+                <div class="chdr"><h3>Cash + Bank Trend</h3><span>month-end</span></div>
                 <div class="cwrap"><canvas id="a_ch2"></canvas></div>
             </section>
             <section class="card">
-                <div class="chdr"><h3>Receipts vs Payments</h3><span>monthly inflow vs outflow</span></div>
+                <div class="chdr"><h3>Income vs Expense</h3><span>monthly</span></div>
                 <div class="cwrap"><canvas id="a_ch3"></canvas></div>
             </section>
         </div>
@@ -126,4 +131,3 @@
         </section>
     </div>
 </section>
-
