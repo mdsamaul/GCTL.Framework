@@ -10,6 +10,9 @@
     let airTable = null;
     let reloadDebounceTimer = null;
     let currentAjaxRequest = null;
+    let userModeOverride = 'Air';
+    let isProgrammaticDateUpdate = false;
+    let isSilentDropdownUpdate = false;
 
     // In-memory dataset cache for instant (< 2ms) filtering and switching
     const cachedData = {
@@ -19,34 +22,73 @@
     };
 
     $(document).ready(function () {
+        ensureDefaultAirImport();
         initDefaultDates();
         initDataTables();
-        ensureDefaultAir();
         bindEvents();
-        updateTableVisibility('Air');
+        updateTableVisibility(getActiveMode());
         loadJobStatusData(true);
+
+        // Ensure custom dropdown widget displays Air Import if initialized after ready handler
+        setTimeout(function () {
+            ensureDefaultAirImport();
+        }, 50);
+        setTimeout(function () {
+            ensureDefaultAirImport();
+        }, 200);
     });
 
     /**
-     * Ensure "Air Freight" is selected as default if nothing is selected
+     * Ensures Air Import (ExpenseTypeID '0001') is selected by default on initial load
      */
-    function ensureDefaultAir() {
-        var current = getDropdownValue('filterShipmentMode');
-        if (!current) {
-            silentSetDropdownValue('filterShipmentMode', 'Air');
+    function ensureDefaultAirImport() {
+        var $sel = $('#filterShipmentMode');
+        if (!$sel.length) return;
+
+        var defaultVal = '0001';
+        var defaultText = 'Air Import';
+        var $opt = $sel.find('option[value="0001"]');
+        if (!$opt.length) {
+            $opt = $sel.find('option').filter(function () {
+                return $.trim($(this).text()).toLowerCase() === 'air import';
+            }).first();
+        }
+        if ($opt.length) {
+            defaultVal = $opt.attr('value') || '0001';
+            defaultText = $.trim($opt.text()) || 'Air Import';
+        }
+
+        var currentVal = getDropdownValue('filterShipmentMode');
+        if (!currentVal) {
+            silentSetDropdownValue('filterShipmentMode', defaultVal, defaultText);
+            userModeOverride = 'Air';
         }
     }
 
     /**
-     * Determines whether the active mode is 'Air' or 'Sea'.
-     * Defaults to 'Air' under all circumstances unless explicitly 'Sea'.
+     * Determines whether the active mode is 'Air' or 'Sea'
+     * based on the selected Shipment Mode's TransportModeTypeId ('001' = Air, '002' = Sea)
+     * or userModeOverride when no specific Shipment Mode is selected.
      */
     function getActiveMode() {
         var modeVal = (getDropdownValue('filterShipmentMode') || '').trim();
+        if (!modeVal) {
+            return userModeOverride || 'Air';
+        }
+
         var $sel = $('#filterShipmentMode');
+        var $opt = $sel.find('option[value="' + modeVal + '"]');
+        var transportMode = ($opt.attr('data-transport-mode') || '').trim();
+
+        if (transportMode === '001') {
+            return 'Air';
+        }
+        if (transportMode === '002') {
+            return 'Sea';
+        }
+
         var inst = $sel.data('customDdInstance');
         var text = '';
-
         if (inst) {
             if (typeof inst.getText === 'function') {
                 var t = inst.getText();
@@ -56,29 +98,24 @@
                 text = inst.$input.val() || '';
             }
         }
-        if (!text && modeVal) {
-            text = $sel.find('option[value="' + modeVal + '"]').text() || '';
+        if (!text && $opt.length) {
+            text = $opt.text() || '';
         }
 
         var lowerVal = modeVal.toLowerCase();
         var lowerText = (text || '').toLowerCase();
 
-        // 1. Explicit Sea checks
-        if (lowerVal === 'sea' || lowerText.indexOf('sea') !== -1) {
-            return 'Sea';
-        }
-        // Known Sea expense types (0004=Sea Import CTG, 0005=Sea Export CTG, 0006=Sea Export Pangaon, etc.)
-        if (['0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017'].indexOf(modeVal) !== -1) {
-            return 'Sea';
-        }
-
-        // 2. Explicit Air checks
-        if (lowerVal === 'air' || lowerText.indexOf('air') !== -1 || ['0001', '0002', '0003'].indexOf(modeVal) !== -1) {
+        // Air checks (database IDs 0001-0003 or explicit Air label)
+        if (['0001', '0002', '0003'].indexOf(modeVal) !== -1 || lowerVal === 'air' || lowerText.indexOf('air') !== -1) {
             return 'Air';
         }
 
-        // 3. Fallback: Default mode is ALWAYS 'Air'
-        return 'Air';
+        // Explicit Sea or remaining database ExpenseTypeIDs
+        if (lowerVal === 'sea' || lowerText.indexOf('sea') !== -1) {
+            return 'Sea';
+        }
+
+        return 'Sea';
     }
 
     /**
@@ -90,6 +127,8 @@
             $('#seaTableContainer').show();
             $('#airTableContainer').hide();
             $('#gridTitle').html('<i class="fas fa-ship text-info me-2"></i>Job List(Sea):');
+            $('#btnModeSea').addClass('active');
+            $('#btnModeAir').removeClass('active');
             if (seaTable) {
                 requestAnimationFrame(function () {
                     seaTable.columns.adjust();
@@ -99,6 +138,8 @@
             $('#airTableContainer').show();
             $('#seaTableContainer').hide();
             $('#gridTitle').html('<i class="fas fa-plane text-primary me-2"></i>Job List(Air):');
+            $('#btnModeAir').addClass('active');
+            $('#btnModeSea').removeClass('active');
             if (airTable) {
                 requestAnimationFrame(function () {
                     airTable.columns.adjust();
@@ -108,51 +149,102 @@
     }
 
     /**
-     * Initialize default date values (First day of month to today)
+     * Sets a datepicker input programmatically without triggering manual-date 'custom' override
+     */
+    function setDateValue(id, dateObj) {
+        var el = document.getElementById(id);
+        if (!el || !dateObj) return;
+
+        var day = String(dateObj.getDate()).padStart(2, '0');
+        var month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        var year = dateObj.getFullYear();
+        var dmy = day + '/' + month + '/' + year;
+        var iso = year + '-' + month + '-' + day;
+
+        isProgrammaticDateUpdate = true;
+        try {
+            var $el = $(el);
+            var fp = $el.data('customFpInstance') || el._flatpickr;
+            if (fp && typeof fp.setDate === 'function') {
+                fp.setDate(dateObj, false);
+                if (fp.altInput) fp.altInput.value = dmy;
+                el.value = iso;
+            } else if (typeof window.setDate === 'function') {
+                window.setDate('#' + id, dmy);
+            } else {
+                el.value = dmy;
+            }
+
+            if (el.nextElementSibling && el.nextElementSibling.classList.contains('flatpickr-alt-input')) {
+                el.nextElementSibling.value = dmy;
+            }
+        } finally {
+            setTimeout(function () {
+                isProgrammaticDateUpdate = false;
+            }, 0);
+        }
+    }
+
+    /**
+     * Applies Quick Range preset to FromDate and ToDate (matching Dashboard filter)
+     */
+    function applyQuickRange(code) {
+        if (!code || code === 'custom') return;
+
+        var today = new Date();
+        var from = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        var to = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        switch (code) {
+            case 'today':
+                break;
+            case '7d':
+                from.setDate(today.getDate() - 7);
+                break;
+            case '30d':
+                from.setDate(today.getDate() - 30);
+                break;
+            case 'this_month':
+                from = new Date(today.getFullYear(), today.getMonth(), 1);
+                break;
+            case 'last_month':
+                from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                to = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+            case '3m':
+                from.setMonth(today.getMonth() - 3);
+                break;
+            case '6m':
+                from.setMonth(today.getMonth() - 6);
+                break;
+            case '1y':
+                from.setFullYear(today.getFullYear() - 1);
+                break;
+            default:
+                return;
+        }
+
+        setDateValue('filterFromDate', from);
+        setDateValue('filterToDate', to);
+    }
+
+    /**
+     * Initialize default date values (Quick Range: Last 3 Months)
      */
     function initDefaultDates() {
+        var quickRange = getDropdownValue('filterQuickRange') || $('#filterQuickRange').val() || '3m';
+        if (quickRange && quickRange !== 'custom') {
+            applyQuickRange(quickRange);
+            return;
+        }
+
         var now = new Date();
-        var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        var formatDate = function (d) {
-            var day = String(d.getDate()).padStart(2, '0');
-            var month = String(d.getMonth() + 1).padStart(2, '0');
-            var year = d.getFullYear();
-            return day + '/' + month + '/' + year;
-        };
-
-        var fromStr = formatDate(firstDay);
-        var toStr = formatDate(now);
-
-        var $from = $('#filterFromDate');
-        var $to = $('#filterToDate');
-
-        if (!$from.val()) {
-            $from.val(fromStr);
+        var threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        if (!getDateValue('filterFromDate')) {
+            setDateValue('filterFromDate', threeMonthsAgo);
         }
-        if (!$to.val()) {
-            $to.val(toStr);
-        }
-
-        // Sync Flatpickr instances if already initialized by layout
-        var fpFrom = $from.data('customFpInstance') || ($from[0] ? $from[0]._flatpickr : null);
-        if (fpFrom) {
-            if (!fpFrom.selectedDates || !fpFrom.selectedDates.length) {
-                fpFrom.setDate(firstDay, false);
-            }
-            if (fpFrom.altInput && !fpFrom.altInput.value) {
-                fpFrom.altInput.value = fromStr;
-            }
-        }
-
-        var fpTo = $to.data('customFpInstance') || ($to[0] ? $to[0]._flatpickr : null);
-        if (fpTo) {
-            if (!fpTo.selectedDates || !fpTo.selectedDates.length) {
-                fpTo.setDate(now, false);
-            }
-            if (fpTo.altInput && !fpTo.altInput.value) {
-                fpTo.altInput.value = toStr;
-            }
+        if (!getDateValue('filterToDate')) {
+            setDateValue('filterToDate', now);
         }
     }
 
@@ -225,7 +317,7 @@
             deferRender: true,
             dom: '<"d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"lf><"table-responsive"rt><"d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2"ip>',
             pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            lengthMenu: [[5, 10, 25, 100, -1], [5, 10, 25, 100, "All"]],
             order: [[1, 'asc']],
             autoWidth: false,
             columnDefs: [{ targets: '_all', defaultContent: '', className: 'text-center align-middle' }],
@@ -361,7 +453,7 @@
             deferRender: true,
             dom: '<"d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"lf><"table-responsive"rt><"d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2"ip>',
             pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            lengthMenu: [[5, 10, 25, 100, -1], [5, 10, 25, 100, "All"]],
             order: [[1, 'asc']],
             autoWidth: false,
             columnDefs: [{ targets: '_all', defaultContent: '', className: 'text-center align-middle' }],
@@ -506,28 +598,100 @@
      * Bind all user interaction events cleanly
      */
     function bindEvents() {
+        var onManualDateChange = function (delayMs) {
+            if (isProgrammaticDateUpdate) return;
+            silentSetDropdownValue('filterQuickRange', 'custom');
+            requestDataReload(delayMs);
+        };
+
+        var onQuickRangeChange = function () {
+            if (isSilentDropdownUpdate) return;
+            var code = getDropdownValue('filterQuickRange');
+            if (code && code !== 'custom') {
+                applyQuickRange(code);
+                requestDataReload(30);
+            }
+        };
+
         // 1. Date inputs (typing, picker selection, alt-input change)
         $(document).on('change', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
-            requestDataReload(150);
+            onManualDateChange(150);
         });
-        $(document).on('input', '#filterFromDate, #filterToDate', function () {
-            requestDataReload(350);
+        $(document).on('input', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
+            onManualDateChange(350);
         });
+
+        // Hook Flatpickr instances for #filterFromDate and #filterToDate
+        var hookFp = function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var fp = $(el).data('customFpInstance') || el._flatpickr;
+            if (fp && fp.config) {
+                if (!Array.isArray(fp.config.onChange)) {
+                    fp.config.onChange = fp.config.onChange ? [fp.config.onChange] : [];
+                }
+                if (!fp._jobReportOnChangeBound) {
+                    fp._jobReportOnChangeBound = true;
+                    fp.config.onChange.push(function () {
+                        onManualDateChange(150);
+                    });
+                }
+            }
+        };
+        [50, 200, 600, 1200].forEach(function (ms) {
+            setTimeout(function () {
+                hookFp('filterFromDate');
+                hookFp('filterToDate');
+            }, ms);
+        });
+        $(document).on('focus click', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
+            hookFp('filterFromDate');
+            hookFp('filterToDate');
+        });
+
+        // 1b. Quick Range change
+        $('#filterQuickRange').on('change', onQuickRangeChange);
 
         // 2. Standard select change events
         $('#filterCustomerId, #filterPortType, #filterBranchCode').on('change', function () {
+            if (isSilentDropdownUpdate) return;
             requestDataReload(30);
         });
 
         // 3. Shipment Mode change: update visibility immediately, then reload
         $('#filterShipmentMode').on('change', function () {
+            if (isSilentDropdownUpdate) return;
+            var modeVal = getDropdownValue('filterShipmentMode');
             var mode = getActiveMode();
+            if (modeVal) {
+                userModeOverride = mode;
+            }
             updateTableVisibility(mode);
             requestDataReload(30);
         });
 
+        // 3b. Header Air / Sea switch buttons (used alongside DB Shipment Mode dropdown)
+        $('#btnModeAir').on('click', function () {
+            userModeOverride = 'Air';
+            if (getDropdownValue('filterShipmentMode') && getActiveMode() !== 'Air') {
+                silentSetDropdownValue('filterShipmentMode', '');
+            }
+            updateTableVisibility('Air');
+            loadJobStatusData(false);
+        });
+
+        $('#btnModeSea').on('click', function () {
+            userModeOverride = 'Sea';
+            if (getDropdownValue('filterShipmentMode') && getActiveMode() !== 'Sea') {
+                silentSetDropdownValue('filterShipmentMode', '');
+            }
+            updateTableVisibility('Sea');
+            loadJobStatusData(false);
+        });
+
         // 4. Job Status dropdown change: Instant in-memory filter (0 ms)
         $('#filterJobStatus').on('change', function () {
+            if (isSilentDropdownUpdate) return;
             var status = getDropdownValue('filterJobStatus');
             highlightStatCard(status);
             applyStatusFilterInstant(status);
@@ -535,6 +699,7 @@
 
         // 5. Export Format dropdown change: Automatic Export Trigger
         $('#filterExportFormat').on('change', function () {
+            if (isSilentDropdownUpdate) return;
             handleExportTrigger();
         });
 
@@ -544,14 +709,20 @@
             var selectId = $wrapper.prev('select').attr('id');
 
             setTimeout(function () {
-                if (selectId === 'filterExportFormat') {
+                if (selectId === 'filterQuickRange') {
+                    onQuickRangeChange();
+                } else if (selectId === 'filterExportFormat') {
                     handleExportTrigger();
                 } else if (selectId === 'filterJobStatus') {
                     var status = getDropdownValue('filterJobStatus');
                     highlightStatCard(status);
                     applyStatusFilterInstant(status);
                 } else if (selectId === 'filterShipmentMode') {
+                    var modeVal = getDropdownValue('filterShipmentMode');
                     var mode = getActiveMode();
+                    if (modeVal) {
+                        userModeOverride = mode;
+                    }
                     updateTableVisibility(mode);
                     requestDataReload(30);
                 } else {
@@ -676,13 +847,15 @@
      * Generates a unique key for the current base filter values
      */
     function getBaseFilterKey() {
+        var shipmentMode = getDropdownValue('filterShipmentMode');
         return [
             getDateValue('filterFromDate'),
             getDateValue('filterToDate'),
             getDropdownValue('filterBranchCode'),
             getDropdownValue('filterCustomerId'),
             getDropdownValue('filterPortType'),
-            getDropdownValue('filterShipmentMode')
+            shipmentMode,
+            shipmentMode ? getActiveMode() : 'ALL'
         ].join('|');
     }
 
@@ -912,16 +1085,23 @@
     /**
      * Silently update dropdown UI without firing change event
      */
-    function silentSetDropdownValue(id, value) {
+    function silentSetDropdownValue(id, value, text) {
         var $el = $('#' + id);
         if (!$el.length) return;
 
-        $el.val(value);
-        var inst = $el.data('customDdInstance');
-        if (inst && typeof inst.setSelected === 'function') {
-            inst.setSelected(value);
-        } else if (inst && typeof inst.setValue === 'function') {
-            inst.setValue(value);
+        isSilentDropdownUpdate = true;
+        try {
+            $el.val(value);
+            var inst = $el.data('customDdInstance');
+            if (inst && typeof inst.setSelected === 'function') {
+                inst.setSelected(value);
+            } else if (inst && typeof inst.setValue === 'function') {
+                inst.setValue(value, text);
+            } else if (typeof window.setCustomDropdownValue === 'function') {
+                window.setCustomDropdownValue(id, value, text);
+            }
+        } finally {
+            isSilentDropdownUpdate = false;
         }
     }
 

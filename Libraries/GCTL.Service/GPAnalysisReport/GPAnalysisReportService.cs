@@ -209,9 +209,9 @@ namespace GCTL.Service.GPAnalysisReport
         private (DateTime fromDate, DateTime toDate, string dateUse) ParseDates(GPAnalysisReportFilter filter)
         {
             string dateUse = "Y";
-            // Default FromDate to first day of previous month so default load always finds data
+            // Default FromDate to 3 months ago (Last 3 Months) so default load matches the Quick Range default
             DateTime now = DateTime.Now;
-            DateTime fromDate = new DateTime(now.Year, now.Month, 1);
+            DateTime fromDate = now.Date.AddMonths(-3);
             DateTime toDate = now.Date;
 
             string[] formats = { "dd/MM/yyyy", "dd-MM-yyyy", "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy", "d/M/yyyy" };

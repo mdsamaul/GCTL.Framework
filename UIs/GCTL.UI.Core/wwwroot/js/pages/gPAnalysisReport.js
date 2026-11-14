@@ -40,6 +40,8 @@
     let gridTable = null;
     let filterDebounceTimer = null;
     let isInitialized = false;
+    let isProgrammaticDateUpdate = false;
+    let isSilentDropdownUpdate = false;
 
     $(document).ready(function () {
         if ($.fn.dataTable && $.fn.dataTable.ext) {
@@ -50,13 +52,121 @@
         initGrid();
         bindEvents();
         setTimeout(function () {
+            if (!getDropdownValue('filterQuickRange')) {
+                silentSetDropdownValue('filterQuickRange', '3m');
+            }
+        }, 50);
+        setTimeout(function () {
             isInitialized = true;
         }, 500);
     });
 
+    function silentSetDropdownValue(id, value, text) {
+        var $el = $('#' + id);
+        if (!$el.length) return;
+
+        isSilentDropdownUpdate = true;
+        try {
+            $el.val(value);
+            var inst = $el.data('customDdInstance');
+            if (inst && typeof inst.setSelected === 'function') {
+                inst.setSelected(value);
+            } else if (inst && typeof inst.setValue === 'function') {
+                inst.setValue(value, text);
+            } else if (typeof window.setCustomDropdownValue === 'function') {
+                window.setCustomDropdownValue(id, value, text);
+            }
+        } finally {
+            isSilentDropdownUpdate = false;
+        }
+    }
+
+    function setDateValue(id, dateObj) {
+        var el = document.getElementById(id);
+        if (!el || !dateObj) return;
+
+        var day = String(dateObj.getDate()).padStart(2, '0');
+        var month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        var year = dateObj.getFullYear();
+        var dmy = day + '/' + month + '/' + year;
+        var iso = year + '-' + month + '-' + day;
+
+        isProgrammaticDateUpdate = true;
+        try {
+            var $el = $(el);
+            var fp = $el.data('customFpInstance') || el._flatpickr;
+            if (fp && typeof fp.setDate === 'function') {
+                fp.setDate(dateObj, false);
+                if (fp.altInput) fp.altInput.value = dmy;
+                el.value = iso;
+            } else if (typeof window.setDate === 'function') {
+                window.setDate('#' + id, dmy);
+            } else {
+                el.value = dmy;
+            }
+
+            if (el.nextElementSibling && el.nextElementSibling.classList.contains('flatpickr-alt-input')) {
+                el.nextElementSibling.value = dmy;
+            }
+        } finally {
+            setTimeout(function () {
+                isProgrammaticDateUpdate = false;
+            }, 0);
+        }
+    }
+
+    function applyQuickRange(code) {
+        if (!code || code === 'custom') return;
+
+        var today = new Date();
+        var from = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        var to = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        switch (code) {
+            case 'today':
+                break;
+            case '7d':
+                from.setDate(today.getDate() - 7);
+                break;
+            case '30d':
+                from.setDate(today.getDate() - 30);
+                break;
+            case 'this_month':
+                from = new Date(today.getFullYear(), today.getMonth(), 1);
+                break;
+            case 'last_month':
+                from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                to = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+            case '3m':
+                from.setMonth(today.getMonth() - 3);
+                break;
+            case '6m':
+                from.setMonth(today.getMonth() - 6);
+                break;
+            case '1y':
+                from.setFullYear(today.getFullYear() - 1);
+                break;
+            default:
+                return;
+        }
+
+        // Relax existing Flatpickr min/max constraints before applying a new range
+        var fromEl = document.getElementById('filterFromDate');
+        var toEl = document.getElementById('filterToDate');
+        var fromFp = (fromEl && fromEl._flatpickr) || $('#filterFromDate').data('customFpInstance');
+        var toFp = (toEl && toEl._flatpickr) || $('#filterToDate').data('customFpInstance');
+        if (fromFp && typeof fromFp.set === 'function') fromFp.set('maxDate', null);
+        if (toFp && typeof toFp.set === 'function') toFp.set('minDate', null);
+
+        setDateValue('filterFromDate', from);
+        setDateValue('filterToDate', to);
+        updateDateLimits();
+    }
+
     function initDefaultDates() {
         var now = new Date();
-        var currentMonthFirstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        var defaultFromDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
 
         var formatDate = function (d) {
             var day = String(d.getDate()).padStart(2, '0');
@@ -65,7 +175,7 @@
             return day + '/' + month + '/' + year;
         };
 
-        var fromStr = formatDate(currentMonthFirstDay);
+        var fromStr = formatDate(defaultFromDate);
         var toStr = formatDate(now);
 
         var $from = $('#filterFromDate');
@@ -78,12 +188,21 @@
             $to.val(toStr);
         }
 
-        // Sync Flatpickr instances so the calendar has the date selected like in screenshots
+        if (!getDropdownValue('filterQuickRange')) {
+            silentSetDropdownValue('filterQuickRange', '3m');
+        }
+
+        // Sync Flatpickr instances so the calendar has the default 3-month range selected
         var syncFlatpickr = function () {
             var fpFrom = $from.data('customFpInstance') || ($from[0] ? $from[0]._flatpickr : null);
             if (fpFrom) {
                 if (!fpFrom.selectedDates || !fpFrom.selectedDates.length) {
-                    fpFrom.setDate(currentMonthFirstDay, false);
+                    isProgrammaticDateUpdate = true;
+                    try {
+                        fpFrom.setDate(defaultFromDate, false);
+                    } finally {
+                        isProgrammaticDateUpdate = false;
+                    }
                 }
                 if (fpFrom.altInput && !fpFrom.altInput.value) {
                     fpFrom.altInput.value = fromStr;
@@ -95,7 +214,12 @@
             var fpTo = $to.data('customFpInstance') || ($to[0] ? $to[0]._flatpickr : null);
             if (fpTo) {
                 if (!fpTo.selectedDates || !fpTo.selectedDates.length) {
-                    fpTo.setDate(now, false);
+                    isProgrammaticDateUpdate = true;
+                    try {
+                        fpTo.setDate(now, false);
+                    } finally {
+                        isProgrammaticDateUpdate = false;
+                    }
                 }
                 if (fpTo.altInput && !fpTo.altInput.value) {
                     fpTo.altInput.value = toStr;
@@ -174,6 +298,7 @@
 
         if (fromFp.config && Array.isArray(fromFp.config.onChange)) {
             fromFp.config.onChange.push(function (selectedDates) {
+                if (isProgrammaticDateUpdate) return;
                 var selected = selectedDates && selectedDates[0];
                 if (selected && toFp && typeof toFp.set === 'function') {
                     if (!toFp.config._minDate || toFp.config._minDate.getTime() !== selected.getTime()) {
@@ -184,12 +309,14 @@
                         toFp.setDate(selected, false);
                     }
                 }
+                silentSetDropdownValue('filterQuickRange', 'custom');
                 onFilterChanged();
             });
         }
 
         if (toFp.config && Array.isArray(toFp.config.onChange)) {
             toFp.config.onChange.push(function (selectedDates) {
+                if (isProgrammaticDateUpdate) return;
                 var selected = selectedDates && selectedDates[0];
                 if (selected && fromFp && typeof fromFp.set === 'function') {
                     if (!fromFp.config._maxDate || fromFp.config._maxDate.getTime() !== selected.getTime()) {
@@ -200,6 +327,7 @@
                         fromFp.setDate(selected, false);
                     }
                 }
+                silentSetDropdownValue('filterQuickRange', 'custom');
                 onFilterChanged();
             });
         }
@@ -333,6 +461,7 @@
             gridTable = $.gctlGrid.initFromModel({
                 gridId: 'gPAnalysisReportTable',
                 extraOptions: {
+                    lengthMenu: [[5, 10, 25, 100, -1], [5, 10, 25, 100, 'All']],
                     columnDefs: [
                         { defaultContent: '-', targets: '_all' }
                     ]
@@ -430,12 +559,26 @@
         window.location.href = '/GPAnalysisReport/Export?' + queryParams;
     }
 
+    function onQuickRangeChange() {
+        if (isSilentDropdownUpdate) return;
+        var code = getDropdownValue('filterQuickRange');
+        if (code && code !== 'custom') {
+            applyQuickRange(code);
+            isInitialized = true;
+            onFilterChanged();
+        }
+    }
+
     function bindEvents() {
-        $(document).on('change', '#filterFromDate, #filterToDate, #filterBranchCode', function () {
+        $(document).on('change', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
+            if (isProgrammaticDateUpdate) return;
+            silentSetDropdownValue('filterQuickRange', 'custom');
             onFilterChanged();
         });
 
-        $('#filterShipmentMode, #filterCustomerId').on('change', function () {
+        $('#filterQuickRange').on('change', onQuickRangeChange);
+
+        $('#filterBranchCode, #filterShipmentMode, #filterCustomerId').on('change', function () {
             onFilterChanged();
         });
 
@@ -453,8 +596,16 @@
         });
 
         // Delegate clicks on custom dropdown options, checkboxes, tag removals, and clear buttons
-        $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-tag-remove, .custom-dd-select-all', function () {
-            setTimeout(onFilterChanged, 60);
+        $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-clear-icon, .custom-dd-item, .custom-dd-tag-remove, .custom-dd-select-all', function () {
+            var $wrapper = $(this).closest('.custom-dd-wrapper');
+            var selectId = $wrapper.prev('select').attr('id');
+            setTimeout(function () {
+                if (selectId === 'filterQuickRange') {
+                    onQuickRangeChange();
+                } else {
+                    onFilterChanged();
+                }
+            }, 60);
         });
 
         $('#btnPreview').on('click', function (e) {

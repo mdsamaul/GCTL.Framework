@@ -269,7 +269,7 @@ namespace GCTL.UI.Core.Controllers
                 Compact = true,
                 CustomGridWrapper = false,
                 DefaultPageLength = 10,
-                PageLengths = new[] { 10, 25, 50, 100, -1 },
+                PageLengths = new[] { 5, 10, 25, 100, -1 },
                 Hover = true,
                 ShowCheckbox = false,
                 ShowPagination = true,

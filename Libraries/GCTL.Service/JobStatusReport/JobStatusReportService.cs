@@ -220,7 +220,11 @@ namespace GCTL.Service.JobStatusReport
               END
           ) = @BranchCode
       )
-      AND (e.ExpenseType IS NULL OR (e.ExpenseType NOT LIKE '%Air%' AND ISNULL(d.HAWB, '') = '' AND ISNULL(d.MAWB, '') = ''))
+      AND (
+          @ShipmentTypeId <> ''
+          OR RTRIM(ISNULL(e.TransportModeTypeId, '')) = '002'
+          OR (RTRIM(ISNULL(e.TransportModeTypeId, '')) <> '001' AND ISNULL(d.ExpenseTypeID, '') NOT IN ('0001','0002','0003') AND ISNULL(e.ExpenseType, '') NOT LIKE '%Air%')
+      )
 ),
 Updates AS (
     SELECT 
@@ -729,7 +733,12 @@ ORDER BY fj.JobNo ASC;
               END
           ) = @BranchCode
       )
-      AND (e.ExpenseType LIKE '%Air%' OR ISNULL(d.HAWB, '') <> '' OR ISNULL(d.MAWB, '') <> '' OR d.ExpenseTypeID IN ('0001','0002','0003'))
+      AND (
+          @ShipmentTypeId <> ''
+          OR RTRIM(ISNULL(e.TransportModeTypeId, '')) = '001'
+          OR d.ExpenseTypeID IN ('0001','0002','0003')
+          OR e.ExpenseType LIKE '%Air%'
+      )
 ),
 Updates AS (
     SELECT 
@@ -2561,15 +2570,7 @@ ORDER BY fj.JobNo ASC;
         #endregion
 
         private static (string statusText, string statusClass) ResolveAirStatus(string? rawStatus)
-        {
-            string s = (rawStatus ?? "").Trim();
-            if (s == "06" || s.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
-                return ("Delivered", "delivered");
-            if (s == "01" || s == "02" || s == "03" || s == "04" || s == "05" ||
-                s.Equals("In Transit", StringComparison.OrdinalIgnoreCase) || s.Equals("transit", StringComparison.OrdinalIgnoreCase))
-                return ("In Transit", "transit");
-            return ("Pending", "pending");
-        }
+            => ResolveUnifiedShipmentStatus(rawStatus);
 
         private static (string status, string voucherNo) ResolveVoucherStatus(string? rawApproval, string? rawVoucherNo)
         {
@@ -2609,13 +2610,32 @@ ORDER BY fj.JobNo ASC;
         }
 
         private static (string statusText, string statusClass) ResolveSeaStatus(string? rawStatus)
+            => ResolveUnifiedShipmentStatus(rawStatus);
+
+        private static (string statusText, string statusClass) ResolveUnifiedShipmentStatus(string? rawStatus)
         {
             string s = (rawStatus ?? "").Trim();
-            if (s == "14" || s.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
+            string upper = s.ToUpperInvariant();
+
+            if (s == "06" || s == "14" ||
+                upper.Contains("DELIV") ||
+                upper.Contains("DELEVER") ||
+                upper.Contains("DLIVER") ||
+                upper.Contains("SUCCESS") ||
+                upper.Contains("HANDOVER") ||
+                upper == "SHIPMENT DONE")
+            {
                 return ("Delivered", "delivered");
-            if (s == "01" || s == "02" || s == "03" || s == "04" || s == "05" || s == "07" || s == "08" || s == "09" || s == "10" || s == "11" || s == "12" || s == "13" ||
-                s.Equals("In Transit", StringComparison.OrdinalIgnoreCase) || s.Equals("transit", StringComparison.OrdinalIgnoreCase))
+            }
+
+            if (s == "01" || s == "02" || s == "03" || s == "04" || s == "05" ||
+                s == "07" || s == "08" || s == "09" || s == "10" || s == "11" || s == "12" || s == "13" ||
+                upper.Contains("TRANSIT") ||
+                upper.Contains("PROCESS"))
+            {
                 return ("In Transit", "transit");
+            }
+
             return ("Pending", "pending");
         }
 

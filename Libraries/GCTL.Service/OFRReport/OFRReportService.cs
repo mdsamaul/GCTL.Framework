@@ -24,6 +24,22 @@ namespace GCTL.Service.OFRReport
 {
     public class OFRReportService : IOFRReportService
     {
+        private class OFRDetailDbRow
+        {
+            public long? TC { get; set; }
+            public string? OFRNo { get; set; }
+            public string? JobNo { get; set; }
+            public string? ExpenseHeadId { get; set; }
+            public string? ExpenseHead { get; set; }
+            public decimal RequisitionAmount { get; set; }
+            public decimal ApprovalAmount { get; set; }
+            public decimal FinalAmount { get; set; }
+            public bool IsReceiptable { get; set; }
+            public string? ServiceTypeId { get; set; }
+            public string? ServiceTypeName { get; set; }
+            public string? Remarks { get; set; }
+        }
+
         #region Private Fields
         private readonly IRepository<CfOperationalFundRequisitionEntry> _ofrEntryRepo;
         private readonly IRepository<CfOperationalFundRequisitionDetail> _ofrDetailRepo;
@@ -235,10 +251,19 @@ namespace GCTL.Service.OFRReport
                         {
                             fromDate = fd.Date;
                         }
+                        else if (string.IsNullOrWhiteSpace(filter.JobNo) && string.IsNullOrWhiteSpace(filter.SelectedOfrNos))
+                        {
+                            fromDate = DateTime.Today.AddMonths(-3);
+                        }
+
                         if (!string.IsNullOrWhiteSpace(filter.ToDate) &&
                             DateTime.TryParseExact(filter.ToDate.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var td))
                         {
                             toDate = td.Date;
+                        }
+                        else if (string.IsNullOrWhiteSpace(filter.JobNo) && string.IsNullOrWhiteSpace(filter.SelectedOfrNos))
+                        {
+                            toDate = DateTime.Today;
                         }
 
                         var p = new DynamicParameters();
@@ -250,7 +275,7 @@ namespace GCTL.Service.OFRReport
                         p.Add("@CustomerId", filter.CustomerId ?? string.Empty);
                         p.Add("@JobNo", filter.JobNo ?? string.Empty);
                         p.Add("@ServiceProvidedById", filter.ServiceProvidedById ?? string.Empty);
-                        p.Add("@OFRReportType", filter.OFRReportType ?? "OFR Approval Report");
+                        p.Add("@OFRReportType", filter.OFRReportType ?? string.Empty);
 
                         using var multi = await conn.QueryMultipleAsync(
                             "Rpt_proc_OFRReport",
@@ -259,7 +284,7 @@ namespace GCTL.Service.OFRReport
                             commandTimeout: 120);
 
                         var masters = (await multi.ReadAsync<OFRReportMasterDTO>()).ToList();
-                        var details = (await multi.ReadAsync<dynamic>()).ToList();
+                        var details = (await multi.ReadAsync<OFRDetailDbRow>()).ToList();
 
                         if (!string.IsNullOrWhiteSpace(filter.SelectedOfrNos))
                         {
@@ -274,11 +299,14 @@ namespace GCTL.Service.OFRReport
 
                         if (masters.Any())
                         {
+                            var detailsLookup = details.ToLookup(d => $"{d.JobNo?.Trim()}_{d.OFRNo?.Trim()}", StringComparer.OrdinalIgnoreCase);
+
                             foreach (var master in masters)
                             {
                                 master.OFRReportType = ResolveReportTitle(filter.OFRReportType);
 
-                                var jobDetails = details.Where(d => (string)d.JobNo == master.JobNo).ToList();
+                                var key = $"{master.JobNo?.Trim()}_{master.OfrNo?.Trim()}";
+                                var jobDetails = detailsLookup[key];
                                 var items = new List<OFRExpenseItemDTO>();
                                 int sl = 1;
                                 foreach (var d in jobDetails)
@@ -286,21 +314,16 @@ namespace GCTL.Service.OFRReport
                                     items.Add(new OFRExpenseItemDTO
                                     {
                                         SlNo = sl++,
-                                        ExpenseHeadId = d.ExpenseHeadId?.ToString(),
-                                        ExpenseHead = d.ExpenseHead?.ToString() ?? "Expense",
-                                        RequisitionAmount = Convert.ToDecimal(d.RequisitionAmount ?? 0),
-                                        ApprovalAmount = Convert.ToDecimal(d.ApprovalAmount ?? 0),
-                                        FinalAmount = Convert.ToDecimal(d.FinalAmount ?? 0),
-                                        IsReceiptable = Convert.ToBoolean(d.IsReceiptable ?? false),
-                                        ServiceTypeId = d.ServiceTypeId?.ToString(),
-                                        ServiceTypeName = d.ServiceTypeName?.ToString() ?? "General",
-                                        Remarks = d.Remarks?.ToString()
+                                        ExpenseHeadId = d.ExpenseHeadId,
+                                        ExpenseHead = d.ExpenseHead ?? "Expense",
+                                        RequisitionAmount = d.RequisitionAmount,
+                                        ApprovalAmount = d.ApprovalAmount,
+                                        FinalAmount = d.FinalAmount,
+                                        IsReceiptable = d.IsReceiptable,
+                                        ServiceTypeId = d.ServiceTypeId,
+                                        ServiceTypeName = d.ServiceTypeName ?? "General",
+                                        Remarks = d.Remarks
                                     });
-                                }
-
-                                if (!items.Any())
-                                {
-                                    items = GetFallbackSampleItems();
                                 }
 
                                 GroupAndComputeTotals(master, items);
@@ -421,7 +444,6 @@ namespace GCTL.Service.OFRReport
             var masterList = await query
                 .OrderByDescending(x => x.OFR.Ofrdate)
                 .ThenByDescending(x => x.OFR.Tc)
-                .Take(100)
                 .ToListAsync();
 
             if (!masterList.Any() && !string.IsNullOrWhiteSpace(filter.JobNo))
@@ -451,6 +473,9 @@ namespace GCTL.Service.OFRReport
                 string orgAddr = branch?.Address ?? comp?.Address1 ?? comp?.Address2 ?? "21, Hazaribagh, Dhaka-1209";
                 string branchName = branch?.BranchName ?? "";
 
+                var status = (m.BillAdjustApprovalUser != null || m.BillAdjustApproveDate != null) ? "Final"
+                    : (m.ApprovedUser != null || m.ApprovedDate != null) ? "Approved" : "Pending";
+
                 var masterDTO = new OFRReportMasterDTO
                 {
                     OfrNo = m.Ofrno ?? "",
@@ -468,12 +493,13 @@ namespace GCTL.Service.OFRReport
                     BranchName = branchName,
                     CompanyAddress = orgAddr,
                     OFRReportType = ResolveReportTitle(filter.OFRReportType),
-                    ApproveBy = m.ApprovedUser ?? "shariful Islam",
-                    CustomUser = m.ApprovedUser ?? "shariful Islam"
+                    ApproveBy = m.ApprovedUser ?? m.BillAdjustApprovalUser ?? "",
+                    CustomUser = m.ApprovedUser ?? m.BillAdjustApprovalUser ?? "",
+                    Status = status
                 };
 
                 // Load details
-                var detailsQuery = _ofrDetailRepo.All().AsNoTracking().Where(x => x.JobNo == m.JobNo);
+                var detailsQuery = _ofrDetailRepo.All().AsNoTracking().Where(x => x.JobNo == m.JobNo && x.Ofrno == m.Ofrno);
                 if (!string.IsNullOrWhiteSpace(filter.ServiceProvidedById))
                 {
                     var stIds = filter.ServiceProvidedById.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -502,7 +528,7 @@ namespace GCTL.Service.OFRReport
                     }
 
                     decimal reqAmt = rd.EstimatedAmount ?? 0m;
-                    decimal appAmt = rd.ActualAmount ?? reqAmt;
+                    decimal appAmt = (status == "Approved" || status == "Final") ? (rd.ActualAmount ?? reqAmt) : 0m;
                     decimal finalAmt = rd.BillAdjustAmount ?? appAmt;
 
                     items.Add(new OFRExpenseItemDTO
@@ -518,11 +544,6 @@ namespace GCTL.Service.OFRReport
                         ServiceTypeName = sType?.ServiceTypeName ?? "Custom",
                         Remarks = rd.ExpenseHeadRemarks
                     });
-                }
-
-                if (!items.Any())
-                {
-                    items = GetFallbackSampleItems();
                 }
 
                 GroupAndComputeTotals(masterDTO, items);
@@ -611,9 +632,10 @@ namespace GCTL.Service.OFRReport
                 TotalApprovedAmount = m.GrandTotalApp,
                 TotalReceiptableAmount = m.TotReceiptableReq,
                 TotalNonReceiptableAmount = m.TotNonReceiptableReq,
-                Status = filter.OFRReportType?.Contains("Final", StringComparison.OrdinalIgnoreCase) == true ? "Final"
+                Status = !string.IsNullOrWhiteSpace(m.Status) ? m.Status
+                       : (filter.OFRReportType?.Contains("Final", StringComparison.OrdinalIgnoreCase) == true ? "Final"
                        : filter.OFRReportType?.Contains("Requisition", StringComparison.OrdinalIgnoreCase) == true || filter.OFRReportType == "OFR Report" ? "Requisition"
-                       : "Approved",
+                       : "Approved"),
                 Action = $"<button type='button' class='btn btn-sm btn-outline-primary btn-preview-row py-0 px-2' data-job='{m.JobNo}' title='Preview Report'><i class='fas fa-eye'></i></button> <a href='/OFRReport/ExportPdf?jobNo={m.JobNo}&ofrReportType={filter.OFRReportType}' class='btn btn-sm btn-outline-danger py-0 px-2 ms-1' title='Export PDF'><i class='fas fa-file-pdf'></i></a>"
             });
 
@@ -631,9 +653,9 @@ namespace GCTL.Service.OFRReport
             int total = allList.Count;
 
             int start = filter.Start ?? 0;
-            int length = (filter.Length.HasValue && filter.Length > 0) ? filter.Length.Value : 10;
+            int length = filter.Length ?? 10;
 
-            var paged = allList.Skip(start).Take(length).ToList();
+            var paged = (length == -1) ? allList.Skip(start).ToList() : allList.Skip(start).Take(length).ToList();
 
             var summary = new OFRReportSummaryDTO
             {

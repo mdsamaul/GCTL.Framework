@@ -257,6 +257,11 @@
             flex: 0.8 1 0;
         }
 
+        .filter-group.filter-group-range {
+            min-width: 115px !important;
+            flex: 0.9 1 0;
+        }
+
         .filter-group.filter-group-branch {
             min-width: 155px !important;
             flex: 1.2 1 0;
@@ -809,13 +814,28 @@
             <!-- From Date (Form Date) -->
             <div class="filter-group filter-group-date">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group filter-group-date">
                 <label for="filterToDate">To</label>
-                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" data-min-date="@DateTime.Now.ToString("yyyy-MM-01")" />
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" data-min-date="@DateTime.Now.AddMonths(-3).ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- Quick Range -->
+            <div class="filter-group filter-group-range">
+                <select id="filterQuickRange" class="form-select form-select-sm custom-select-single" data-placeholder="Quick range">
+                    <option value="3m" selected>Last 3 Months</option>
+                    <option value="today">Today</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="6m">Last 6 Months</option>
+                    <option value="1y">Last 1 Year</option>
+                    <option value="custom">Custom</option>
+                </select>
             </div>
 
             <!-- Branch (Multi-Select with checkboxes) -->
@@ -875,9 +895,9 @@
             <!-- OFR Report Type (Single Select: OFR Report, OFR Approval Report, OFR Final Report) -->
             <div class="filter-group filter-group-ofr-type">
                 <select id="filterReportType" class="form-select form-select-sm custom-select-single" data-placeholder="OFR Report Type">
-                    <option value="">OFR Report Type</option>
+                    <option value="" selected="selected">-- All OFR Types --</option>
                     <option value="OFR Report">OFR Report</option>
-                    <option value="OFR Approval Report" selected="selected">OFR Approval Report</option>
+                    <option value="OFR Approval Report">OFR Approval Report</option>
                     <option value="OFR Final Report">OFR Final Report</option>
                 </select>
             </div>

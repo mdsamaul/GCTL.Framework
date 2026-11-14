@@ -4,7 +4,8 @@
 --              Job Information and Detail Expense breakdown. Supports multi-job selection,
 --              dynamic Organization (Company) & Branch resolution, and date/status filtering.
 --              OPTIMIZED: Clustered primary key on #MasterRecords, static branch resolution,
---              and OPTION (RECOMPILE) for sub-second execution across 17,000+ records.
+--              and OPTION (RECOMPILE) for sub-second execution across records.
+--              Aligned with Dashboard Overview calculations.
 -- =========================================================================================
 CREATE OR ALTER PROCEDURE [dbo].[Rpt_proc_OFRReport]
     @CompanyCode          VARCHAR(50)   = NULL,
@@ -15,7 +16,7 @@ CREATE OR ALTER PROCEDURE [dbo].[Rpt_proc_OFRReport]
     @CustomerId           VARCHAR(500)  = NULL,
     @JobNo                NVARCHAR(MAX) = NULL,   -- Comma-delimited list of multiple Job Nos (e.g. 'JOB-01,JOB-02')
     @ServiceProvidedById  VARCHAR(500)  = NULL,
-    @OFRReportType        VARCHAR(100)  = 'OFR Approval Report'
+    @OFRReportType        VARCHAR(100)  = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -94,10 +95,10 @@ BEGIN
         SET @ToDateEnd = DATEADD(SECOND, -1, DATEADD(DAY, 1, @ToDate));
     END
 
-    -- 3. Retrieve Master OFR Data into #MasterRecords with Clustered Primary Key
+    -- 3. Retrieve Master OFR Data into #MasterRecords
     CREATE TABLE #MasterRecords (
-        OFRNo NVARCHAR(50),
-        JobNo NVARCHAR(50) NOT NULL PRIMARY KEY CLUSTERED,
+        OFRNo NVARCHAR(50) NOT NULL,
+        JobNo NVARCHAR(50) NOT NULL,
         CustomerId NVARCHAR(50),
         CustomerName NVARCHAR(200),
         Quantity NVARCHAR(50),
@@ -113,7 +114,9 @@ BEGIN
         OFRReportType VARCHAR(100),
         ApproveBy NVARCHAR(100),
         CustomUser NVARCHAR(100),
-        PrintDateTime VARCHAR(50)
+        [Status] VARCHAR(30),
+        PrintDateTime VARCHAR(50),
+        CONSTRAINT PK_MasterRecords PRIMARY KEY CLUSTERED (OFRNo, JobNo)
     );
 
     INSERT INTO #MasterRecords
@@ -138,19 +141,26 @@ BEGIN
         @OrgName AS OrganizationName,
         COALESCE(br.BranchName, @BranchName) AS BranchName,
         @OrgAddress AS CompanyAddress,
-        @OFRReportType AS OFRReportType,
-        COALESCE(NULLIF(ofr.ApprovedUser, ''), 'shariful Islam') AS ApproveBy,
-        COALESCE(NULLIF(ofr.ApprovedUser, ''), 'shariful Islam') AS CustomUser,
+        COALESCE(@OFRReportType, 'Operational Fund Requisition') AS OFRReportType,
+        COALESCE(ofr.ApprovedUser, ofr.BillAdjustApprovalUser, '') AS ApproveBy,
+        COALESCE(ofr.ApprovedUser, ofr.BillAdjustApprovalUser, '') AS CustomUser,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL OR ofr.BillAdjustApproveDate IS NOT NULL THEN 'Final'
+            WHEN ofr.ApprovedUser IS NOT NULL OR ofr.ApprovedDate IS NOT NULL THEN 'Approved'
+            ELSE 'Pending'
+        END AS [Status],
         CONVERT(VARCHAR(30), GETDATE(), 103) + ' ' + RIGHT(CONVERT(VARCHAR(30), GETDATE(), 100), 7) AS PrintDateTime
-    FROM CF_OperationalFundRequisitionEntry ofr
-    LEFT JOIN Sep_Documentation doc ON ofr.JobNo = doc.JobNo
-    LEFT JOIN Sales_Customer cust ON doc.CustomerId = cust.CustomerId
-    LEFT JOIN CF_Def_ExpenseType expType ON doc.ExpenseTypeId = expType.ExpenseTypeId
-    LEFT JOIN HRM_Employee emp ON ISNULL(ofr.EmployeeID, doc.EmployeeID) = emp.EmployeeId
-    LEFT JOIN Core_Branch br ON emp.BranchCode = br.BranchCode
+    FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+    LEFT JOIN Sep_Documentation doc WITH (NOLOCK) ON ofr.JobNo = doc.JobNo
+    LEFT JOIN Sales_Customer cust WITH (NOLOCK) ON doc.CustomerId = cust.CustomerId
+    LEFT JOIN CF_Def_ExpenseType expType WITH (NOLOCK) ON doc.ExpenseTypeId = expType.ExpenseTypeId
+    LEFT JOIN HRM_Employee emp WITH (NOLOCK) ON ISNULL(ofr.EmployeeID, doc.EmployeeID) = emp.EmployeeId
+    LEFT JOIN Core_Branch br WITH (NOLOCK) ON emp.BranchCode = br.BranchCode
     WHERE (NOT EXISTS (SELECT 1 FROM #SelectedJobs) OR ofr.JobNo IN (SELECT JobNo FROM #SelectedJobs))
       AND (NOT EXISTS (SELECT 1 FROM #SelectedCustomers) OR doc.CustomerId IN (SELECT CustomerId FROM #SelectedCustomers))
-      AND (NOT EXISTS (SELECT 1 FROM #SelectedShipmentModes) OR doc.ExpenseTypeId IN (SELECT ShipmentModeId FROM #SelectedShipmentModes))
+      AND (NOT EXISTS (SELECT 1 FROM #SelectedShipmentModes) 
+           OR doc.ExpenseTypeId IN (SELECT ShipmentModeId FROM #SelectedShipmentModes)
+           OR ofr.ExpenseTypeId IN (SELECT ShipmentModeId FROM #SelectedShipmentModes))
       AND (NOT EXISTS (SELECT 1 FROM #SelectedBranches) OR ISNULL(emp.BranchCode, '01') IN (SELECT BranchCode FROM #SelectedBranches))
       AND (@CompanyCode IS NULL OR @CompanyCode = '' OR ofr.CompanyCode = @CompanyCode OR doc.CompanyCode = @CompanyCode)
       AND (@FromDate IS NULL OR ofr.OFRDate >= @FromDate)
@@ -158,16 +168,16 @@ BEGIN
       AND (
           @OFRReportType IS NULL OR @OFRReportType = ''
           OR (@OFRReportType = 'OFR Report')
-          OR (@OFRReportType = 'OFR Approval Report' AND ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '')
-          OR (@OFRReportType = 'OFR Final Report' AND ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '')
+          OR (@OFRReportType = 'OFR Approval Report' AND (ofr.ApprovedUser IS NOT NULL OR ofr.ApprovedDate IS NOT NULL OR ofr.BillAdjustApprovalUser IS NOT NULL OR ofr.BillAdjustApproveDate IS NOT NULL))
+          OR (@OFRReportType = 'OFR Final Report' AND (ofr.BillAdjustApprovalUser IS NOT NULL OR ofr.BillAdjustApproveDate IS NOT NULL))
       )
     ORDER BY ofr.OFRDate DESC, ofr.TC DESC
     OPTION (RECOMPILE);
 
     -- Return 1st Result Set: Master Records
-    SELECT * FROM #MasterRecords;
+    SELECT * FROM #MasterRecords ORDER BY [Date] DESC, OFRNo DESC;
 
-    -- Return 2nd Result Set: Detail Expense Records for the matched jobs (indexed join)
+    -- Return 2nd Result Set: Detail Expense Records for the matched jobs
     SELECT 
         det.TC,
         det.OFRNo,
@@ -175,7 +185,10 @@ BEGIN
         det.ExpenseHeadId,
         COALESCE(head.ExpenseHead, det.ExpenseHeadId, 'Expense') AS ExpenseHead,
         ISNULL(det.EstimatedAmount, 0) AS RequisitionAmount,
-        ISNULL(det.ActualAmount, ISNULL(det.EstimatedAmount, 0)) AS ApprovalAmount,
+        CASE 
+            WHEN m.[Status] IN ('Approved', 'Final') THEN ISNULL(det.ActualAmount, ISNULL(det.EstimatedAmount, 0))
+            ELSE 0 
+        END AS ApprovalAmount,
         ISNULL(det.BillAdjustAmount, ISNULL(det.ActualAmount, ISNULL(det.EstimatedAmount, 0))) AS FinalAmount,
         CASE 
             WHEN UPPER(LTRIM(RTRIM(COALESCE(head.IsReceiptable, '')))) IN ('Y', 'YES', '1', 'TRUE') THEN CAST(1 AS BIT)
@@ -184,10 +197,10 @@ BEGIN
         det.ServiceTypeId,
         COALESCE(st.ServiceTypeName, 'Custom') AS ServiceTypeName,
         det.ExpenseHeadRemarks AS Remarks
-    FROM CF_OperationalFundRequisitionDetails det
-    INNER JOIN #MasterRecords m ON det.JobNo = m.JobNo
-    LEFT JOIN CF_Def_ExpenseHead head ON det.ExpenseHeadId = head.ExpenseHeadId
-    LEFT JOIN Core_ServiceType st ON det.ServiceTypeId = st.ServiceTypeId
+    FROM CF_OperationalFundRequisitionDetails det WITH (NOLOCK)
+    INNER JOIN #MasterRecords m ON det.JobNo = m.JobNo AND det.OFRNo = m.OFRNo
+    LEFT JOIN CF_Def_ExpenseHead head WITH (NOLOCK) ON det.ExpenseHeadId = head.ExpenseHeadId
+    LEFT JOIN Core_ServiceType st WITH (NOLOCK) ON det.ServiceTypeId = st.ServiceTypeId
     WHERE (NOT EXISTS (SELECT 1 FROM #SelectedServiceTypes) 
            OR det.ServiceTypeId IN (SELECT ServiceTypeId FROM #SelectedServiceTypes)
            OR st.ServiceTypeName IN (SELECT ServiceTypeId FROM #SelectedServiceTypes))
@@ -201,5 +214,5 @@ BEGIN
     DROP TABLE #SelectedShipmentModes;
     DROP TABLE #SelectedBranches;
     DROP TABLE #SelectedServiceTypes;
-END
+END;
 GO
