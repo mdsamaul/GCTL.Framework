@@ -43,6 +43,19 @@ namespace GCTL.Service.RequisitionSummaryReport
         private async Task<List<SpRequisitionSummaryRow>> ExecuteSpAsync(RequisitionSummaryReportFilterVM filter)
         {
             var (from, to) = ParseDates(filter.FromDate, filter.ToDate);
+            if (!from.HasValue && !to.HasValue && string.IsNullOrWhiteSpace(filter.JobNos))
+            {
+                from = DateTime.Today.AddMonths(-3);
+                to = DateTime.Today;
+            }
+            else if (from.HasValue && !to.HasValue)
+            {
+                to = DateTime.Today;
+            }
+            else if (!from.HasValue && to.HasValue)
+            {
+                from = to.Value.AddMonths(-3);
+            }
             string dateUse = (from.HasValue && to.HasValue) ? "Y" : "N";
 
             var parameters = new DynamicParameters();
@@ -107,9 +120,8 @@ namespace GCTL.Service.RequisitionSummaryReport
             // Pagination
             int start = filter.Start ?? 0;
             int length = filter.Length ?? (filter.PageSize > 0 ? filter.PageSize : 10);
-            if (length <= 0) length = 10;
 
-            var paged = filteredItems.Skip(start).Take(length).ToList();
+            var paged = (length == -1) ? filteredItems.Skip(start).ToList() : filteredItems.Skip(start).Take(length).ToList();
             for (int i = 0; i < paged.Count; i++)
             {
                 paged[i].Sl = start + i + 1;

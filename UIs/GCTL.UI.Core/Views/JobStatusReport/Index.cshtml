@@ -139,6 +139,11 @@
         font-size: 0.78rem !important;
     }
 
+    .filter-group.filter-group-range {
+        flex: 1 1 115px;
+        min-width: 105px;
+    }
+
     .filter-group.filter-group-customer {
         flex: 1.4 1 140px;
         min-width: 110px;
@@ -568,13 +573,28 @@
             <!-- From Date -->
             <div class="filter-group filter-date-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("01/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group filter-date-group">
                 <label for="filterToDate">To</label>
                 <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
+            </div>
+
+            <!-- Quick Range -->
+            <div class="filter-group filter-group-range">
+                <select id="filterQuickRange" class="form-select form-select-sm custom-select-single" data-placeholder="Quick range">
+                    <option value="3m" selected>Last 3 Months</option>
+                    <option value="today">Today</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="6m">Last 6 Months</option>
+                    <option value="1y">Last 1 Year</option>
+                    <option value="custom">Custom</option>
+                </select>
             </div>
 
             <!-- Branch (Single Select - Default All) -->
@@ -605,16 +625,40 @@
                 </select>
             </div>
 
-            <!-- Shipment Mode (Single Select, Default Air) -->
+            <!-- Shipment Mode (Loaded from CF_Def_ExpenseType / Shipment Setup; default Air Import) -->
             <div class="filter-group filter-group-mode">
                 <select id="filterShipmentMode" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="Shipment Mode">
-                    <option value="Air" selected>Air Freight</option>
-                    <option value="Sea">Sea Freight</option>
-                    @if (ViewBag.ShipmentModes != null)
+                    <option value="">Shipment Mode</option>
+                    @if (ViewBag.ShipmentModeList != null)
+                    {
+                        foreach (var item in (IEnumerable<GCTL.Core.ViewModels.ShipmentModeVM>)ViewBag.ShipmentModeList)
+                        {
+                            var isDefaultAirImport = string.Equals(item.ExpenseTypeID, "0001", StringComparison.OrdinalIgnoreCase)
+                                || string.Equals((item.ExpenseType ?? "").Trim(), "Air Import", StringComparison.OrdinalIgnoreCase);
+                            if (isDefaultAirImport)
+                            {
+                                <option value="@item.ExpenseTypeID" data-transport-mode="@item.transportModeTypeId" selected>@item.ExpenseType</option>
+                            }
+                            else
+                            {
+                                <option value="@item.ExpenseTypeID" data-transport-mode="@item.transportModeTypeId">@item.ExpenseType</option>
+                            }
+                        }
+                    }
+                    else if (ViewBag.ShipmentModes != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
                         {
-                            <option value="@item.Value">@item.Text</option>
+                            var isDefaultAirImport = string.Equals(item.Value, "0001", StringComparison.OrdinalIgnoreCase)
+                                || string.Equals((item.Text ?? "").Trim(), "Air Import", StringComparison.OrdinalIgnoreCase);
+                            if (isDefaultAirImport)
+                            {
+                                <option value="@item.Value" selected>@item.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
                         }
                     }
                 </select>
@@ -658,9 +702,17 @@
         <!-- Data Tables Container (Unified Single Container - Dynamically Changes Grid) -->
         <div class="job-tables-card">
             <div class="p-3">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2">
                     <div class="fw-bold text-secondary" id="gridTitle" style="font-size: 0.95rem;">
                         <i class="fas fa-plane text-primary me-2"></i>Job List(Air):
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group" id="modeSwitchGroup">
+                        <button type="button" class="btn btn-outline-primary active" id="btnModeAir" title="Switch to Air Freight">
+                            <i class="fas fa-plane me-1"></i> Air Freight
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="btnModeSea" title="Switch to Sea Freight">
+                            <i class="fas fa-ship me-1"></i> Sea Freight
+                        </button>
                     </div>
                 </div>
 

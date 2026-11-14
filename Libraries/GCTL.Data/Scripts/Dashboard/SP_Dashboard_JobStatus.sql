@@ -65,27 +65,35 @@ BEGIN
         ISNULL(d.LCValue, ISNULL(b.LCValue, d.InvoiceValue)) AS LCValue,
         ISNULL(d.Quntity1, 0) AS GrossWeight,
         CASE 
-            WHEN b.BillNo IS NOT NULL 
-                 OR d.DateOfClearence IS NOT NULL 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%DELIVER%' 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%SUCCESS%' 
-                 OR d.ShipmentStatus IN ('07', '02') THEN 'Delivered'
-            WHEN d.BENo <> '' 
-                 OR d.DocReceivedDate IS NOT NULL 
-                 OR d.ETA IS NOT NULL 
-                 OR d.ShipmentStatus IN ('04', '05', '06', '12') 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%TRANSIT%' 
-                 OR ISNULL(d.ShipmentStatus,'') LIKE '%PROCESSING%' THEN 'In Transit'
+            WHEN LTRIM(RTRIM(ISNULL(d.ShipmentStatus, ''))) IN ('06', '14')
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) LIKE '%DELIV%'
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) LIKE '%DELEVER%'
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) LIKE '%DLIVER%'
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) LIKE '%SUCCESS%'
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) LIKE '%HANDOVER%'
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) = 'SHIPMENT DONE' THEN 'Delivered'
+            WHEN LTRIM(RTRIM(ISNULL(d.ShipmentStatus, ''))) IN ('01','02','03','04','05','07','08','09','10','11','12','13')
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) LIKE '%TRANSIT%'
+                 OR UPPER(LTRIM(RTRIM(ISNULL(d.ShipmentStatus, '')))) LIKE '%PROCESS%' THEN 'In Transit'
             ELSE 'Pending'
         END AS ComputedStatus
     INTO #Jobs
     FROM Sep_Documentation d WITH (NOLOCK)
-    LEFT JOIN HRM_EmployeeOfficialInfo emp WITH (NOLOCK) ON emp.EmployeeID = d.EmployeeId OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
+    OUTER APPLY (
+        SELECT TOP 1 emp.BranchCode
+        FROM HRM_EmployeeOfficialInfo emp WITH (NOLOCK)
+        WHERE emp.EmployeeID = d.EmployeeId OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
+    ) emp
     LEFT JOIN CF_Def_ExpenseType et WITH (NOLOCK) ON et.ExpenseTypeID = d.ExpenseTypeID
     LEFT JOIN Sales_Customer c WITH (NOLOCK) ON c.CustomerID = d.CustomerID
     LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON p.PortNameID = d.PortNameId
-    LEFT JOIN #Bills b ON b.JobNo = d.JobNo
-    WHERE (d.Date >= @FromDate AND d.Date <= DATEADD(DAY, 1, @ToDate))
+    OUTER APPLY (
+        SELECT TOP 1 b.BillNo, b.BillDate, b.LCValue
+        FROM #Bills b
+        WHERE b.JobNo = d.JobNo
+        ORDER BY b.BillDate DESC, b.BillNo DESC
+    ) b
+    WHERE (d.Date >= @FromDate AND d.Date < DATEADD(DAY, 1, @ToDate))
       AND (@CustomerID = '' OR d.CustomerID = @CustomerID)
       AND (@ShipmentMode = '' OR d.ExpenseTypeID = @ShipmentMode)
       AND (@Port = '' OR d.PortNameId = @Port)

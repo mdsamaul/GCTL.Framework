@@ -29,7 +29,7 @@ namespace GCTL.Service.OFRReport
         public string? JobNo { get; set; }
 
         [JsonPropertyName("ofrReportType")]
-        public string? OFRReportType { get; set; } = "OFR Approval Report";
+        public string? OFRReportType { get; set; } = string.Empty;
 
         [JsonPropertyName("serviceProvidedById")]
         public string? ServiceProvidedById { get; set; }
@@ -115,6 +115,7 @@ namespace GCTL.Service.OFRReport
         public string Weight { get; set; } = string.Empty;
         public string ShipmentMode { get; set; } = string.Empty;
         public string OFRReportType { get; set; } = "Operational Fund Approval";
+        public string Status { get; set; } = "Approved";
 
         // Dynamic Organization & Branch
         public string OrganizationName { get; set; } = "Formosa Logistics Limited";

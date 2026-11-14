@@ -25,7 +25,7 @@ namespace GCTL.UI.Core.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var defaultFromDate = DateTime.Now.ToString("01/MM/yyyy");
+            var defaultFromDate = DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy");
             var defaultToDate = DateTime.Now.ToString("dd/MM/yyyy");
             await PopulateDropdowns(defaultFromDate, defaultToDate);
 
@@ -42,6 +42,7 @@ namespace GCTL.UI.Core.Controllers
                 Compact = true,
                 CustomGridWrapper = false,
                 DefaultPageLength = 10,
+                PageLengths = new[] { 5, 10, 25, 100, -1 },
                 Hover = true,
                 ShowCheckbox = true,
                 ShowPagination = true,
