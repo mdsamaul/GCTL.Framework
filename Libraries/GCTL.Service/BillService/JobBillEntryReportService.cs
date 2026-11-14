@@ -29,6 +29,7 @@ namespace GCTL.Service.BillService
         private readonly IRepository<SalesDefPortName>? _portNameRepository;
         private readonly IRepository<CaDefCurrency>? _currencyRepository;
         private readonly IRepository<AccVoucherEntry>? _voucherEntryRepository;
+        private readonly IRepository<CoreBranch>? _branchRepository;
 
         public JobBillEntryReportService(
             IRepository<CfBillEntry> billEntryRepository,
@@ -41,7 +42,8 @@ namespace GCTL.Service.BillService
             IRepository<RmgProdDefUnitType>? unitRepository = null,
             IRepository<SalesDefPortName>? portNameRepository = null,
             IRepository<CaDefCurrency>? currencyRepository = null,
-            IRepository<AccVoucherEntry>? voucherEntryRepository = null)
+            IRepository<AccVoucherEntry>? voucherEntryRepository = null,
+            IRepository<CoreBranch>? branchRepository = null)
         {
             _billEntryRepository = billEntryRepository;
             _billChcRepository = billChcRepository;
@@ -54,6 +56,7 @@ namespace GCTL.Service.BillService
             _portNameRepository = portNameRepository;
             _currencyRepository = currencyRepository;
             _voucherEntryRepository = voucherEntryRepository;
+            _branchRepository = branchRepository;
         }
 
         public async Task<List<string>> GetBillNumbersAsync()
@@ -66,11 +69,25 @@ namespace GCTL.Service.BillService
                 .ToListAsync();
         }
 
-        public async Task<JobBillEntryReportFilterOptionsDTO> GetFilterOptionsAsync(string? fromDate, string? toDate, string? shipmentModes = null, string? customerIds = null)
+        public async Task<JobBillEntryReportFilterOptionsDTO> GetFilterOptionsAsync(string? fromDate, string? toDate, string? branchCode = null, string? shipmentModes = null, string? customerIds = null)
         {
             var result = new JobBillEntryReportFilterOptionsDTO();
             try
             {
+                // 0. Branches from Core_Branch master table
+                if (_branchRepository != null)
+                {
+                    result.Branches = await _branchRepository.All().AsNoTracking()
+                        .Where(b => !string.IsNullOrEmpty(b.BranchCode) && !string.IsNullOrEmpty(b.BranchName))
+                        .OrderBy(b => b.BranchName)
+                        .Select(b => new CommonSelectModel
+                        {
+                            Code = b.BranchCode,
+                            Name = b.BranchName
+                        })
+                        .ToListAsync();
+                }
+
                 var query = _billEntryRepository.All().AsNoTracking();
                 var (from, to) = ParseDates(fromDate, toDate);
                 if (from.HasValue)
@@ -81,6 +98,17 @@ namespace GCTL.Service.BillService
                 {
                     var nextDay = to.Value.Date.AddDays(1);
                     query = query.Where(b => b.BillDate < nextDay);
+                }
+
+                if (!string.IsNullOrWhiteSpace(branchCode) && !string.Equals(branchCode, "ALL", StringComparison.OrdinalIgnoreCase))
+                {
+                    var bCode = branchCode.Trim();
+                    query = query.Where(b =>
+                        (b.CompanyCode != null && b.CompanyCode == bCode) ||
+                        (bCode == "02" && b.JobNo != null && b.JobNo.Contains("Ctg")) ||
+                        (bCode == "03" && ((b.JobNo != null && b.JobNo.Contains("Dha")) || (b.ExpenseTypeId != null && (b.ExpenseTypeId == "0001" || b.ExpenseTypeId == "0002" || b.ExpenseTypeId == "0003")))) ||
+                        (bCode == "04" && b.JobNo != null && b.JobNo.Contains("Pangaon"))
+                    );
                 }
 
                 // 1. Shipment Modes from available bills in date range
@@ -736,6 +764,18 @@ namespace GCTL.Service.BillService
             {
                 var nextDay = toDate.Value.Date.AddDays(1);
                 query = query.Where(b => b.BillDate < nextDay);
+            }
+
+            // Branch Filter
+            if (!string.IsNullOrWhiteSpace(filter.BranchCode) && !string.Equals(filter.BranchCode, "ALL", StringComparison.OrdinalIgnoreCase))
+            {
+                var bCode = filter.BranchCode.Trim();
+                query = query.Where(b =>
+                    (b.CompanyCode != null && b.CompanyCode == bCode) ||
+                    (bCode == "02" && b.JobNo != null && b.JobNo.Contains("Ctg")) ||
+                    (bCode == "03" && ((b.JobNo != null && b.JobNo.Contains("Dha")) || (b.ExpenseTypeId != null && (b.ExpenseTypeId == "0001" || b.ExpenseTypeId == "0002" || b.ExpenseTypeId == "0003")))) ||
+                    (bCode == "04" && b.JobNo != null && b.JobNo.Contains("Pangaon"))
+                );
             }
 
             // Shipment Mode Filter (Multi-select)

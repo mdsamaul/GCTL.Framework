@@ -29,6 +29,7 @@
         padding: 6px 0 25px 0;
         max-width: 100%;
         margin: 0 auto;
+        overflow: visible !important;
     }
 
     /* Stats Grid (5 Cards matching OFRReport / GPAnalysisReport) */
@@ -96,15 +97,18 @@
     /* Filter Section - One Line Design with responsive support (OFRReport style) */
     .filter-section {
         background: white;
-        padding: 8px 14px;
+        padding: 8px 12px;
         border-radius: 10px;
         margin-bottom: 14px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.03);
         border: 1px solid var(--border);
-        flex-wrap: wrap;
+        flex-wrap: nowrap !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        position: relative;
     }
 
     .filter-label {
@@ -192,16 +196,26 @@
         .filter-section .custom-dd-panel {
             min-width: 100% !important;
             width: max-content !important;
-            max-width: 480px !important;
+            max-width: 90vw !important;
             right: auto !important;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.14) !important;
+            box-shadow: 0 10px 28px rgba(10, 42, 94, 0.2) !important;
+            border-radius: 6px !important;
+            z-index: 1050 !important;
+        }
+
+        .filter-section .custom-dd-list {
+            overflow-x: visible !important;
         }
 
         .filter-section .custom-dd-option,
         .filter-section .custom-dd-item,
-        .filter-section .custom-dd-panel span {
+        .filter-section .custom-dd-opt-text,
+        .filter-section .custom-dd-panel span,
+        .filter-section .custom-dd-panel label {
             white-space: nowrap !important;
             word-break: keep-all !important;
+            text-overflow: clip !important;
+            overflow: visible !important;
         }
 
         .filter-group.filter-group-customer {
@@ -256,13 +270,6 @@
     @@media (max-width: 768px) {
         .stats-grid {
             grid-template-columns: 1fr;
-        }
-        .filter-section {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .filter-group {
-            width: 100% !important;
         }
     }
 </style>
@@ -359,13 +366,28 @@
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group">
                 <label for="filterToDate">To</label>
-                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" data-min-date="@DateTime.Now.ToString("yyyy-MM-01")" />
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" />
+            </div>
+
+            <!-- Quick Range -->
+            <div class="filter-group">
+                <select id="filterQuickRange" class="form-select form-select-sm custom-select-single" data-placeholder="-- Quick Range --">
+                    <option value="" disabled>-- Quick Range --</option>
+                    <option value="3m" selected>Last 3 Months</option>
+                    <option value="today">Today</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="6m">Last 6 Months</option>
+                    <option value="1y">Last 1 Year</option>
+                </select>
             </div>
 
             <!-- Shipment Mode -->
@@ -418,6 +440,11 @@
                     <option value="CSV">CSV</option>
                 </select>
             </div>
+
+            <!-- Reset Button -->
+            <button type="button" class="btn-preview-rep" id="btnReset" title="Reset Filters" style="background: #64748b; height: 31px; padding: 0 10px; font-size: 0.78rem; border-radius: 6px; border: none; color: white; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
+                <i class="fas fa-undo"></i> Reset
+            </button>
         </div>
 
         <!-- CustomGrid Table Container -->

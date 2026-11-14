@@ -7,6 +7,7 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
     {
         public string? FromDate { get; set; }
         public string? ToDate { get; set; }
+        public string? BranchCode { get; set; }
         public string? ShipmentModes { get; set; }
         public string? CustomerIds { get; set; }
         public string? BillNos { get; set; }
@@ -53,6 +54,7 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
 
     public class JobBillEntryReportFilterOptionsDTO
     {
+        public List<GCTL.Core.ViewModels.Common.CommonSelectModel> Branches { get; set; } = new();
         public List<GCTL.Core.ViewModels.Common.CommonSelectModel> ShipmentModes { get; set; } = new();
         public List<GCTL.Core.ViewModels.Common.CommonSelectModel> Customers { get; set; } = new();
         public List<string> BillNos { get; set; } = new();
