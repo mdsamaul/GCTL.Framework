@@ -159,7 +159,7 @@ namespace GCTL.Service.Dashboard
                 .Font.SetFontSize(10).Font.SetFontColor(XLColor.FromHtml("#546580"))
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            // 4. Table Header (middle center)
+            // 4. Table Header (middle center, light style)
             int hRow = 5;
             ws.Cell(hRow, 1).Value = "Particulars";
             ws.Cell(hRow, 2).Value = "Amount (BDT)";
@@ -167,14 +167,14 @@ namespace GCTL.Service.Dashboard
 
             var header = ws.Range(hRow, 1, hRow, lastCol);
             header.Style.Font.SetBold()
-                .Fill.SetBackgroundColor(XLColor.FromHtml("#0e5a4a"))
-                .Font.SetFontColor(XLColor.White)
+                .Fill.SetBackgroundColor(XLColor.FromHtml("#F8FAFC"))
+                .Font.SetFontColor(XLColor.FromHtml("#1E293B"))
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
-                .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
-            ws.Cell(hRow, 2).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Right);
-            ws.Cell(hRow, 3).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Right);
+                .Alignment.SetVertical(XLAlignmentVerticalValues.Center)
+                .Border.SetBottomBorder(XLBorderStyleValues.Thin)
+                .Border.SetBottomBorderColor(XLColor.FromHtml("#CBD5E1"));
 
-            // 5. Data Rows (Matching Screenshot & Grid)
+            // 5. Data Rows (Light matching screenshot & UI)
             int rIdx = 6;
             foreach (var row in data.Rows)
             {
@@ -183,20 +183,32 @@ namespace GCTL.Service.Dashboard
                 if (row.Pct.HasValue) ws.Cell(rIdx, 3).Value = row.Pct.Value / 100m;
 
                 var line = ws.Range(rIdx, 1, rIdx, lastCol);
+                line.Style.Border.SetBottomBorder(XLBorderStyleValues.Hair)
+                    .Border.SetBottomBorderColor(XLColor.FromHtml("#F1F5F9"));
+
                 if (row.Kind == "head")
                 {
-                    line.Style.Font.SetBold().Fill.SetBackgroundColor(XLColor.FromHtml("#e8effa"))
-                        .Font.SetFontColor(XLColor.FromHtml("#0a2540"));
+                    line.Style.Font.SetBold()
+                        .Fill.SetBackgroundColor(XLColor.FromHtml("#F1F5F9"))
+                        .Font.SetFontColor(XLColor.FromHtml("#1E293B"));
                 }
                 else if (row.Kind == "total")
                 {
-                    line.Style.Font.SetBold().Fill.SetBackgroundColor(XLColor.FromHtml("#dfeaf9"))
+                    line.Style.Font.SetBold()
+                        .Fill.SetBackgroundColor(XLColor.FromHtml("#F8FAFC"))
+                        .Font.SetFontColor(XLColor.FromHtml("#0F172A"))
                         .Border.SetTopBorder(XLBorderStyleValues.Thin)
-                        .Border.SetBottomBorder(XLBorderStyleValues.Double);
+                        .Border.SetTopBorderColor(XLColor.FromHtml("#94A3B8"))
+                        .Border.SetBottomBorder(XLBorderStyleValues.Double)
+                        .Border.SetBottomBorderColor(XLColor.FromHtml("#94A3B8"));
                 }
                 else if (row.Kind == "sub")
                 {
-                    line.Style.Font.SetBold().Fill.SetBackgroundColor(XLColor.FromHtml("#f6f8fc"));
+                    line.Style.Font.SetBold()
+                        .Fill.SetBackgroundColor(XLColor.FromHtml("#F8FAFC"))
+                        .Font.SetFontColor(XLColor.FromHtml("#1E293B"))
+                        .Border.SetTopBorder(XLBorderStyleValues.Hair)
+                        .Border.SetTopBorderColor(XLColor.FromHtml("#CBD5E1"));
                 }
                 else
                 {
