@@ -17,6 +17,101 @@
     let gridTable = null;
     let filterDebounceTimer = null;
     let isInitialized = false;
+    let isQuickRangeApplying = false;
+
+    function setDateValue(id, date) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        var dStr = pad(date.getDate()) + '/' + pad(date.getMonth() + 1) + '/' + date.getFullYear();
+        var fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
+        if (fp) {
+            fp.setDate(date, false);
+            if (fp.altInput) {
+                fp.altInput.value = dStr;
+            }
+        }
+        el.value = dStr;
+        if (window.jQuery) {
+            $(el).trigger('change');
+        }
+    }
+
+    function setSelectValue(id, val) {
+        var $el = $('#' + id);
+        if (!$el.length) return;
+        $el.val(val);
+        if (window.choiceManager) {
+            window.choiceManager.setValue(id, val);
+        }
+        var inst = $el.data('customDdInstance');
+        if (inst && typeof inst.setValue === 'function') {
+            inst.setValue(val);
+        }
+    }
+
+    function applyQuickRange(code) {
+        var today = new Date();
+        var from = new Date(today);
+        var to = new Date(today);
+
+        switch (code) {
+            case 'today':
+                break;
+            case '7d':
+                from.setDate(today.getDate() - 7);
+                break;
+            case '30d':
+                from.setDate(today.getDate() - 30);
+                break;
+            case 'this_month':
+                from = new Date(today.getFullYear(), today.getMonth(), 1);
+                break;
+            case 'last_month':
+                from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                to = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+            case '3m':
+                from.setMonth(today.getMonth() - 3);
+                break;
+            case '6m':
+                from.setMonth(today.getMonth() - 6);
+                break;
+            case '1y':
+                from.setFullYear(today.getFullYear() - 1);
+                break;
+            default:
+                return;
+        }
+
+        isQuickRangeApplying = true;
+        setDateValue('filterFromDate', from);
+        setDateValue('filterToDate', to);
+        setSelectValue('filterQuickRange', code);
+        isQuickRangeApplying = false;
+        updateDateLimits();
+        onFilterChanged();
+        reloadBillNos();
+    }
+
+    function resetFilters() {
+        if (typeof window.clearCustomDropdownById === 'function') {
+            window.clearCustomDropdownById('filterShipmentMode');
+            window.clearCustomDropdownById('filterCustomerId');
+            window.clearCustomDropdownById('filterBillNo');
+            window.clearCustomDropdownById('filterExportFormat');
+        } else {
+            $('#filterShipmentMode, #filterCustomerId, #filterBillNo, #filterExportFormat').each(function () {
+                var inst = $(this).data('customDdInstance');
+                if (inst && typeof inst.clear === 'function') {
+                    inst.clear();
+                } else {
+                    $(this).val('');
+                }
+            });
+        }
+        applyQuickRange('3m');
+    }
 
     $(document).ready(function () {
         if ($.fn.dataTable && $.fn.dataTable.ext) {
@@ -38,7 +133,8 @@
 
     function initDefaultDates() {
         var now = new Date();
-        var currentMonthFirstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        var threeMonthsAgo = new Date(now);
+        threeMonthsAgo.setMonth(now.getMonth() - 3);
 
         var formatDate = function (d) {
             var day = String(d.getDate()).padStart(2, '0');
@@ -47,7 +143,7 @@
             return day + '/' + month + '/' + year;
         };
 
-        var fromStr = formatDate(currentMonthFirstDay);
+        var fromStr = formatDate(threeMonthsAgo);
         var toStr = formatDate(now);
 
         var $from = $('#filterFromDate');
@@ -64,7 +160,7 @@
             var fpFrom = $from.data('customFpInstance') || ($from[0] ? $from[0]._flatpickr : null);
             if (fpFrom) {
                 if (!fpFrom.selectedDates || !fpFrom.selectedDates.length) {
-                    fpFrom.setDate(currentMonthFirstDay, false);
+                    fpFrom.setDate(threeMonthsAgo, false);
                 }
                 if (fpFrom.altInput && !fpFrom.altInput.value) {
                     fpFrom.altInput.value = fromStr;
@@ -85,6 +181,7 @@
                 window.setDate('#filterToDate', toStr);
             }
 
+            setSelectValue('filterQuickRange', '3m');
             updateDateLimits();
             bindFlatpickrDateLimits();
         };
@@ -165,6 +262,9 @@
                         toFp.setDate(selected, false);
                     }
                 }
+                if (!isQuickRangeApplying) {
+                    setSelectValue('filterQuickRange', '');
+                }
                 onFilterChanged();
                 reloadBillNos();
             });
@@ -181,6 +281,9 @@
                     if (curFrom && curFrom > selected) {
                         fromFp.setDate(selected, false);
                     }
+                }
+                if (!isQuickRangeApplying) {
+                    setSelectValue('filterQuickRange', '');
                 }
                 onFilterChanged();
                 reloadBillNos();
@@ -426,8 +529,30 @@
 
     function bindEvents() {
         $(document).on('change', '#filterFromDate, #filterToDate', function () {
+            if (!isQuickRangeApplying) {
+                setSelectValue('filterQuickRange', '');
+            }
             onFilterChanged();
             reloadBillNos();
+        });
+
+        $('#filterQuickRange').on('change', function () {
+            var val = $(this).val();
+            if (val) {
+                applyQuickRange(val);
+            }
+        });
+
+        $('.filter-section').on('click', '#filterQuickRange ~ .custom-dd-wrapper .custom-dd-option', function () {
+            var val = $(this).data('value') || $(this).attr('data-id') || $(this).text();
+            if (val) {
+                applyQuickRange(val);
+            }
+        });
+
+        $('#btnReset').on('click', function (e) {
+            e.preventDefault();
+            resetFilters();
         });
 
         $('#filterShipmentMode, #filterCustomerId, #filterBillNo')

@@ -365,7 +365,8 @@ $(document).ready(function () {
 
     // Table controls
     $('#SubControlLedger-pageSizeSelect').on('change', function () {
-        pageSize = parseInt($(this).val(), 10);
+        const val = $(this).val();
+        pageSize = (val === '-1' || val === 'All') ? 10000000 : parseInt(val, 10);
         currentPage = 1;
         loadTableData();
     });
@@ -388,7 +389,8 @@ $(document).ready(function () {
         const container = $("#SubControlLedger-paginationContainer");
         container.empty();
 
-        if (!p || p.totalPages <= 0) return;
+        const isAll = $('#SubControlLedger-pageSizeSelect').val() === '-1' || $('#SubControlLedger-pageSizeSelect').val() === 'All';
+        if (!p || p.totalPages <= 0 || isAll) return;
 
         const current = p.currentPage;
         const total = p.totalPages;
