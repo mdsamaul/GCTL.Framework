@@ -9,9 +9,11 @@
     let gridTable = null;
     let filterDebounceTimer = null;
     let dateDebounceTimer = null;
+    let branchDebounceTimer = null;
     let shipmentModeDebounceTimer = null;
     let customerDebounceTimer = null;
     let currentFilterXhr = null;
+    let isQuickRangeApplying = false;
 
     $(document).ready(function () {
         initDefaultDates();
@@ -23,7 +25,8 @@
 
     function initDefaultDates() {
         var now = new Date();
-        var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        var fromDate = new Date(now);
+        fromDate.setMonth(now.getMonth() - 3);
 
         var formatDate = function (d) {
             var day = String(d.getDate()).padStart(2, '0');
@@ -33,11 +36,82 @@
         };
 
         if (!$('#filterFromDate').val()) {
-            $('#filterFromDate').val(formatDate(firstDay));
+            $('#filterFromDate').val(formatDate(fromDate));
         }
         if (!$('#filterToDate').val()) {
             $('#filterToDate').val(formatDate(now));
         }
+        setSelectValue('filterQuickRange', '3m');
+    }
+
+    function setDateValue(id, date) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        var dStr = pad(date.getDate()) + '/' + pad(date.getMonth() + 1) + '/' + date.getFullYear();
+        var fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
+        if (fp) {
+            fp.setDate(date, false);
+        }
+        el.value = dStr;
+        if (window.jQuery) {
+            $(el).trigger('change');
+        }
+    }
+
+    function setSelectValue(id, val) {
+        var $el = $('#' + id);
+        if (!$el.length) return;
+        $el.val(val);
+        if (window.choiceManager) {
+            window.choiceManager.setValue(id, val);
+        }
+        var inst = $el.data('customDdInstance');
+        if (inst && typeof inst.setValue === 'function') {
+            inst.setValue(val);
+        }
+    }
+
+    function applyQuickRange(code) {
+        var today = new Date();
+        var from = new Date(today);
+        var to = new Date(today);
+
+        switch (code) {
+            case 'today':
+                break;
+            case '7d':
+                from.setDate(today.getDate() - 7);
+                break;
+            case '30d':
+                from.setDate(today.getDate() - 30);
+                break;
+            case 'this_month':
+                from = new Date(today.getFullYear(), today.getMonth(), 1);
+                break;
+            case 'last_month':
+                from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                to = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+            case '3m':
+                from.setMonth(today.getMonth() - 3);
+                break;
+            case '6m':
+                from.setMonth(today.getMonth() - 6);
+                break;
+            case '1y':
+                from.setFullYear(today.getFullYear() - 1);
+                break;
+            default:
+                return;
+        }
+
+        isQuickRangeApplying = true;
+        setDateValue('filterFromDate', from);
+        setDateValue('filterToDate', to);
+        setSelectValue('filterQuickRange', code);
+        isQuickRangeApplying = false;
+        onDateFilterChanged();
     }
 
     function parseDate(str) {
@@ -102,6 +176,9 @@
                 if (toFp) {
                     toFp.set('minDate', selected || null);
                 }
+                if (!isQuickRangeApplying) {
+                    setSelectValue('filterQuickRange', '');
+                }
                 onDateFilterChanged();
             });
         }
@@ -111,6 +188,9 @@
                 var selected = selectedDates && selectedDates[0];
                 if (fromFp) {
                     fromFp.set('maxDate', selected || null);
+                }
+                if (!isQuickRangeApplying) {
+                    setSelectValue('filterQuickRange', '');
                 }
                 onDateFilterChanged();
             });
@@ -129,6 +209,9 @@
                 autoclose: true,
                 todayHighlight: true
             }).on('changeDate', function () {
+                if (!isQuickRangeApplying) {
+                    setSelectValue('filterQuickRange', '');
+                }
                 onDateFilterChanged();
             });
         }
@@ -142,6 +225,7 @@
                     var filters = getFilterParams();
                     d.fromDate = filters.FromDate;
                     d.toDate = filters.ToDate;
+                    d.branchCode = filters.BranchCode;
                     d.shipmentModes = filters.ShipmentModes;
                     d.customerIds = filters.CustomerIds;
                     d.billNos = filters.BillNos;
@@ -151,9 +235,25 @@
     }
 
     function bindEvents() {
-        // Auto filter on date input change & enforce limits (cascades to all 3 dropdowns)
+        // Auto filter on date input change & enforce limits (cascades to all dropdowns)
         $('#filterFromDate, #filterToDate').on('change keyup', function () {
+            if (!isQuickRangeApplying) {
+                setSelectValue('filterQuickRange', '');
+            }
             onDateFilterChanged();
+        });
+
+        // Quick range change
+        $('#filterQuickRange').on('change', function () {
+            var code = $(this).val();
+            if (code) {
+                applyQuickRange(code);
+            }
+        });
+
+        // Branch change: cascades to Shipment Mode, Customer and Bill No, then reloads grid
+        $('#filterBranch').on('change', function () {
+            onBranchChanged();
         });
 
         // Shipment Mode change: cascades to Customer and Bill No, then reloads grid
@@ -171,6 +271,30 @@
             triggerFilterChange();
         });
 
+        // Delegated clicks for custom-select-single options (Quick range & Branch)
+        $(document).on('click', '.custom-dd-option, .custom-dd-item', function () {
+            var $wrap = $(this).closest('.custom-dd-wrapper');
+            var origId = $wrap.prev('select').attr('id');
+            if (origId === 'filterQuickRange') {
+                setTimeout(function () {
+                    var code = $('#filterQuickRange').val();
+                    if (code) {
+                        applyQuickRange(code);
+                    }
+                }, 30);
+            } else if (origId === 'filterBranch') {
+                setTimeout(function () {
+                    onBranchChanged();
+                }, 30);
+            }
+        });
+
+        // Reset Button Click
+        $('#btnReset').on('click', function (e) {
+            e.preventDefault();
+            resetFilters();
+        });
+
         // Preview PDF Button Click (opens in new tab)
         $('#btnPreview').on('click', function (e) {
             e.preventDefault();
@@ -184,6 +308,29 @@
         });
     }
 
+    function resetFilters() {
+        // 1. Reset Quick Range to '3m' (Last 3 Months) and set dates
+        applyQuickRange('3m');
+        setSelectValue('filterQuickRange', '3m');
+
+        // 2. Clear other dropdowns
+        if (typeof window.clearCustomDropdownById === 'function') {
+            window.clearCustomDropdownById('filterBranch');
+            window.clearCustomDropdownById('filterShipmentMode');
+            window.clearCustomDropdownById('filterCustomerId');
+            window.clearCustomDropdownById('filterBillNo');
+        } else {
+            $('#filterBranch').val('');
+            $('#filterShipmentMode').val('');
+            $('#filterCustomerId').val('');
+            $('#filterBillNo').val('');
+        }
+        setSelectValue('filterBranch', '');
+
+        // 3. Trigger reload
+        onBranchChanged();
+    }
+
     function onDateFilterChanged() {
         clearTimeout(dateDebounceTimer);
         dateDebounceTimer = setTimeout(function () {
@@ -193,6 +340,16 @@
                 loadSummaryData();
             });
         }, 350);
+    }
+
+    function onBranchChanged() {
+        clearTimeout(branchDebounceTimer);
+        branchDebounceTimer = setTimeout(function () {
+            loadFilterOptions(true, true, true, function () {
+                reloadGrid();
+                loadSummaryData();
+            });
+        }, 150);
     }
 
     function onShipmentModeChanged() {
@@ -218,6 +375,7 @@
     function loadFilterOptions(reloadShipmentModes, reloadCustomers, reloadBillNos, callback) {
         var fromDate = $('#filterFromDate').val() || '';
         var toDate = $('#filterToDate').val() || '';
+        var branchCode = $('#filterBranch').val() || '';
         var shipmentModes = getDropdownValue('filterShipmentMode');
         var customerIds = getDropdownValue('filterCustomerId');
 
@@ -231,6 +389,7 @@
             data: {
                 fromDate: fromDate,
                 toDate: toDate,
+                branchCode: branchCode,
                 shipmentModes: shipmentModes,
                 customerIds: customerIds
             },
@@ -339,6 +498,7 @@
         return {
             FromDate: $('#filterFromDate').val() || '',
             ToDate: $('#filterToDate').val() || '',
+            BranchCode: $('#filterBranch').val() || '',
             ShipmentModes: getDropdownValue('filterShipmentMode'),
             CustomerIds: getDropdownValue('filterCustomerId'),
             BillNos: getDropdownValue('filterBillNo')
@@ -422,6 +582,7 @@
         return $.param({
             FromDate: filters.FromDate,
             ToDate: filters.ToDate,
+            BranchCode: filters.BranchCode,
             ShipmentModes: filters.ShipmentModes,
             CustomerIds: filters.CustomerIds,
             BillNos: filters.BillNos,

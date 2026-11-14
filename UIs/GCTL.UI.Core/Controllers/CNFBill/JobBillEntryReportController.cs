@@ -33,7 +33,7 @@ namespace GCTL.UI.Core.Controllers.CNFBill
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var defaultFromDate = DateTime.Now.ToString("01/MM/yyyy");
+            var defaultFromDate = DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy");
             var defaultToDate = DateTime.Now.ToString("dd/MM/yyyy");
             await PopulateDropdowns(defaultFromDate, defaultToDate);
 
@@ -82,12 +82,14 @@ namespace GCTL.UI.Core.Controllers.CNFBill
             try
             {
                 var options = await _reportService.GetFilterOptionsAsync(fromDate, toDate);
+                ViewBag.Branches = new SelectList(options.Branches, "Code", "Name");
                 ViewBag.ShipmentModes = new SelectList(options.ShipmentModes, "Code", "Name");
                 ViewBag.Customers = new SelectList(options.Customers, "Code", "Name");
                 ViewBag.BillNos = new SelectList(options.BillNos.Select(x => new SelectListItem { Value = x, Text = x }), "Value", "Text");
             }
             catch
             {
+                ViewBag.Branches = new SelectList(new List<string>());
                 ViewBag.ShipmentModes = new SelectList(new List<string>());
                 ViewBag.Customers = new SelectList(new List<string>());
                 ViewBag.BillNos = new SelectList(new List<string>());
@@ -196,15 +198,17 @@ namespace GCTL.UI.Core.Controllers.CNFBill
         public async Task<IActionResult> GetFilterOptions(
             [FromQuery] string? fromDate,
             [FromQuery] string? toDate,
+            [FromQuery] string? branchCode = null,
             [FromQuery] string? shipmentModes = null,
             [FromQuery] string? customerIds = null)
         {
             try
             {
-                var options = await _reportService.GetFilterOptionsAsync(fromDate, toDate, shipmentModes, customerIds);
+                var options = await _reportService.GetFilterOptionsAsync(fromDate, toDate, branchCode, shipmentModes, customerIds);
                 return Json(new
                 {
                     success = true,
+                    branches = options.Branches.Select(x => new { value = x.Code, text = x.Name }),
                     shipmentModes = options.ShipmentModes.Select(x => new { value = x.Code, text = x.Name }),
                     customers = options.Customers.Select(x => new { value = x.Code, text = x.Name }),
                     billNos = options.BillNos.Select(x => new { value = x, text = x })
@@ -216,6 +220,7 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                 {
                     success = false,
                     message = ex.Message,
+                    branches = new List<object>(),
                     shipmentModes = new List<object>(),
                     customers = new List<object>(),
                     billNos = new List<object>()
