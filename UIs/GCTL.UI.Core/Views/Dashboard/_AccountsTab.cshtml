@@ -84,25 +84,7 @@
     <partial name="_TrialBalanceTab" />
 
     <!-- Subview 3: Income Statement -->
-    <div class="sub" id="s-is">
-        <div class="kpis">
-            <div class="kpi blue" id="i_rev"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="kbody"><div class="klabel">Total Revenue</div><div class="kval">0</div><div class="ksub">operating turnover</div></div></div>
-            <div class="kpi orange" id="i_dir"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="kbody"><div class="klabel">Direct Expenses</div><div class="kval">0</div><div class="ksub">job operational costs</div></div></div>
-            <div class="kpi purple" id="i_gp"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="kbody"><div class="klabel">Gross Profit</div><div class="kval">0</div><div class="ksub">revenue - direct</div></div></div>
-            <div class="kpi red" id="i_ind"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div><div class="kbody"><div class="klabel">Indirect + Finance</div><div class="kval">0</div><div class="ksub">admin &amp; financial</div></div></div>
-            <div class="kpi green" id="i_np"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div><div class="kbody"><div class="klabel">Net Profit / (Loss)</div><div class="kval">0</div><div class="ksub">bottom line</div></div></div>
-        </div>
-        <div class="row c3">
-            <section class="card"><div class="chdr"><h3>Profit Build-up</h3><span>waterfall</span></div><div class="cwrap"><canvas id="i_ch1"></canvas></div></section>
-            <section class="card"><div class="chdr"><h3>Expense Composition</h3><span>direct vs indirect</span></div><div class="cwrap"><canvas id="i_ch2"></canvas></div></section>
-            <section class="card"><div class="chdr"><h3>Monthly Revenue &amp; Net</h3><span>monthly</span></div><div class="cwrap"><canvas id="i_ch3"></canvas></div></section>
-        </div>
-        <section class="card gridcard">
-            <div class="gh"><h3>Income Statement</h3></div>
-            <div class="gbody"><div id="i_g"></div></div>
-            <div class="gfoot" id="i_g_f"></div>
-        </section>
-    </div>
+    <partial name="_IncomeStatementTab" />
 
     <!-- Subview 4: Balance Sheet -->
     <div class="sub" id="s-bs">

@@ -168,6 +168,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<GCTL.Service.Dashboard.IDashboardAccountsService, GCTL.Service.Dashboard.DashboardAccountsService>();
             services.AddScoped<GCTL.Service.Dashboard.IDashboardCashBankService, GCTL.Service.Dashboard.DashboardCashBankService>();
             services.AddScoped<GCTL.Service.Dashboard.IDashboardTrialBalanceService, GCTL.Service.Dashboard.DashboardTrialBalanceService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardIncomeStatementService, GCTL.Service.Dashboard.DashboardIncomeStatementService>();
 
             // Menu service – now resolves because GctlHrmContext is registered.
             services.AddScoped<IMenuService, MenuService>();
