@@ -159,13 +159,13 @@ namespace GCTL.Service.JobWiseReconcileStatement
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandTimeout = 180;
 
-                var fromDate = ParseDate(filter.FromDate) ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                var toDate = ParseDate(filter.ToDate) ?? DateTime.Now.Date;
+                var fromDate = ParseDate(filter.FromDate) ?? DateTime.Today.AddMonths(-3);
+                var toDate = ParseDate(filter.ToDate) ?? DateTime.Today;
 
-                cmd.Parameters.Add(new SqlParameter("@ExpenseTypeID", SqlDbType.NVarChar, 50) { Value = (object?)filter.ExpenseTypeId ?? DBNull.Value });
+                cmd.Parameters.Add(new SqlParameter("@ExpenseTypeID", SqlDbType.NVarChar, -1) { Value = (object?)filter.ExpenseTypeId ?? DBNull.Value });
                 cmd.Parameters.Add(new SqlParameter("@FromDate", SqlDbType.DateTime) { Value = fromDate });
                 cmd.Parameters.Add(new SqlParameter("@ToDate", SqlDbType.DateTime) { Value = toDate });
-                cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.NVarChar, 50) { Value = (object?)filter.CustomerId ?? DBNull.Value });
+                cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.NVarChar, -1) { Value = (object?)filter.CustomerId ?? DBNull.Value });
                 cmd.Parameters.Add(new SqlParameter("@JobNo", SqlDbType.NVarChar, -1) { Value = (object?)filter.JobNo ?? DBNull.Value });
 
                 await using var reader = await cmd.ExecuteReaderAsync();
@@ -256,6 +256,7 @@ namespace GCTL.Service.JobWiseReconcileStatement
             result.Summary.TotalRevenue = totalRevenue;
             result.Summary.TotalExpense = totalExpense;
             result.Summary.NetProfit = netProfit;
+            result.Summary.GpMargin = totalRevenue > 0 ? Math.Round(netProfit * 100m / totalRevenue, 2) : 0m;
             result.Summary.ColumnTotals = colSums;
 
             return result;
@@ -268,8 +269,8 @@ namespace GCTL.Service.JobWiseReconcileStatement
             var data = await GetReportDataAsync(filter);
             string timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-            var fromDate = ParseDate(filter.FromDate) ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            var toDate = ParseDate(filter.ToDate) ?? DateTime.Now.Date;
+            var fromDate = ParseDate(filter.FromDate) ?? DateTime.Today.AddMonths(-3);
+            var toDate = ParseDate(filter.ToDate) ?? DateTime.Today;
             string periodStr = $"Period From:{fromDate:dd/MM/yyyy} To {toDate:dd/MM/yyyy}";
 
             var xlsxBytes = GenerateClosedXmlExcel(data, periodStr);

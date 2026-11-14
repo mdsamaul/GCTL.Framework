@@ -33,6 +33,7 @@ namespace GCTL.Core.ViewModels.JobWiseReconcileStatement
         public decimal TotalRevenue { get; set; }
         public decimal TotalExpense { get; set; }
         public decimal NetProfit { get; set; }
+        public decimal GpMargin { get; set; }
         public Dictionary<string, decimal> ColumnTotals { get; set; } = new();
     }
 

@@ -4,6 +4,8 @@
     Layout = "_Layout";
 }
 
+<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+
 <style>
     :root {
         --primary: #0056b3;
@@ -25,10 +27,10 @@
         margin: 0 auto;
     }
 
-    /* Stats Grid */
+    /* Stats Grid (5 KPI Cards matching Dashboard Job Reconcile) */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 12px;
         margin-bottom: 14px;
     }
@@ -80,7 +82,7 @@
         line-height: 1.1;
     }
 
-    /* Filter Section - One Line Design with responsive support (JobBillEntryReport style) */
+    /* Filter Section - One Line Design with responsive support */
     .filter-section {
         background: white;
         padding: 8px 14px;
@@ -110,7 +112,17 @@
         align-items: center;
         gap: 5px;
         flex: 1 1 0;
-        min-width: 0 !important; /* Critical to prevent flex child overflow */
+        min-width: 0 !important;
+    }
+
+    .filter-group.filter-group-range {
+        min-width: 115px !important;
+        flex: 0.9 1 0;
+    }
+
+    .filter-group.filter-group-date {
+        min-width: 110px !important;
+        flex: 0.8 1 0;
     }
 
     .filter-group label {
@@ -133,9 +145,9 @@
         font-size: 0.78rem !important;
         outline: none;
         background-color: #ffffff;
-        color: var(--text-main);
-        height: 31px !important;
-        min-height: 31px !important;
+        color: var(--text-main) !important;
+        height: 29px !important;
+        min-height: 29px !important;
         line-height: 1.2 !important;
         background-position: right 6px center !important;
         background-size: 13px 13px !important;
@@ -162,8 +174,8 @@
     }
 
     .filter-group .custom-dd-input {
-        min-height: 31px !important;
-        height: 31px !important;
+        min-height: 29px !important;
+        height: 29px !important;
         padding: 2px 6px !important;
         font-size: 0.78rem !important;
         border-radius: 6px !important;
@@ -197,8 +209,8 @@
         align-items: center;
         justify-content: center;
         gap: 5px;
-        height: 31px;
-        min-width: 82px;
+        height: 29px;
+        min-width: 78px;
         white-space: nowrap;
         transition: all 0.2s ease;
     }
@@ -223,46 +235,25 @@
         box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
     }
 
-    .btn-reconcile-reset {
-        background-color: #64748b;
-        color: #ffffff;
-        border: none;
-        border-radius: 6px;
-        padding: 5px 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        height: 31px;
-    }
-
-    .btn-reconcile-reset:hover {
-        background-color: #475569;
-        color: #ffffff;
-    }
-
     /* Grid Table Container */
     .report-grid-card {
         background: white;
         border-radius: 10px;
-        padding: 12px;
+        padding: 10px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         border: 1px solid var(--border);
     }
 
     .table-scroll-wrapper {
         overflow-x: auto;
-        max-height: 600px;
+        width: 100%;
         position: relative;
     }
 
     #reconcileReportTable {
-        width: 100%;
+        width: 100% !important;
         border-collapse: collapse;
-        font-size: 12px;
+        font-size: 11.5px !important;
         white-space: nowrap;
     }
 
@@ -270,18 +261,19 @@
         background-color: #f1f5f9;
         color: #1e293b;
         font-weight: 600;
-        padding: 7px 10px;
+        padding: 6px 8px !important;
         border: 1px solid #e2e8f0;
         text-align: center;
-        position: sticky;
-        top: 0;
-        z-index: 2;
+        font-size: 11.5px !important;
+        line-height: 1.15 !important;
     }
 
     #reconcileReportTable tbody td {
-        padding: 6px 10px;
+        padding: 5px 8px !important;
         border: 1px solid #e2e8f0;
         color: #334155;
+        font-size: 11.5px !important;
+        line-height: 1.2 !important;
     }
 
     #reconcileReportTable tbody tr:hover {
@@ -292,30 +284,29 @@
         background-color: #e2e8f0;
         color: #0f172a;
         font-weight: 700;
-        padding: 8px 10px;
+        padding: 6px 8px !important;
         border: 1px solid #cbd5e1;
-        position: sticky;
-        bottom: 0;
-        z-index: 2;
+        font-size: 11.5px !important;
     }
 
-    .num-cell {
-        text-align: right !important;
+    /* DataTables Layout & Pagination Styling (5 10 25 100 All) */
+    div.dt-container .dt-search input,
+    div.dt-container .dt-length select {
+        font-size: 11px !important;
+        height: 28px !important;
+        padding: 2px 6px !important;
+        border-radius: 5px !important;
+        border: 1px solid #cbd5e1 !important;
     }
 
-    .text-cell {
-        text-align: left !important;
+    div.dt-container .dt-info,
+    div.dt-container .dt-paging {
+        font-size: 11px !important;
     }
 
-    .center-cell {
-        text-align: center !important;
-    }
-
-    /* Dropdown split export button */
-    .btn-group .dropdown-menu {
-        font-size: 0.8rem;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    div.dt-container .dt-paging .dt-paging-button {
+        padding: 2px 6px !important;
+        font-size: 11px !important;
     }
 
     .empty-state {
@@ -329,12 +320,42 @@
         margin-bottom: 10px;
         color: #cbd5e1;
     }
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .filter-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .filter-label {
+            grid-column: 1 / -1;
+        }
+        .filter-actions {
+            grid-column: 1 / -1;
+            margin-left: 0;
+            justify-content: flex-end;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
 </style>
 
 <div class="reconcile-dashboard">
     <div class="dashboard-container">
 
-        <!-- Top 4 KPI Cards -->
+        <!-- Top 5 KPI Cards (Matching Dashboard Job Reconcile) -->
         <div class="stats-grid">
             <!-- 1. Total Jobs -->
             <div class="stat-card" style="border-color: #0056b3;">
@@ -353,7 +374,7 @@
                     <i class="fas fa-file-invoice-dollar"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>Total Revenue (BDT)</h3>
+                    <h3>Total Revenue</h3>
                     <p id="statTotalRevenue">0.00</p>
                 </div>
             </div>
@@ -364,37 +385,63 @@
                     <i class="fas fa-receipt"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>Total Expense (BDT)</h3>
+                    <h3>Total Expense</h3>
                     <p id="statTotalExpense">0.00</p>
                 </div>
             </div>
 
-            <!-- 4. Net Profit -->
+            <!-- 4. Gross Profit -->
             <div class="stat-card" style="border-color: #2e7d32;">
                 <div class="stat-icon" style="background: #2e7d32;">
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>Net Profit (BDT)</h3>
+                    <h3>Gross Profit</h3>
                     <p id="statNetProfit">0.00</p>
+                </div>
+            </div>
+
+            <!-- 5. GP Margin (%) -->
+            <div class="stat-card" style="border-color: #9c27b0;">
+                <div class="stat-icon" style="background: #9c27b0;">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>GP Margin (%)</h3>
+                    <p id="statGpMargin">0.00%</p>
                 </div>
             </div>
         </div>
 
-        <!-- Filter Bar (One Line Design, JobBillEntryReport style) -->
+        <!-- Filter Bar (One Line Design with Quick Range) -->
         <div class="filter-section">
             <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
 
             <!-- From Date -->
-            <div class="filter-group">
+            <div class="filter-group filter-group-date">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.AddMonths(-3).ToString("dd/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
             <!-- To Date -->
-            <div class="filter-group">
+            <div class="filter-group filter-group-date">
                 <label for="filterToDate">To</label>
-                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" />
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" data-min-date="@DateTime.Now.AddMonths(-3).ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- Quick Range -->
+            <div class="filter-group filter-group-range">
+                <select id="filterQuickRange" class="form-select form-select-sm custom-select-single" data-placeholder="Quick range">
+                    <option value="3m" selected>Last 3 Months</option>
+                    <option value="today">Today</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="6m">Last 6 Months</option>
+                    <option value="1y">Last 1 Year</option>
+                    <option value="custom">Custom</option>
+                </select>
             </div>
 
             <!-- Shipment Mode (Single-Select) -->
