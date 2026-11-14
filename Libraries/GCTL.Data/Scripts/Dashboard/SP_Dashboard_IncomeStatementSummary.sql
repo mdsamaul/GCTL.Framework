@@ -113,10 +113,15 @@ BEGIN
     IF @OpRev = 0 SET @OpRev = @TotalRev;
     DECLARE @NonOpRev NUMERIC(18,2) = @TotalRev - @OpRev;
 
-    DECLARE @DirectExp NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '301' OR ControlCode LIKE '301%' OR ControlName LIKE '%Direct%')), 0);
-    DECLARE @IndirectExp NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '302' OR ControlCode LIKE '302%' OR ControlName LIKE '%Indirect%' OR ControlName LIKE '%Administrative%' OR ControlName LIKE '%Office%')), 0);
-    DECLARE @FinCost NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '303' OR ControlCode LIKE '303%' OR ControlName LIKE '%Finance%' OR ControlName LIKE '%Bank%')), 0);
-    DECLARE @TaxExp NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '304' OR ControlCode LIKE '304%' OR ControlName LIKE '%Tax%')), 0);
+    -- Distinct breakdown by Control Code:
+    -- 301: Direct Expenses
+    -- 302: Indirect Expenses
+    -- 303: Finance Cost
+    -- 304: Income Tax
+    DECLARE @DirectExp NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '301' OR ControlCode LIKE '301%' OR ControlCode = '305' OR ControlCode LIKE '305%')), 0);
+    DECLARE @IndirectExp NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '302' OR ControlCode LIKE '302%')), 0);
+    DECLARE @FinCost NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '303' OR ControlCode LIKE '303%')), 0);
+    DECLARE @TaxExp NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '304' OR ControlCode LIKE '304%')), 0);
 
     DECLARE @TotalExp NUMERIC(18,2) = ISNULL((SELECT SUM(Amount) FROM #Leaf WHERE Section = 'Expense'), 0);
     IF @DirectExp = 0 AND @IndirectExp = 0 AND @TotalExp > 0
@@ -156,7 +161,7 @@ BEGIN
     ORDER BY SUM(Amount) DESC;
 
     ---------------------------------------------------------------------
-    -- RESULT SET 3: Statement Grid Rows (SubControl / Control Hierarchy)
+    -- RESULT SET 3: Statement Grid Rows (Matching CNF_Dashboard.html)
     ---------------------------------------------------------------------
     CREATE TABLE #Rows
     (
@@ -169,24 +174,36 @@ BEGIN
     -- 3A. REVENUE
     INSERT INTO #Rows (Label, Amt, Kind) VALUES ('REVENUE', NULL, 'head');
 
+    -- Operating Revenue Items (401)
     INSERT INTO #Rows (Label, Amt, Kind)
     SELECT 
         SubCode + ' – ' + SubName AS Label,
         SUM(Amount) AS Amt,
         'item' AS Kind
     FROM #Leaf
-    WHERE Section = 'Revenue'
+    WHERE Section = 'Revenue' AND (ControlCode = '401' OR ControlCode LIKE '401%')
     GROUP BY SubCode, SubName
     HAVING SUM(Amount) <> 0
     ORDER BY SubCode;
 
-    IF @NonOpRev > 0 AND @OpRev <> @TotalRev
-    BEGIN
-        INSERT INTO #Rows (Label, Amt, Kind) VALUES ('Operating Income', @OpRev, 'sub');
-    END
+    -- Operating Income subtotal
+    INSERT INTO #Rows (Label, Amt, Kind) VALUES ('Operating Income', @OpRev, 'sub');
+
+    -- Non-operating revenue items (402 or others)
+    INSERT INTO #Rows (Label, Amt, Kind)
+    SELECT 
+        SubCode + ' – ' + SubName AS Label,
+        SUM(Amount) AS Amt,
+        'item' AS Kind
+    FROM #Leaf
+    WHERE Section = 'Revenue' AND NOT (ControlCode = '401' OR ControlCode LIKE '401%')
+    GROUP BY SubCode, SubName
+    HAVING SUM(Amount) <> 0
+    ORDER BY SubCode;
+
     INSERT INTO #Rows (Label, Amt, Kind) VALUES ('Total Revenue', @TotalRev, 'total');
 
-    -- 3B. DIRECT EXPENSES
+    -- 3B. DIRECT EXPENSES (301)
     INSERT INTO #Rows (Label, Amt, Kind) VALUES ('DIRECT EXPENSES', NULL, 'head');
 
     INSERT INTO #Rows (Label, Amt, Kind)
@@ -195,7 +212,7 @@ BEGIN
         SUM(Amount) AS Amt,
         'item' AS Kind
     FROM #Leaf
-    WHERE Section = 'Expense' AND (ControlCode = '301' OR ControlCode LIKE '301%' OR ControlName LIKE '%Direct%')
+    WHERE Section = 'Expense' AND (ControlCode = '301' OR ControlCode LIKE '301%' OR ControlCode = '305' OR ControlCode LIKE '305%')
     GROUP BY SubCode, SubName
     HAVING SUM(Amount) <> 0
     ORDER BY SubCode;
@@ -203,8 +220,8 @@ BEGIN
     INSERT INTO #Rows (Label, Amt, Kind) VALUES ('Total Direct Expenses', @DirectExp, 'sub');
     INSERT INTO #Rows (Label, Amt, Kind) VALUES ('GROSS PROFIT', @GrossProfit, 'total');
 
-    -- 3C. INDIRECT EXPENSES & FINANCE
-    IF EXISTS (SELECT 1 FROM #Leaf WHERE Section = 'Expense' AND NOT (ControlCode = '301' OR ControlCode LIKE '301%' OR ControlName LIKE '%Direct%'))
+    -- 3C. INDIRECT EXPENSES (302)
+    IF EXISTS (SELECT 1 FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '302' OR ControlCode LIKE '302%'))
     BEGIN
         INSERT INTO #Rows (Label, Amt, Kind) VALUES ('INDIRECT EXPENSES', NULL, 'head');
 
@@ -214,7 +231,7 @@ BEGIN
             SUM(Amount) AS Amt,
             'item' AS Kind
         FROM #Leaf
-        WHERE Section = 'Expense' AND NOT (ControlCode = '301' OR ControlCode LIKE '301%' OR ControlName LIKE '%Direct%')
+        WHERE Section = 'Expense' AND (ControlCode = '302' OR ControlCode LIKE '302%')
         GROUP BY SubCode, SubName
         HAVING SUM(Amount) <> 0
         ORDER BY SubCode;
@@ -222,16 +239,44 @@ BEGIN
         INSERT INTO #Rows (Label, Amt, Kind) VALUES ('Total Indirect Expenses', @IndirectExp, 'sub');
     END
 
-    IF @FinCost > 0
+    -- 3D. FINANCE COST (303)
+    IF EXISTS (SELECT 1 FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '303' OR ControlCode LIKE '303%'))
     BEGIN
+        INSERT INTO #Rows (Label, Amt, Kind) VALUES ('FINANCE COST', NULL, 'head');
+
+        INSERT INTO #Rows (Label, Amt, Kind)
+        SELECT 
+            SubCode + ' – ' + SubName AS Label,
+            SUM(Amount) AS Amt,
+            'item' AS Kind
+        FROM #Leaf
+        WHERE Section = 'Expense' AND (ControlCode = '303' OR ControlCode LIKE '303%')
+        GROUP BY SubCode, SubName
+        HAVING SUM(Amount) <> 0
+        ORDER BY SubCode;
+
         INSERT INTO #Rows (Label, Amt, Kind) VALUES ('Total Finance Cost', @FinCost, 'sub');
     END
 
     DECLARE @PBT NUMERIC(18,2) = @TotalRev - @DirectExp - @IndirectExp - @FinCost;
     INSERT INTO #Rows (Label, Amt, Kind) VALUES ('PROFIT BEFORE TAX', @PBT, 'total');
 
-    IF @TaxExp > 0
+    -- 3E. INCOME TAX (304)
+    IF EXISTS (SELECT 1 FROM #Leaf WHERE Section = 'Expense' AND (ControlCode = '304' OR ControlCode LIKE '304%'))
     BEGIN
+        INSERT INTO #Rows (Label, Amt, Kind) VALUES ('INCOME TAX', NULL, 'head');
+
+        INSERT INTO #Rows (Label, Amt, Kind)
+        SELECT 
+            SubCode + ' – ' + SubName AS Label,
+            SUM(Amount) AS Amt,
+            'item' AS Kind
+        FROM #Leaf
+        WHERE Section = 'Expense' AND (ControlCode = '304' OR ControlCode LIKE '304%')
+        GROUP BY SubCode, SubName
+        HAVING SUM(Amount) <> 0
+        ORDER BY SubCode;
+
         INSERT INTO #Rows (Label, Amt, Kind) VALUES ('Total Income Tax', @TaxExp, 'sub');
     END
 

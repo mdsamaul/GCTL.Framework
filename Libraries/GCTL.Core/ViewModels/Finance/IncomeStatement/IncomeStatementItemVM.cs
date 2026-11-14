@@ -28,6 +28,8 @@ namespace GCTL.Core.ViewModels.Finance.IncomeStatement
         public string Section { get; set; } = string.Empty; // "Income", "Expense", "Net"
         public decimal Amount { get; set; }
         public string AmountFormatted { get; set; } = string.Empty;
+        public decimal? Pct { get; set; }
+        public string PctFormatted { get; set; } = string.Empty;
         public bool IsTotal { get; set; }
     }
 }

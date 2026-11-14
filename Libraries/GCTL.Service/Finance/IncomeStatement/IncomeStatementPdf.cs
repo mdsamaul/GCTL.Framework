@@ -48,18 +48,18 @@ namespace GCTL.Service.Finance.IncomeStatement
 
         private void ComposeHeader(IContainer container)
         {
-            var branch = string.IsNullOrWhiteSpace(_model.BranchName) ? "All branches" : _model.BranchName;
+            var comp = string.IsNullOrWhiteSpace(_model.CompanyName) ? "Formosa Logistics Limited" : _model.CompanyName;
 
             container.PaddingBottom(12).Column(column =>
             {
-                column.Item().AlignCenter().Text(_model.CompanyName ?? "School Management ERP")
-                    .FontSize(15).Bold().FontColor(PdfColors.Primary);
+                column.Item().AlignCenter().Text(comp)
+                    .FontSize(15).Bold().FontColor(PdfColors.TextDark);
 
                 column.Item().AlignCenter().Text("Income Statement")
                     .FontSize(13).Bold().FontColor(PdfColors.TextDark);
 
-                column.Item().AlignCenter().Text($"{_model.FromDateFormatted} to {_model.ToDateFormatted} · {branch} · Amounts in Bangladeshi Taka (৳)")
-                    .FontSize(8.5f).FontColor(PdfColors.TextMuted);
+                column.Item().AlignCenter().Text($"For the period from {_model.FromDateFormatted} to {_model.ToDateFormatted}")
+                    .FontSize(9f).FontColor(PdfColors.TextMuted);
             });
         }
 
@@ -69,43 +69,46 @@ namespace GCTL.Service.Finance.IncomeStatement
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.RelativeColumn(4.5f); // Particulars
-                    columns.RelativeColumn(1.5f); // Amount (৳)
+                    columns.RelativeColumn(5.0f); // Particulars
+                    columns.RelativeColumn(1.8f); // Amount (BDT)
+                    columns.RelativeColumn(1.4f); // % of Revenue
                 });
 
                 table.Header(header =>
                 {
-                    header.Cell().Element(HeaderCellStyle).Text("Particulars").Bold();
-                    header.Cell().Element(HeaderCellStyle).AlignRight().Text("Amount (৳)").Bold();
+                    header.Cell().Element(HeaderCellStyle).AlignCenter().AlignMiddle().Text("Particulars").Bold();
+                    header.Cell().Element(HeaderCellStyle).AlignCenter().AlignMiddle().Text("Amount (BDT)").Bold();
+                    header.Cell().Element(HeaderCellStyle).AlignCenter().AlignMiddle().Text("% of Revenue").Bold();
                 });
 
                 foreach (var item in _model.Items)
                 {
-                    if (item.IsTotal) // Subtotals or Grand Total (Total Income, Total Expenses, Net Surplus)
-                    {
-                        table.Cell().Element(TotalCellStyle).Text(item.Name).Bold();
-                        table.Cell().Element(TotalCellStyle).AlignRight().Text(item.AmountFormatted).Bold();
-                    }
-                    else if (item.Level == 1) // Section Header (Income / Expenses)
+                    if (item.Level == 1) // Section Header (REVENUE, DIRECT EXPENSES, INDIRECT EXPENSES, FINANCE COST, INCOME TAX)
                     {
                         table.Cell().Element(SectionHeaderStyle).Text(item.Name).Bold();
                         table.Cell().Element(SectionHeaderStyle).Text("");
+                        table.Cell().Element(SectionHeaderStyle).Text("");
                     }
-                    else // Hierarchical lines
+                    else if (item.IsTotal) // Subtotals or Totals (Operating Income, Total Revenue, GROSS PROFIT, NET PROFIT, etc.)
+                    {
+                        table.Cell().Element(TotalCellStyle).Text(item.Name).Bold();
+                        table.Cell().Element(TotalCellStyle).AlignRight().Text(item.AmountFormatted).Bold();
+                        table.Cell().Element(TotalCellStyle).AlignRight().Text(item.PctFormatted).Bold();
+                    }
+                    else // Hierarchical lines (items)
                     {
                         float indent = item.Level switch
                         {
                             2 => 8f,
-                            3 => 18f,
-                            _ => 28f
+                            3 => 16f,
+                            _ => 20f
                         };
 
-                        var descCell = table.Cell().Element(DataCellStyle).PaddingLeft(indent).Text(item.DisplayText)
-                            .FontColor(item.Level == 2 ? PdfColors.TextDark : (item.Level == 3 ? PdfColors.TextDark : PdfColors.TextMuted));
-                        if (item.Level == 2) descCell.Bold();
+                        table.Cell().Element(DataCellStyle).PaddingLeft(indent).Text(item.DisplayText)
+                            .FontColor(PdfColors.TextDark);
 
-                        var amtCell = table.Cell().Element(DataCellStyle).AlignRight().Text(item.AmountFormatted);
-                        if (item.Level == 2) amtCell.Bold();
+                        table.Cell().Element(DataCellStyle).AlignRight().Text(item.AmountFormatted);
+                        table.Cell().Element(DataCellStyle).AlignRight().Text(item.PctFormatted);
                     }
                 }
             });
