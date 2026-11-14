@@ -16,8 +16,8 @@ window.DashboardIncomeStatement = {
             card: 'g760',
             sortable: false,
             search: true,
-            size: 50,
-            sizes: [15, 25, 50, 'All'],
+            size: 10,
+            sizes: [10, 25, 50, 'All'],
             rowCls: r => r.kind || r.Kind,
             columns: [
                 {

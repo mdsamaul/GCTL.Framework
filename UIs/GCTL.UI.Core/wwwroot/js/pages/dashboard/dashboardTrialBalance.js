@@ -16,7 +16,7 @@ window.DashboardTrialBalance = {
         this.grid = new Grid('t_g', {
             card: 'g760',
             sortable: false,
-            size: 'All',
+            size: 10,
             sizes: [10, 25, 50, 100, 'All'],
             rowCls: r => 'l' + (r.level || r.Level || 1),
             groups: [

@@ -154,7 +154,7 @@ namespace GCTL.Service.Dashboard
             // 3. Date Header (Branch removed, middle center)
             var fromDate = (filter.FromDate ?? DateTime.Today.AddMonths(-3)).ToString("dd/MM/yyyy");
             var toDate = (filter.ToDate ?? DateTime.Today).ToString("dd/MM/yyyy");
-            ws.Cell(3, 1).Value = $"For the period from {fromDate} to {toDate}";
+            ws.Cell(3, 1).Value = $"Date {fromDate} to {toDate}";
             ws.Range(3, 1, 3, lastCol).Merge().Style
                 .Font.SetFontSize(10).Font.SetFontColor(XLColor.FromHtml("#546580"))
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);

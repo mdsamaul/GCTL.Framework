@@ -12,16 +12,14 @@ namespace GCTL.Service.Finance.IncomeStatement
 
         private static class PdfColors
         {
-            public static readonly string HeaderBg = "#F1F5F2";
-            public static readonly string Primary = "#ffffff";
-            //public static readonly string Primary = "#0E5A4A";
-            public static readonly string Border = "#D4DCD7";
-            public static readonly string BorderDark = "#222222";
-            public static readonly string TextDark = "#18262B";
-            public static readonly string TextMuted = "#5D6D68";
-            public static readonly string TotalBg = "#EFF4F1";
-            public static readonly string Ok = "#1B7A4B";
-            public static readonly string Bad = "#B3261E";
+            public static readonly string HeaderBg = "#F8FAFC";
+            public static readonly string HeaderBorder = "#CBD5E1";
+            public static readonly string BorderLight = "#F1F5F9";
+            public static readonly string BorderSub = "#94A3B8";
+            public static readonly string TextDark = "#1E293B";
+            public static readonly string TextMuted = "#64748B";
+            public static readonly string SectionBg = "#F1F5F9";
+            public static readonly string TotalBg = "#F8FAFC";
         }
 
         public IncomeStatementPdf(IncomeStatementReportVM model)
@@ -138,16 +136,16 @@ namespace GCTL.Service.Finance.IncomeStatement
         {
             return container
                 .Background(PdfColors.HeaderBg)
-                .BorderBottom(2)
-                .BorderColor(PdfColors.Primary)
-                .PaddingVertical(5)
+                .BorderBottom(1f)
+                .BorderColor(PdfColors.HeaderBorder)
+                .PaddingVertical(6)
                 .PaddingHorizontal(8);
         }
 
         private static IContainer SectionHeaderStyle(IContainer container)
         {
             return container
-                .Background("#E3EDE8")
+                .Background(PdfColors.SectionBg)
                 .PaddingVertical(5)
                 .PaddingHorizontal(8);
         }
@@ -156,9 +154,9 @@ namespace GCTL.Service.Finance.IncomeStatement
         {
             return container
                 .Background(PdfColors.TotalBg)
-                .BorderTop(1.5f)
-                .BorderBottom(2.5f)
-                .BorderColor(PdfColors.BorderDark)
+                .BorderTop(0.75f)
+                .BorderBottom(1f)
+                .BorderColor(PdfColors.BorderSub)
                 .PaddingVertical(5)
                 .PaddingHorizontal(8);
         }
@@ -167,7 +165,7 @@ namespace GCTL.Service.Finance.IncomeStatement
         {
             return container
                 .BorderBottom(0.5f)
-                .BorderColor("#E6ECE8")
+                .BorderColor(PdfColors.BorderLight)
                 .PaddingVertical(4)
                 .PaddingHorizontal(8);
         }
