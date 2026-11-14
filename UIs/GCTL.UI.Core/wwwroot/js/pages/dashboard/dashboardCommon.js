@@ -6,7 +6,6 @@
 
 const CONFIG = {
     title: 'C&F Management Dashboard',
-    company: 'Formosa Logistics Limited',
     fyStart: '2026-07-01'
 };
 
@@ -42,47 +41,6 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 const slug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-// Date formatting helper DD/MM/YYYY
-const dmy = v => {
-    if (!v) return '';
-    if (typeof v === 'string') {
-        const trimmed = v.trim();
-        if (/^\d{2}\/\d{2}\/\d{4}/.test(trimmed)) return trimmed.slice(0, 10);
-        if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
-            const p = trimmed.slice(0, 10).split('-');
-            return `${p[2]}/${p[1]}/${p[0]}`;
-        }
-    }
-    const d = new Date(v);
-    if (isNaN(d.getTime())) return String(v);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    return `${day}/${month}/${d.getFullYear()}`;
-};
-window.dmy = dmy;
-
-const isNum = c => ['money', 'amt', 'pct', 'int'].includes(c?.t);
-const plain = s => String(s ?? '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&');
-function fmtCell(c, r, i, forExport) {
-    if (!c) return '';
-    if (c.x) return c.x(r, i);
-    if (c.t === 'sn') return String(i + 1);
-    const v = c.v ? c.v(r) : (r[c.k] !== undefined ? r[c.k] : (r[c.k?.charAt(0).toUpperCase() + c.k?.slice(1)] ?? r[c.k?.toLowerCase()]));
-    if (c.r && !['money', 'amt', 'int', 'pct', 'date'].includes(c.t)) {
-        return plain(c.r(r, i));
-    }
-    switch (c.t) {
-        case 'int': return int(v);
-        case 'money': return (v || v === 0) ? (v === 0 && !forExport ? '–' : amt(v)) : '';
-        case 'amt': return (v === 0 && !forExport ? '–' : amt(v));
-        case 'pct': return pct(v, 2);
-        case 'date': return dmy(v);
-        default: return String(v ?? '');
-    }
-}
-const cellTxt = (c, r, i) => c.t === 'badge' ? String(r[c.k] ?? '') : fmtCell(c, r, i, true);
-const getCompanyName = () => document.querySelector('.sidebar-brand-text')?.textContent?.trim() || CONFIG.company || 'Formosa Logistics Limited';
-
 // Chart color palette
 const PAL = () => [
     cssVar('--blue') || '#0b57d0',
@@ -98,7 +56,6 @@ const PAL = () => [
 
 // Reusable Grid Component
 const GRIDS = {};
-window.GRIDS = GRIDS;
 
 class Grid {
     constructor(id, options = {}) {
@@ -114,7 +71,7 @@ class Grid {
         this.rows = [];
         this.view = [];
         this.page = 1;
-        this.size = (this.o.size === -1 || this.o.size === 'All') ? 999999 : (Number(this.o.size) || 10);
+        this.size = this.o.size;
         this.sk = null;
         this.sd = 1;
         this.q = '';
@@ -126,7 +83,7 @@ class Grid {
                 const isAll = s === 'All' || s === -1;
                 const val = isAll ? -1 : s;
                 const label = isAll ? 'All' : s;
-                const selected = (isAll && this.size >= 999999) || (!isAll && s === this.size) ? 'selected' : '';
+                const selected = (isAll && this.size >= 999999) || s === this.size ? 'selected' : '';
                 return `<option value="${val}" ${selected}>${label}</option>`;
             }).join('');
             szEl.onchange = () => {
@@ -598,10 +555,10 @@ const pieDs = (data, colors) => ({
 function setK(id, val, sub = null) {
     const el = document.getElementById(id);
     if (!el) return;
-    const vEl = el.querySelector('.kval') || el.querySelector('.mval') || el;
+    const vEl = el.querySelector('.kval');
     if (vEl) vEl.textContent = val;
     if (sub !== null) {
-        const sEl = el.querySelector('.ksub') || el.querySelector('.msub');
+        const sEl = el.querySelector('.ksub');
         if (sEl) sEl.innerHTML = sub;
     }
 }
@@ -652,7 +609,7 @@ window.setSelect = setSelectVal;
 
 function getDateValue(id) {
     const el = document.getElementById(id);
-    if (!el) return '';
+    if (!el) return null;
     const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
     if (fp && fp.selectedDates && fp.selectedDates.length > 0) {
         const d = fp.selectedDates[0];
@@ -660,14 +617,30 @@ function getDateValue(id) {
         const month = String(d.getMonth() + 1).padStart(2, '0');
         return `${d.getFullYear()}-${month}-${day}`;
     }
-    const val = (el.value || '').trim();
-    if (!val) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-    const parts = val.split('/');
-    if (parts.length === 3) {
-        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    let val = (el.value || '').trim();
+    if (!val && fp && fp.altInput) {
+        val = (fp.altInput.value || '').trim();
     }
-    return val;
+    if (!val && el.parentElement) {
+        const alt = el.parentElement.querySelector('.flatpickr-alt-input');
+        if (alt) val = (alt.value || '').trim();
+    }
+    if (!val) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    const dmy = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (dmy) {
+        const day = dmy[1].padStart(2, '0');
+        const month = dmy[2].padStart(2, '0');
+        const year = dmy[3];
+        return `${year}-${month}-${day}`;
+    }
+    const parsed = new Date(val);
+    if (!isNaN(parsed.getTime())) {
+        const day = String(parsed.getDate()).padStart(2, '0');
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        return `${parsed.getFullYear()}-${month}-${day}`;
+    }
+    return null;
 }
 
 function getDateDisplay(id) {
@@ -688,6 +661,10 @@ function getDateDisplay(id) {
         const p = val.split('-');
         return `${p[2]}/${p[1]}/${p[0]}`;
     }
+    const dmy = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (dmy) {
+        return `${dmy[1].padStart(2, '0')}/${dmy[2].padStart(2, '0')}/${dmy[3]}`;
+    }
     return val;
 }
 
@@ -699,9 +676,14 @@ function setDateValue(id, dateObj) {
     const year = dateObj.getFullYear();
     const dmy = `${day}/${month}/${year}`;
     const iso = `${year}-${month}-${day}`;
+
+    if (window.setDate) {
+        window.setDate('#' + id, dmy);
+    }
     const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
     if (fp && typeof fp.setDate === 'function') {
         fp.setDate(dateObj, false);
+        if (fp.altInput) fp.altInput.value = dmy;
     }
     el.value = dmy;
     if (el.nextElementSibling && el.nextElementSibling.classList.contains('flatpickr-alt-input')) {
@@ -726,30 +708,13 @@ const DashboardApp = {
     },
 
     init() {
-        const rawHash = (window.location.hash || '').replace('#', '').trim();
-        let hashTab = rawHash;
-        let hashSubTab = null;
-
-        if (rawHash.includes('/')) {
-            const parts = rawHash.split('/');
-            hashTab = parts[0];
-            hashSubTab = parts[1];
-        } else if (rawHash.startsWith('accounts-') || rawHash.startsWith('accounts_')) {
-            hashTab = 'accounts';
-            hashSubTab = rawHash.substring(9);
-        }
-
+        const hashTab = (window.location.hash || '').replace('#', '').trim();
         const storedTab = sessionStorage.getItem('dashboard_active_tab');
         const initTab = d$('#tabs')?.dataset?.initialTab;
 
-        const validTabs = ['overview', 'jobs', 'bills', 'gp', 'recon', 'accounts'];
-        if (hashTab && validTabs.includes(hashTab)) {
+        if (hashTab && ['overview', 'jobs', 'bills', 'gp', 'recon', 'accounts'].includes(hashTab)) {
             this.currentTab = hashTab;
-            if (hashTab === 'accounts' && hashSubTab) {
-                const normalizedSub = (hashSubTab === 'summary') ? 'cb' : hashSubTab;
-                sessionStorage.setItem('dashboard_accounts_subtab', normalizedSub);
-            }
-        } else if (storedTab && validTabs.includes(storedTab)) {
+        } else if (storedTab && ['overview', 'jobs', 'bills', 'gp', 'recon', 'accounts'].includes(storedTab)) {
             this.currentTab = storedTab;
         } else if (initTab) {
             this.currentTab = initTab;
@@ -794,15 +759,8 @@ const DashboardApp = {
     switchTab(tabId) {
         this.currentTab = tabId;
         sessionStorage.setItem('dashboard_active_tab', tabId);
-        
-        let hashUrl = '#' + tabId;
-        if (tabId === 'accounts') {
-            const sub = sessionStorage.getItem('dashboard_accounts_subtab') || 'cb';
-            hashUrl = '#accounts/' + sub;
-        }
-
         if (window.history && window.history.replaceState) {
-            window.history.replaceState(null, '', hashUrl);
+            window.history.replaceState(null, '', '#' + tabId);
         }
         d$$('#tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.t === tabId));
         d$$('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + tabId));
@@ -863,8 +821,16 @@ const DashboardApp = {
             // Quick range change
             $(document).on('change', '#fRange', onRangeChanged);
 
-            // Date inputs change
-            $(document).on('change', '#fFrom, #fTo', onDateChanged);
+            // Date inputs & flatpickr alt-input change / blur / enter
+            $(document).on('change blur', '#fFrom, #fTo, input.flatpickr-alt-input, .custom-datepicker', onDateChanged);
+            $(document).on('keyup', '#fFrom, #fTo, input.flatpickr-alt-input', function (e) {
+                if (e.key === 'Enter') onDateChanged();
+            });
+
+            // Delegated click on flatpickr calendar day cells
+            $(document).on('click', '.flatpickr-day', function () {
+                setTimeout(onDateChanged, 50);
+            });
 
             // Delegated click for custom-select-2 dropdown options and clear icons
             $(document).on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-clear-icon, .custom-dd-item', function () {
@@ -883,7 +849,7 @@ const DashboardApp = {
             });
 
             // Manual typing in flatpickr alt-input
-            $(document).on('input change blur', '.flatpickr-alt-input', function () {
+            $(document).on('input', '.flatpickr-alt-input', function () {
                 triggerRefresh(300);
             });
         }
@@ -906,18 +872,26 @@ const DashboardApp = {
             const el = document.getElementById(id);
             if (!el) return;
             const fp = (window.jQuery ? $(el).data('customFpInstance') : null) || el._flatpickr;
-            if (fp && fp.config && Array.isArray(fp.config.onChange)) {
+            if (fp && fp.config) {
+                if (!Array.isArray(fp.config.onChange)) {
+                    fp.config.onChange = fp.config.onChange ? [fp.config.onChange] : [];
+                }
                 if (!fp.config.onChange.includes(onDateChanged)) {
                     fp.config.onChange.push(onDateChanged);
                 }
+                if (!Array.isArray(fp.config.onClose)) {
+                    fp.config.onClose = fp.config.onClose ? [fp.config.onClose] : [];
+                }
+                if (!fp.config.onClose.includes(onDateChanged)) {
+                    fp.config.onClose.push(onDateChanged);
+                }
             }
         };
-        hookFp('fFrom');
-        hookFp('fTo');
-        setTimeout(() => {
+        [50, 150, 300, 600, 1200, 2500].forEach(ms => setTimeout(() => { hookFp('fFrom'); hookFp('fTo'); }, ms));
+        $(document).on('focus click', '#fFrom, #fTo, .flatpickr-alt-input', () => {
             hookFp('fFrom');
             hookFp('fTo');
-        }, 150);
+        });
     },
 
     applyQuickRange(code) {
@@ -1092,517 +1066,47 @@ const DashboardApp = {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     },
 
-    activePanel() {
-        if (this.currentTab === 'accounts') {
-            return document.querySelector('#p-accounts .sub.on') || document.querySelector('#p-accounts');
-        }
-        return document.querySelector('#p-' + this.currentTab) || document.querySelector('.panel.on') || document.body;
-    },
-
-    reportTitle() {
-        if (this.currentTab === 'accounts') {
-            const sub = document.querySelector('#subnav button.on')?.textContent?.trim() || 'Cash & Bank Summary';
-            return 'Accounts – ' + sub;
-        }
-        const tabBtn = document.querySelector('.tabs .tab.on');
-        return tabBtn ? tabBtn.textContent.trim() : 'Dashboard';
-    },
-
-    filterLines() {
-        const fFrom = getDateValue('fFrom') || '';
-        const fTo = getDateValue('fTo') || '';
-        const period = (fFrom && fTo) ? `${fFrom} – ${fTo}` : (fTo ? `As on ${fTo}` : 'All time');
-
-        const bSel = document.getElementById('fBranch');
-        const branch = (bSel && bSel.value) ? (bSel.options[bSel.selectedIndex]?.text || 'All Branches') : 'All Branches';
-
-        const L = [
-            ['Period', period],
-            ['Branch', branch]
-        ];
-
-        const mSel = document.getElementById('fMode');
-        const pSel = document.getElementById('fPort');
-        const cSel = document.getElementById('fCust');
-        const sSel = document.getElementById('fStatus');
-
-        if (this.currentTab === 'recon') {
-            return [
-                ['Statement', 'Job number wise reconcile (Actual)'],
-                ['Branch', branch],
-                ['Shipment Mode', (mSel && mSel.value) ? mSel.options[mSel.selectedIndex]?.text : 'All Modes'],
-                ['Port', (pSel && pSel.value) ? pSel.options[pSel.selectedIndex]?.text : 'All Ports'],
-                ['Customer', (cSel && cSel.value) ? cSel.options[cSel.selectedIndex]?.text : 'All Customers']
-            ];
-        }
-
-        if (this.currentTab !== 'accounts') {
-            L.push(
-                ['Shipment Mode', (mSel && mSel.value) ? mSel.options[mSel.selectedIndex]?.text : 'All Modes'],
-                ['Port', (pSel && pSel.value) ? pSel.options[pSel.selectedIndex]?.text : 'All Ports'],
-                ['Customer', (cSel && cSel.value) ? cSel.options[cSel.selectedIndex]?.text : 'All Customers'],
-                ['Job Status', (sSel && sSel.value) ? sSel.options[sSel.selectedIndex]?.text : 'All Status']
-            );
-        }
-        return L;
-    },
-
-    collectExport() {
-        const p = this.activePanel();
-        if (!p) {
-            return {
-                title: this.reportTitle(),
-                company: getCompanyName(),
-                kpis: [],
-                charts: [],
-                tables: [],
-                filters: this.filterLines()
-            };
-        }
-
-        // 1. KPIs & Mini cards
-        const kpis = [...p.querySelectorAll('.kpi, .mini')].map(e => {
-            const lbl = e.querySelector('.klabel, .mlbl')?.textContent?.trim() || '';
-            const val = e.querySelector('.kval, .mval')?.textContent?.trim() || '';
-            const sub = e.querySelector('.ksub, .msub')?.textContent?.trim() || '';
-            return [lbl, val, sub];
-        }).filter(x => x[0] || x[1]);
-
-        // 2. Charts
-        const charts = [...p.querySelectorAll('canvas')].map(c => {
-            let img = null;
-            try {
-                if (CH[c.id] && typeof CH[c.id].toBase64Image === 'function') {
-                    img = CH[c.id].toBase64Image('image/png', 1);
-                } else if (typeof c.toDataURL === 'function') {
-                    img = c.toDataURL('image/png');
-                }
-            } catch (err) {
-                console.warn('Canvas to image failed for', c.id, err);
-            }
-            if (!img) return null;
-            const card = c.closest('.card');
-            const title = card?.querySelector('h3')?.textContent?.trim() || 'Chart';
-            return {
-                title,
-                img,
-                w: c.width || 400,
-                h: c.height || 200
-            };
-        }).filter(Boolean);
-
-        // 3. Tables (GRIDS first, DOM table fallback)
-        let tables = [...p.querySelectorAll('.gbody > div[id]')].filter(d => GRIDS[d.id]).map(d => {
-            const g = GRIDS[d.id];
-            const card = d.closest('.card');
-            const name = card?.querySelector('h3')?.textContent?.replace(/\s+/g, ' ').trim() || 'Data Table';
-            const rows = g.q ? g.view : (g.rows && g.rows.length ? g.rows : g.view);
-            return {
-                name,
-                g,
-                cols: g.cols,
-                rows: rows,
-                xcols: g.o?.xcols || g.cols
-            };
-        });
-
-        if (!tables.length) {
-            const domTables = [...p.querySelectorAll('table')].filter(t => t.offsetParent !== null || t.rows.length > 0);
-            tables = domTables.map((t, idx) => {
-                const card = t.closest('.card') || t.closest('.panel') || p;
-                const name = card?.querySelector('h3')?.textContent?.replace(/\s+/g, ' ').trim() || `Table ${idx + 1}`;
-                const ths = [...t.querySelectorAll('thead th')];
-                const cols = ths.length ? ths.map((th, ci) => ({
-                    l: th.textContent.trim(),
-                    k: `col_${ci}`,
-                    t: th.classList.contains('num') ? 'amt' : 'text'
-                })) : [];
-                const trs = [...t.querySelectorAll('tbody tr')].filter(tr => !tr.classList.contains('empty-row'));
-                const rows = trs.map((tr, ri) => {
-                    const cells = [...tr.querySelectorAll('td')];
-                    const obj = {};
-                    cells.forEach((td, ci) => {
-                        const key = cols[ci] ? cols[ci].k : `col_${ci}`;
-                        obj[key] = td.textContent.trim();
-                    });
-                    return obj;
-                });
-                return {
-                    name,
-                    g: { o: {} },
-                    cols: cols,
-                    rows: rows,
-                    xcols: cols
-                };
-            });
-        }
-
-        return {
-            title: this.reportTitle(),
-            company: getCompanyName(),
-            kpis: kpis,
-            charts: charts,
-            tables: tables,
-            filters: this.filterLines()
-        };
-    },
-
     exportPreview() {
-        const X = this.collectExport();
-        const w = window.open('', '_blank');
-        if (!w) {
-            alert('Please allow pop-ups to open the print preview.');
-            return;
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.open(`/GPAnalysisReport/PreviewPdf?${qs}`, '_blank');
+        } else {
+            window.print();
         }
-
-        const kp = X.kpis.map(k => `
-            <div class="k">
-                <small>${esc(k[0])}</small>
-                <b>${esc(k[1])}</b>
-                <span>${esc(k[2])}</span>
-            </div>
-        `).join('');
-
-        const ch = X.charts.map(c => `
-            <figure>
-                <figcaption>${esc(c.title)}</figcaption>
-                <img src="${c.img}">
-            </figure>
-        `).join('');
-
-        const tb = X.tables.map(t => {
-            let tfootHtml = '';
-            if (t.g?.o?.totals && t.rows.length) {
-                tfootHtml = '<tfoot><tr class="total">' + t.cols.map((c, i) => {
-                    let txt = '';
-                    if (i === 0) txt = 'Total';
-                    if (c.totf) {
-                        txt = c.totf(t.rows);
-                    } else if (c.tot) {
-                        const sum = t.rows.reduce((acc, r) => {
-                            const raw = r[c.k] !== undefined ? r[c.k] : (r[c.k?.charAt(0).toUpperCase() + c.k?.slice(1)] ?? 0);
-                            return acc + (Number(raw) || 0);
-                        }, 0);
-                        txt = amt(sum);
-                    }
-                    return `<td class="${isNum(c) ? 'n' : ''}">${esc(txt)}</td>`;
-                }).join('') + '</tr></tfoot>';
-            }
-
-            return `
-                <h3>${esc(t.name)} <small>(${int(t.rows.length)} rows)</small></h3>
-                <table>
-                    <thead>
-                        <tr>${t.cols.map(c => `<th>${c.l}</th>`).join('')}</tr>
-                    </thead>
-                    <tbody>
-                        ${t.rows.map((r, i) => `
-                            <tr class="${t.g?.o?.rowCls ? t.g.o.rowCls(r) : ''}">
-                                ${t.cols.map(c => `<td class="${isNum(c) ? 'n' : ''}">${esc(cellTxt(c, r, i))}</td>`).join('')}
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                    ${tfootHtml}
-                </table>
-            `;
-        }).join('');
-
-        const htmlContent = `<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>${esc(X.title)} - ${esc(X.company)}</title>
-    <style>
-        @page { size: A4 landscape; margin: 10mm; }
-        body { font: 11px/1.4 "Segoe UI", Arial, sans-serif; color: #1a2740; margin: 0; padding: 16px; background: #fff; }
-        .bar { position: sticky; top: 0; background: #0a2f6c; color: #fff; padding: 8px 14px; margin: -16px -16px 14px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-        .bar button { background: #fff; color: #0a2f6c; border: 0; border-radius: 6px; padding: 7px 18px; font-weight: 700; cursor: pointer; font-size: 12px; }
-        .bar button:hover { background: #eef3fb; }
-        h1 { font-size: 18px; margin: 0; color: #0a2f6c; }
-        h2 { font-size: 12px; margin: 2px 0 8px; color: #546580; font-weight: 500; }
-        h3 { font-size: 12px; margin: 14px 0 6px; color: #0a2f6c; font-weight: 600; }
-        h3 small { color: #6a7a91; font-weight: 400; }
-        .f { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-bottom: 12px; font-size: 10.5px; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
-        .f span b { color: #0a2f6c; }
-        .ks { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 12px; }
-        .k { border: 1px solid #dfe6f1; border-left: 4px solid #0b57d0; border-radius: 6px; padding: 6px 8px; background: #fff; }
-        .k small { display: block; text-transform: uppercase; font-size: 8.5px; color: #6a7a91; letter-spacing: .4px; font-weight: 600; }
-        .k b { font-size: 13px; color: #1a2740; display: block; margin: 2px 0; }
-        .k span { display: block; font-size: 9px; color: #6a7a91; }
-        .cs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
-        figure { margin: 0; border: 1px solid #dfe6f1; border-radius: 6px; padding: 6px; break-inside: avoid; background: #fff; }
-        figcaption { font-weight: 700; font-size: 10px; margin-bottom: 3px; color: #33445f; }
-        img { width: 100%; height: auto; display: block; }
-        table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 10px; }
-        th { background: #eef3fb; border: 1px solid #d5deec; padding: 5px 6px; text-align: center; font-weight: 650; color: #0a2f6c; }
-        td { border: 1px solid #e4eaf3; padding: 4px 6px; }
-        td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-        tr { break-inside: avoid; }
-        thead { display: table-header-group; }
-        tfoot tr.total td { font-weight: 700; background: #eef3fb; border-top: 2px solid #b7c9e6; }
-        tr.l1 td, tr.total td { font-weight: 700; background: #eef3fb; }
-        tr.l2 td, tr.sub td, tr.head td { font-weight: 700; background: #f6f8fc; }
-        @media print {
-            .bar { display: none !important; }
-            body { padding: 0 !important; }
-        }
-    </style>
-</head>
-<body>
-    <div class="bar">
-        <span>Print preview – use Ctrl+P / “Save as PDF”</span>
-        <button onclick="window.print()">Print</button>
-    </div>
-    <h1>${esc(X.company)}</h1>
-    <h2>${esc(X.title)} · generated ${new Date().toLocaleString('en-GB')}</h2>
-    <div class="f">
-        ${X.filters.map(f => `<span>${esc(f[0])}: <b>${esc(f[1])}</b></span>`).join('')}
-    </div>
-    <div class="ks">${kp}</div>
-    <div class="cs">${ch}</div>
-    ${tb}
-</body>
-</html>`;
-        w.document.open();
-        w.document.write(htmlContent);
-        w.document.close();
     },
 
     exportPdf() {
-        if (!window.jspdf || !window.jspdf.jsPDF) {
-            alert('PDF library not loaded – check your internet connection.');
-            return;
-        }
-        const X = this.collectExport();
-        const doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-        const W = doc.internal.pageSize.getWidth();
-        const H = doc.internal.pageSize.getHeight();
-        const M = 28;
-
-        const bd = s => String(s ?? '').replace(/৳/g, 'BDT ').replace(/[^\x00-\xFF–—]/g, '');
-
-        // Top Navy Bar
-        doc.setFillColor(10, 47, 108);
-        doc.rect(0, 0, W, 46, 'F');
-        doc.setTextColor(255);
-        doc.setFontSize(15);
-        doc.setFont(undefined, 'bold');
-        doc.text(bd(X.company), M, 21);
-
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(bd(X.title) + '   |   Generated ' + new Date().toLocaleString('en-GB'), M, 37);
-
-        // Filters
-        doc.setTextColor(40);
-        doc.setFontSize(8.5);
-        doc.text(bd(X.filters.map(f => f[0] + ': ' + f[1]).join('    ')), M, 62);
-
-        let y = 72;
-        // KPIs Grid (4 per row)
-        if (X.kpis.length > 0) {
-            const per = 4;
-            const rows = [];
-            for (let i = 0; i < X.kpis.length; i += per) {
-                rows.push(X.kpis.slice(i, i + per));
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.location.href = `/GPAnalysisReport/ExportPdf?${qs}`;
+        } else {
+            if (!window.jspdf) {
+                alert('PDF library is loading. Please try again.');
+                return;
             }
-            doc.autoTable({
-                startY: y,
-                theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 4 },
-                body: rows.map(r => {
-                    const a = [];
-                    r.forEach(k => {
-                        a.push({
-                            content: bd(k[0]),
-                            styles: { fontStyle: 'bold', fillColor: [238, 243, 251], textColor: [60, 75, 100] }
-                        }, bd(k[1]));
-                    });
-                    return a;
-                }),
-                margin: { left: M, right: M }
-            });
-            y = doc.lastAutoTable.finalY + 10;
+            window.print();
         }
-
-        // Charts (up to 3 per row)
-        if (X.charts.length > 0) {
-            const cw = (W - 2 * M - 20) / 3;
-            let x = M, rowH = 0;
-            X.charts.forEach(c => {
-                const h = Math.min(cw * c.h / c.w, 140);
-                if (x + cw > W - M + 1) {
-                    x = M;
-                    y += rowH + 8;
-                    rowH = 0;
-                }
-                if (y + h + 14 > H - M) {
-                    doc.addPage();
-                    y = M;
-                    x = M;
-                    rowH = 0;
-                }
-                doc.setFontSize(8);
-                doc.setFont(undefined, 'bold');
-                doc.setTextColor(10, 47, 108);
-                doc.text(bd(c.title), x, y + 8);
-                try {
-                    doc.addImage(c.img, 'PNG', x, y + 11, cw, h);
-                } catch (err) {
-                    console.warn('PDF addImage error:', err);
-                }
-                rowH = Math.max(rowH, h + 14);
-                x += cw + 10;
-            });
-            y += rowH + 10;
-        }
-
-        // Tables
-        X.tables.forEach(t => {
-            const head = [t.cols.map(c => bd(plain(c.l)))];
-            const body = t.rows.map((r, i) => t.cols.map(c => bd(cellTxt(c, r, i))));
-
-            let foot = undefined;
-            if (t.g?.o?.totals && t.rows.length) {
-                const footRow = t.cols.map((c, i) => {
-                    if (i === 0) return 'Total';
-                    if (c.totf) return bd(c.totf(t.rows));
-                    if (c.tot) {
-                        const sum = t.rows.reduce((acc, r) => {
-                            const raw = r[c.k] !== undefined ? r[c.k] : (r[c.k?.charAt(0).toUpperCase() + c.k?.slice(1)] ?? 0);
-                            return acc + (Number(raw) || 0);
-                        }, 0);
-                        return bd(amt(sum));
-                    }
-                    return '';
-                });
-                foot = [footRow];
-            }
-
-            if (y > H - 80) {
-                doc.addPage();
-                y = M;
-            }
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(10, 47, 108);
-            doc.text(bd(t.name) + ' (' + t.rows.length + ' rows)', M, y + 8);
-
-            doc.autoTable({
-                startY: y + 14,
-                head: head,
-                body: body,
-                foot: foot,
-                theme: 'grid',
-                styles: { fontSize: 6.8, cellPadding: 2.2, overflow: 'linebreak' },
-                headStyles: { fillColor: [10, 47, 108], halign: 'center' },
-                footStyles: { fillColor: [223, 234, 249], textColor: [10, 47, 108], fontStyle: 'bold' },
-                margin: { left: M, right: M },
-                columnStyles: Object.fromEntries(t.cols.map((c, i) => [i, { halign: isNum(c) ? 'right' : 'left' }])),
-                didParseCell: d => {
-                    if (d.section === 'body' && t.g?.o?.rowCls) {
-                        const cl = t.g.o.rowCls(t.rows[d.row.index]);
-                        if (/l1|l2|total|head|sub/.test(cl)) d.cell.styles.fontStyle = 'bold';
-                        if (/l1|total/.test(cl)) d.cell.styles.fillColor = [223, 234, 249];
-                    }
-                }
-            });
-            y = doc.lastAutoTable.finalY + 16;
-        });
-
-        // Page Numbers
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            doc.setPage(i);
-            doc.setFontSize(7.5);
-            doc.setTextColor(120);
-            doc.text('Page ' + i + ' of ' + totalPages, W - M, H - 12, { align: 'right' });
-            doc.text(bd(X.company), M, H - 12);
-        }
-
-        const toDate = (document.getElementById('fTo')?.value || new Date().toISOString().slice(0, 10)).replace(/[^\w]+/g, '-');
-        doc.save(X.title.replace(/[^\w]+/g, '_') + '_' + toDate + '.pdf');
     },
 
     exportExcel() {
-        if (!window.XLSX) {
-            alert('Excel library not loaded – check your internet connection.');
+        if (this.currentTab === 'gp') {
+            const qs = this.getGPExportParams();
+            window.location.href = `/GPAnalysisReport/ExportExcel?${qs}`;
             return;
         }
-        const X = this.collectExport();
-        const wb = XLSX.utils.book_new();
 
-        // Sheet 1: Summary
-        const sm = [
-            [X.company],
-            [X.title],
-            ['Generated', new Date().toLocaleString('en-GB')],
-            [],
-            ...X.filters.map(f => [f[0], f[1]]),
-            [],
-            ['Indicator', 'Value', 'Note'],
-            ...X.kpis.map(k => [k[0], k[1], k[2]])
-        ];
-        const ws0 = XLSX.utils.aoa_to_sheet(sm);
-        ws0['!cols'] = [{ wch: 34 }, { wch: 28 }, { wch: 46 }];
-        XLSX.utils.book_append_sheet(wb, ws0, 'Summary');
-
-        // Data Sheets
-        X.tables.forEach(t => {
-            t = { ...t, cols: t.xcols || t.cols };
-            const aoa = [t.cols.map(c => plain(c.l))];
-
-            t.rows.forEach((r, i) => {
-                aoa.push(t.cols.map(c => {
-                    if (c.t === 'sn') return i + 1;
-                    if (c.x && !isNum(c)) return c.x(r, i);
-                    const rawVal = r[c.k] !== undefined ? r[c.k] : (r[c.k?.charAt(0).toUpperCase() + c.k?.slice(1)] ?? r[c.k?.toLowerCase()]);
-                    if (c.t === 'badge') return rawVal ?? '';
-                    const v = c.v ? c.v(r) : rawVal;
-                    if (c.r && c.x && c.t !== 'money' && c.t !== 'pct') return c.x(r, i);
-                    if (c.t === 'date') return dmy(v);
-                    if (['money', 'amt', 'int'].includes(c.t)) return (v == null || v === '') ? null : +v;
-                    if (c.t === 'pct') return +(+v).toFixed(2);
-                    if (c.x) return c.x(r, i);
-                    return v != null ? v : '';
-                }));
-            });
-
-            if (t.g?.o?.totals && t.rows.length) {
-                const totRow = t.cols.map((c, ci) => {
-                    if (ci === 0) return 'Total';
-                    if (c.tot) {
-                        const sum = t.rows.reduce((acc, r) => {
-                            const raw = r[c.k] !== undefined ? r[c.k] : (r[c.k?.charAt(0).toUpperCase() + c.k?.slice(1)] ?? 0);
-                            return acc + (Number(raw) || 0);
-                        }, 0);
-                        return sum;
-                    }
-                    return '';
-                });
-                aoa.push(totRow);
-            }
-
-            const ws = XLSX.utils.aoa_to_sheet(aoa);
-            ws['!cols'] = t.cols.map(c => ({
-                wch: Math.max(10, Math.min(42, plain(c.l).length + 6, c.t === 'text' || !c.t ? 40 : 16))
-            }));
-
-            for (let R = 1; R < aoa.length; R++) {
-                t.cols.forEach((c, ci) => {
-                    const a = XLSX.utils.encode_cell({ r: R, c: ci });
-                    if (ws[a] && ws[a].t === 'n') {
-                        ws[a].z = c.t === 'int' ? '#,##0' : c.t === 'pct' ? '0.00' : '#,##0.00';
-                    }
-                });
-            }
-
-            const sheetTitle = t.name.replace(/[\\\/?*\[\]:]/g, ' ').slice(0, 31);
-            XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
-        });
-
-        const toDate = (document.getElementById('fTo')?.value || new Date().toISOString().slice(0, 10)).replace(/[^\w]+/g, '-');
-        XLSX.writeFile(wb, X.title.replace(/[^\w]+/g, '_') + '_' + toDate + '.xlsx');
+        if (!window.XLSX) {
+            alert('Excel library not loaded.');
+            return;
+        }
+        const activePanel = document.querySelector('.panel.on');
+        const table = activePanel?.querySelector('table.custom-grid-table:visible, table.grid, table');
+        if (!table) {
+            alert('No table found in the current tab to export.');
+            return;
+        }
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Dashboard" });
+        XLSX.writeFile(wb, `${CONFIG.title}_${this.currentTab}.xlsx`);
     },
 
     loadActiveTab() {
@@ -1629,12 +1133,6 @@ const DashboardApp = {
         }
     }
 };
-
-window.DashboardApp = DashboardApp;
-window.exportPreview = () => DashboardApp.exportPreview();
-window.exportPdf = () => DashboardApp.exportPdf();
-window.exportExcel = () => DashboardApp.exportExcel();
-window.collectExport = () => DashboardApp.collectExport();
 
 document.addEventListener('DOMContentLoaded', () => {
     DashboardApp.init();

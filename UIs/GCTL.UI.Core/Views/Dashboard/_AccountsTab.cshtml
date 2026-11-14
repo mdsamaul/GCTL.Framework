@@ -109,7 +109,7 @@
         <div class="kpis">
             <div class="kpi blue" id="s_ta"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg></div><div class="kbody"><div class="klabel">Total Assets</div><div class="kval">0</div><div class="ksub">current + non-current</div></div></div>
             <div class="kpi red" id="s_tl"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0zM5 7h14"/></svg></div><div class="kbody"><div class="klabel">Total Liabilities</div><div class="kval">0</div><div class="ksub">payables &amp; borrowings</div></div></div>
-            <div class="kpi green" id="s_te"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div><div class="kbody"><div class="klabel">Total Equity</div><div class="kval">0</div><div class="ksub">capital + reserves</div></div></div>
+            <div class="kpi green" id="s_te"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div><div class="kbody"><div class="klabel">Total Equity (incl. profit)</div><div class="kval">0</div><div class="ksub">capital + reserves</div></div></div>
             <div class="kpi purple" id="s_wc"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="kbody"><div class="klabel">Working Capital</div><div class="kval">0</div><div class="ksub">current assets - liab</div></div></div>
             <div class="kpi orange" id="s_cr"><div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg></div><div class="kbody"><div class="klabel">Current Ratio</div><div class="kval">1.85</div><div class="ksub">liquidity health</div></div></div>
         </div>
@@ -119,7 +119,13 @@
             <section class="card"><div class="chdr"><h3>Assets vs Equity &amp; Liab</h3><span>balance verification</span></div><div class="cwrap"><canvas id="s_ch3"></canvas></div></section>
         </div>
         <section class="card gridcard">
-            <div class="gh"><h3>Balance Sheet</h3></div>
+            <div class="gh">
+                <h3>Balance Sheet</h3>
+                <div class="gtools">
+                    <label>Show <select id="s_g_sz"></select> entries</label>
+                    <input id="s_g_q" type="search" placeholder="Search particulars...">
+                </div>
+            </div>
             <div class="gbody"><div id="s_g"></div></div>
             <div class="gfoot" id="s_g_f"></div>
         </section>
