@@ -12,14 +12,14 @@ namespace GCTL.Service.Finance.IncomeStatement
 
         private static class PdfColors
         {
-            public static readonly string HeaderBg = "#F8FAFC";
-            public static readonly string HeaderBorder = "#CBD5E1";
-            public static readonly string BorderLight = "#F1F5F9";
-            public static readonly string BorderSub = "#94A3B8";
+            public static readonly string HeaderBg = "#FAFBFC";
+            public static readonly string HeaderBorder = "#E2E8F0";
+            public static readonly string BorderLight = "#F8FAFC";
+            public static readonly string BorderSub = "#CBD5E1";
             public static readonly string TextDark = "#1E293B";
             public static readonly string TextMuted = "#64748B";
-            public static readonly string SectionBg = "#F1F5F9";
-            public static readonly string TotalBg = "#F8FAFC";
+            public static readonly string SectionBg = "#F8FAFC";
+            public static readonly string TotalBg = "#FAFBFC";
         }
 
         public IncomeStatementPdf(IncomeStatementReportVM model)
@@ -136,7 +136,7 @@ namespace GCTL.Service.Finance.IncomeStatement
         {
             return container
                 .Background(PdfColors.HeaderBg)
-                .BorderBottom(1f)
+                .BorderBottom(0.75f)
                 .BorderColor(PdfColors.HeaderBorder)
                 .PaddingVertical(6)
                 .PaddingHorizontal(8);
@@ -154,8 +154,8 @@ namespace GCTL.Service.Finance.IncomeStatement
         {
             return container
                 .Background(PdfColors.TotalBg)
-                .BorderTop(0.75f)
-                .BorderBottom(1f)
+                .BorderTop(0.5f)
+                .BorderBottom(0.75f)
                 .BorderColor(PdfColors.BorderSub)
                 .PaddingVertical(5)
                 .PaddingHorizontal(8);
